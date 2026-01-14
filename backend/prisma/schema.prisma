@@ -1,0 +1,152 @@
+// Prisma Schema for CyberGuard AI
+// Cybersecurity Training Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User roles
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+// User model
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role      @default(STUDENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  enrollments   Enrollment[]
+  progress      Progress[]
+  quizAttempts  QuizAttempt[]
+
+  @@map("users")
+}
+
+// Course model
+model Course {
+  id            String    @id @default(uuid())
+  title         String
+  description   String
+  thumbnail     String?
+  difficulty    String    @default("Beginner")
+  duration      String?   // e.g., "2 hours"
+  isPublished   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  lessons       Lesson[]
+  enrollments   Enrollment[]
+
+  @@map("courses")
+}
+
+// Lesson model
+model Lesson {
+  id            String    @id @default(uuid())
+  title         String
+  content       String    @db.Text
+  videoUrl      String?
+  order         Int
+  courseId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  course        Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress      Progress[]
+  quiz          Quiz?
+
+  @@map("lessons")
+}
+
+// Enrollment (user enrolled in course)
+model Enrollment {
+  id            String    @id @default(uuid())
+  userId        String
+  courseId      String
+  enrolledAt    DateTime  @default(now())
+  completedAt   DateTime?
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course        Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+// Progress (user progress on lessons)
+model Progress {
+  id            String    @id @default(uuid())
+  userId        String
+  lessonId      String
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson        Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("progress")
+}
+
+// Quiz model
+model Quiz {
+  id            String    @id @default(uuid())
+  lessonId      String    @unique
+  title         String
+  passingScore  Int       @default(70) // percentage
+
+  // Relations
+  lesson        Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions     Question[]
+  attempts      QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+// Question model
+model Question {
+  id            String    @id @default(uuid())
+  quizId        String
+  question      String
+  options       String[]  // Array of options
+  correctAnswer Int       // Index of correct option
+  order         Int
+
+  // Relations
+  quiz          Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("questions")
+}
+
+// Quiz attempt
+model QuizAttempt {
+  id            String    @id @default(uuid())
+  userId        String
+  quizId        String
+  score         Int       // percentage
+  passed        Boolean
+  attemptedAt   DateTime  @default(now())
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz          Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
