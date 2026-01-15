@@ -34,14 +34,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import {
-  Shield,
   Moon,
   Sun,
-  Users,
-  BookOpen,
-  BarChart3,
-  Settings,
-  LogOut,
   Plus,
   Edit,
   Trash2,
@@ -53,6 +47,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import courseService, { Course } from "../services/course.service";
+import { AdminSidebar } from "./admin-sidebar";
 
 interface AdminContentProps {
   userEmail: string;
@@ -75,6 +70,18 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     difficulty: "Beginner",
     duration: "",
     isPublished: false
+  });
+
+  // Lesson management state
+  const [showCreateLesson, setShowCreateLesson] = useState(false);
+  const [showEditLesson, setShowEditLesson] = useState(false);
+  const [selectedCourseForLesson, setSelectedCourseForLesson] = useState<string>("");
+  const [editingLesson, setEditingLesson] = useState<any | null>(null);
+  const [newLesson, setNewLesson] = useState({
+    title: "",
+    content: "",
+    videoUrl: "",
+    order: 1
   });
 
   useEffect(() => {
@@ -172,6 +179,84 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     }
   };
 
+  // Lesson handlers
+  const handleCreateLesson = async () => {
+    if (!newLesson.title || !newLesson.content) {
+      alert("Please fill in title and content");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await courseService.createLesson(selectedCourseForLesson, {
+        title: newLesson.title,
+        content: newLesson.content,
+        videoUrl: newLesson.videoUrl || undefined,
+        order: newLesson.order
+      });
+      await fetchCourses(); // Refresh courses to get updated lessons
+      setShowCreateLesson(false);
+      setNewLesson({
+        title: "",
+        content: "",
+        videoUrl: "",
+        order: 1
+      });
+    } catch (error) {
+      console.error("Error creating lesson:", error);
+      alert("Failed to create lesson");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditLesson = async () => {
+    if (!editingLesson) return;
+
+    try {
+      setIsSaving(true);
+      await courseService.updateLesson(editingLesson.id, {
+        title: editingLesson.title,
+        content: editingLesson.content,
+        videoUrl: editingLesson.videoUrl || undefined,
+        order: editingLesson.order
+      });
+      await fetchCourses(); // Refresh courses to get updated lessons
+      setShowEditLesson(false);
+      setEditingLesson(null);
+    } catch (error) {
+      console.error("Error updating lesson:", error);
+      alert("Failed to update lesson");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteLesson = async (lessonId: string) => {
+    if (!confirm("Are you sure you want to delete this lesson?")) return;
+
+    try {
+      await courseService.deleteLesson(lessonId);
+      await fetchCourses(); // Refresh courses to get updated lessons
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+      alert("Failed to delete lesson");
+    }
+  };
+
+  const openCreateLessonDialog = (courseId: string) => {
+    const course = courses.find(c => c.id === courseId);
+    const nextOrder = (course?.lessons?.length || 0) + 1;
+    setSelectedCourseForLesson(courseId);
+    setNewLesson({
+      title: "",
+      content: "",
+      videoUrl: "",
+      order: nextOrder
+    });
+    setShowCreateLesson(true);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -186,71 +271,12 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-sidebar flex-shrink-0">
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h2 className="font-semibold">CyberGuard AI</h2>
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
-            </div>
-          </div>
-
-          <nav className="space-y-2">
-            <button
-              onClick={() => onNavigate("admin-dashboard")}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span>Overview</span>
-            </button>
-            <button
-              onClick={() => onNavigate("admin-users")}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            >
-              <Users className="w-5 h-5" />
-              <span>User Management</span>
-            </button>
-            <button
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
-            >
-              <BookOpen className="w-5 h-5" />
-              <span>Content Management</span>
-            </button>
-            <button
-              onClick={() => onNavigate("admin-analytics")}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span>Analytics & Reports</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors">
-              <Settings className="w-5 h-5" />
-              <span>Settings</span>
-            </button>
-          </nav>
-        </div>
-
-        <div className="mt-auto p-6 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-primary font-medium">
-                {userEmail.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{userEmail}</p>
-              <p className="text-xs text-muted-foreground">Administrator</p>
-            </div>
-          </div>
-          <Button variant="outline" className="w-full" onClick={onLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </aside>
+      <AdminSidebar
+        userEmail={userEmail}
+        currentPage="admin-content"
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
@@ -573,7 +599,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
             <TabsContent value="lessons" className="space-y-6">
               <div className="mb-6">
                 <h2 className="text-xl font-semibold">All Lessons</h2>
-                <p className="text-muted-foreground">Lessons are managed within each course</p>
+                <p className="text-muted-foreground">Manage lessons within each course</p>
               </div>
 
               {courses.length === 0 ? (
@@ -593,9 +619,18 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                             {course._count?.lessons || 0} lessons
                           </p>
                         </div>
-                        <Badge variant={course.isPublished ? "default" : "outline"}>
-                          {course.isPublished ? "Published" : "Draft"}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => openCreateLessonDialog(course.id)}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Lesson
+                          </Button>
+                          <Badge variant={course.isPublished ? "default" : "outline"}>
+                            {course.isPublished ? "Published" : "Draft"}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="p-4">
                         {course.lessons && course.lessons.length > 0 ? (
@@ -603,7 +638,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                             {course.lessons.map((lesson, index) => (
                               <div key={lesson.id} className="flex items-center gap-4 p-3 border border-border rounded-lg">
                                 <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-sm font-medium">
-                                  {index + 1}
+                                  {lesson.order}
                                 </div>
                                 <div className="flex-1">
                                   <h4 className="font-medium">{lesson.title}</h4>
@@ -612,14 +647,42 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                                     {lesson.quiz && " • Has quiz"}
                                   </p>
                                 </div>
-                                <Video className="w-4 h-4 text-muted-foreground" />
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingLesson(lesson);
+                                      setShowEditLesson(true);
+                                    }}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteLesson(lesson.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            No lessons in this course yet
-                          </p>
+                          <div className="text-center py-8">
+                            <Video className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-sm text-muted-foreground mb-4">
+                              No lessons in this course yet
+                            </p>
+                            <Button
+                              variant="outline"
+                              onClick={() => openCreateLessonDialog(course.id)}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add First Lesson
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </Card>
@@ -667,6 +730,142 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
               </Card>
             </TabsContent>
           </Tabs>
+
+          {/* Create Lesson Dialog */}
+          <Dialog open={showCreateLesson} onOpenChange={setShowCreateLesson}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Create New Lesson</DialogTitle>
+                <DialogDescription>
+                  Add a new lesson to {courses.find(c => c.id === selectedCourseForLesson)?.title}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="lesson-title">Lesson Title</Label>
+                  <Input
+                    id="lesson-title"
+                    placeholder="e.g., Understanding Phishing Emails"
+                    value={newLesson.title}
+                    onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })}
+                    className="bg-input-background"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lesson-content">Lesson Content (Markdown supported)</Label>
+                  <Textarea
+                    id="lesson-content"
+                    placeholder="Enter lesson content using markdown formatting..."
+                    value={newLesson.content}
+                    onChange={(e) => setNewLesson({ ...newLesson, content: e.target.value })}
+                    className="bg-input-background min-h-[200px]"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lesson-video">Video URL (optional)</Label>
+                  <Input
+                    id="lesson-video"
+                    placeholder="e.g., https://www.youtube.com/embed/..."
+                    value={newLesson.videoUrl}
+                    onChange={(e) => setNewLesson({ ...newLesson, videoUrl: e.target.value })}
+                    className="bg-input-background"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lesson-order">Order</Label>
+                  <Input
+                    id="lesson-order"
+                    type="number"
+                    value={newLesson.order}
+                    onChange={(e) => setNewLesson({ ...newLesson, order: parseInt(e.target.value) || 1 })}
+                    className="bg-input-background"
+                    min="1"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowCreateLesson(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateLesson} disabled={isSaving}>
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  Create Lesson
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Lesson Dialog */}
+          <Dialog open={showEditLesson} onOpenChange={setShowEditLesson}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Edit Lesson</DialogTitle>
+                <DialogDescription>
+                  Update lesson details
+                </DialogDescription>
+              </DialogHeader>
+              {editingLesson && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-lesson-title">Lesson Title</Label>
+                    <Input
+                      id="edit-lesson-title"
+                      value={editingLesson.title}
+                      onChange={(e) => setEditingLesson({ ...editingLesson, title: e.target.value })}
+                      className="bg-input-background"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-lesson-content">Lesson Content (Markdown supported)</Label>
+                    <Textarea
+                      id="edit-lesson-content"
+                      value={editingLesson.content}
+                      onChange={(e) => setEditingLesson({ ...editingLesson, content: e.target.value })}
+                      className="bg-input-background min-h-[200px]"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-lesson-video">Video URL (optional)</Label>
+                    <Input
+                      id="edit-lesson-video"
+                      placeholder="e.g., https://www.youtube.com/embed/..."
+                      value={editingLesson.videoUrl || ""}
+                      onChange={(e) => setEditingLesson({ ...editingLesson, videoUrl: e.target.value })}
+                      className="bg-input-background"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-lesson-order">Order</Label>
+                    <Input
+                      id="edit-lesson-order"
+                      type="number"
+                      value={editingLesson.order}
+                      onChange={(e) => setEditingLesson({ ...editingLesson, order: parseInt(e.target.value) || 1 })}
+                      className="bg-input-background"
+                      min="1"
+                    />
+                  </div>
+                </div>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowEditLesson(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleEditLesson} disabled={isSaving}>
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </div>

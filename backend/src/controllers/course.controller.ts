@@ -15,6 +15,15 @@ const createCourseSchema = z.object({
 
 const updateCourseSchema = createCourseSchema.partial();
 
+const createLessonSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
+  videoUrl: z.string().optional(),
+  order: z.number().int().positive()
+});
+
+const updateLessonSchema = createLessonSchema.partial();
+
 // Get all courses (public)
 export const getAllCourses = async (req: Request, res: Response) => {
   try {
@@ -452,5 +461,74 @@ export const markLessonComplete = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('MarkLessonComplete error:', error);
     res.status(500).json({ error: 'Failed to mark lesson as complete' });
+  }
+};
+
+// Create lesson (admin only)
+export const createLesson = async (req: Request, res: Response) => {
+  try {
+    const { courseId } = req.params;
+    const validatedData = createLessonSchema.parse(req.body);
+
+    // Verify course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    const lesson = await prisma.lesson.create({
+      data: {
+        ...validatedData,
+        courseId
+      }
+    });
+
+    res.status(201).json({ message: 'Lesson created successfully', lesson });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    console.error('CreateLesson error:', error);
+    res.status(500).json({ error: 'Failed to create lesson' });
+  }
+};
+
+// Update lesson (admin only)
+export const updateLesson = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const validatedData = updateLessonSchema.parse(req.body);
+
+    const lesson = await prisma.lesson.update({
+      where: { id },
+      data: validatedData
+    });
+
+    res.json({ message: 'Lesson updated successfully', lesson });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    console.error('UpdateLesson error:', error);
+    res.status(500).json({ error: 'Failed to update lesson' });
+  }
+};
+
+// Delete lesson (admin only)
+export const deleteLesson = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.lesson.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Lesson deleted successfully' });
+  } catch (error) {
+    console.error('DeleteLesson error:', error);
+    res.status(500).json({ error: 'Failed to delete lesson' });
   }
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -260,8 +261,15 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
         const formattedLine = trimmedLine
           .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
           .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>');
+
+        // Sanitize HTML to prevent XSS attacks
+        const sanitizedHTML = DOMPurify.sanitize(formattedLine, {
+          ALLOWED_TAGS: ['strong', 'code'],
+          ALLOWED_ATTR: ['class']
+        });
+
         elements.push(
-          <p key={index} className="mb-3 text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+          <p key={index} className="mb-3 text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
         );
       }
     });

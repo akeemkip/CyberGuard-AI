@@ -25,7 +25,21 @@ export interface UserWithEnrollments extends User {
   }[];
 }
 
+export interface CreateUserData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role?: 'STUDENT' | 'ADMIN';
+}
+
 const userService = {
+  // Create new user (admin only)
+  async createUser(data: CreateUserData): Promise<User> {
+    const response = await api.post<{ user: User }>('/users', data);
+    return response.data.user;
+  },
+
   // Get all users (admin only)
   async getAllUsers(): Promise<User[]> {
     const response = await api.get<{ users: User[] }>('/users');
@@ -47,6 +61,12 @@ const userService = {
   // Update user
   async updateUser(id: string, data: Partial<User>): Promise<User> {
     const response = await api.put<{ user: User }>(`/users/${id}`, data);
+    return response.data.user;
+  },
+
+  // Change user role (admin only)
+  async changeUserRole(id: string, role: 'STUDENT' | 'ADMIN'): Promise<User> {
+    const response = await api.put<{ user: User }>(`/users/${id}/role`, { role });
     return response.data.user;
   },
 

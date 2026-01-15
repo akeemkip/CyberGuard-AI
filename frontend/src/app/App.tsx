@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { SettingsProvider } from "./context/SettingsContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LandingPage } from "./components/landing-page";
 import { LoginPage } from "./components/login-page";
 import { RegisterPage } from "./components/register-page";
@@ -18,15 +19,16 @@ import { AdminDashboard } from "./components/admin-dashboard";
 import { AdminUsers } from "./components/admin-users";
 import { AdminContent } from "./components/admin-content";
 import { AdminAnalytics } from "./components/admin-analytics";
+import { AdminSettings } from "./components/admin-settings";
 import { CertificatesPage } from "./components/certificates-page";
 import { AssessmentsPage } from "./components/assessments-page";
 import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
 
-type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-content" | "admin-analytics";
+type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-content" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-content", "admin-analytics"];
+const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-content", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -249,6 +251,14 @@ function AppContent() {
             onLogout={handleLogout}
           />
         );
+      case "admin-settings":
+        return (
+          <AdminSettings
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        );
       default:
         return <LandingPage onNavigate={setCurrentPage} />;
     }
@@ -262,7 +272,9 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <SettingsProvider>
-          <AppContent />
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
           <Toaster richColors position="top-right" />
         </SettingsProvider>
       </AuthProvider>

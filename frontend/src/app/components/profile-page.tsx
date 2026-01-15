@@ -30,7 +30,7 @@ interface ProfilePageProps {
 
 export function ProfilePage({ onNavigate, onLogout }: ProfilePageProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
@@ -66,14 +66,27 @@ export function ProfilePage({ onNavigate, onLogout }: ProfilePageProps) {
   }, [user]);
 
   const handleSave = async () => {
+    if (!user?.id) return;
+
     setSaving(true);
     setMessage(null);
 
-    // Simulate save - in a real app, this would call an API
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const updatedUser = await userService.updateUser(user.id, {
+        firstName,
+        lastName
+      });
 
-    setMessage({ type: "success", text: "Profile updated successfully!" });
-    setSaving(false);
+      // Update AuthContext with new user data
+      updateUser(updatedUser);
+
+      setMessage({ type: "success", text: "Profile updated successfully!" });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setMessage({ type: "error", text: "Failed to update profile. Please try again." });
+    } finally {
+      setSaving(false);
+    }
 
     // Clear message after 3 seconds
     setTimeout(() => setMessage(null), 3000);
@@ -278,7 +291,7 @@ export function ProfilePage({ onNavigate, onLogout }: ProfilePageProps) {
                         <div
                           key={enrollment.id}
                           className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                          onClick={() => onNavigate(`course-player:${enrollment.courseId}`)}
+                          onClick={() => onNavigate("course-player", enrollment.courseId)}
                         >
                           <div className="flex-1">
                             <p className="font-medium">{enrollment.course.title}</p>

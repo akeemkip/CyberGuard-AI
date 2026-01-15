@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Ahc2Bayg852oJtcKm9TRIooacP0PyDWHnp8K7gZZjyWHKxhWHnhCeIBzrI0QExU
+-- \restrict Ahc2Bayg852oJtcKm9TRIooacP0PyDWHnp8K7gZZjyWHKxhWHnhCeIBzrI0QExU
 
 -- Dumped from database version 18.1
 -- Dumped by pg_dump version 18.1

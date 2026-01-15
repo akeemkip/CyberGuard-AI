@@ -10,7 +10,10 @@ import {
   getCourseProgress,
   markLessonComplete,
   getQuiz,
-  submitQuizAttempt
+  submitQuizAttempt,
+  createLesson,
+  updateLesson,
+  deleteLesson
 } from '../controllers/course.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -37,5 +40,10 @@ router.post('/quiz/:quizId/submit', submitQuizAttempt);
 router.post('/', requireAdmin, createCourse);
 router.put('/:id', requireAdmin, updateCourse);
 router.delete('/:id', requireAdmin, deleteCourse);
+
+// Lesson management (admin only)
+router.post('/:courseId/lessons', requireAdmin, createLesson);
+router.put('/lessons/:id', requireAdmin, updateLesson);
+router.delete('/lessons/:id', requireAdmin, deleteLesson);
 
 export default router;

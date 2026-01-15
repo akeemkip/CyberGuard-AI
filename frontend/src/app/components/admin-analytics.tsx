@@ -11,22 +11,18 @@ import {
   SelectValue,
 } from "./ui/select";
 import {
-  Shield,
   Moon,
   Sun,
-  Users,
-  BookOpen,
-  BarChart3,
-  Settings,
-  LogOut,
   Download,
   FileText,
   TrendingUp,
   Activity,
-  Loader2
+  Loader2,
+  Users
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import adminService, { AdminDashboardData } from "../services/admin.service";
+import { AdminSidebar } from "./admin-sidebar";
 import {
   LineChart,
   Line,
@@ -147,71 +143,12 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-sidebar flex-shrink-0">
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h2 className="font-semibold">CyberGuard AI</h2>
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
-            </div>
-          </div>
-
-          <nav className="space-y-2">
-            <button
-              onClick={() => onNavigate("admin-dashboard")}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span>Overview</span>
-            </button>
-            <button
-              onClick={() => onNavigate("admin-users")}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            >
-              <Users className="w-5 h-5" />
-              <span>User Management</span>
-            </button>
-            <button
-              onClick={() => onNavigate("admin-content")}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            >
-              <BookOpen className="w-5 h-5" />
-              <span>Content Management</span>
-            </button>
-            <button
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
-            >
-              <Activity className="w-5 h-5" />
-              <span>Analytics & Reports</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors">
-              <Settings className="w-5 h-5" />
-              <span>Settings</span>
-            </button>
-          </nav>
-        </div>
-
-        <div className="mt-auto p-6 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <span className="text-primary font-medium">
-                {userEmail.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{userEmail}</p>
-              <p className="text-xs text-muted-foreground">Administrator</p>
-            </div>
-          </div>
-          <Button variant="outline" className="w-full" onClick={onLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </aside>
+      <AdminSidebar
+        userEmail={userEmail}
+        currentPage="admin-analytics"
+        onNavigate={onNavigate}
+        onLogout={onLogout}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">

@@ -69,6 +69,13 @@ export interface CreateCourseRequest {
   isPublished?: boolean;
 }
 
+export interface CreateLessonRequest {
+  title: string;
+  content: string;
+  videoUrl?: string;
+  order: number;
+}
+
 export interface QuizQuestion {
   id: string;
   question: string;
@@ -176,6 +183,23 @@ const courseService = {
   async submitQuizAttempt(quizId: string, answers: { [questionId: string]: number }): Promise<QuizSubmissionResponse> {
     const response = await api.post<QuizSubmissionResponse>(`/courses/quiz/${quizId}/submit`, { answers });
     return response.data;
+  },
+
+  // Create lesson (admin only)
+  async createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
+    const response = await api.post<{ lesson: Lesson }>(`/courses/${courseId}/lessons`, data);
+    return response.data.lesson;
+  },
+
+  // Update lesson (admin only)
+  async updateLesson(lessonId: string, data: Partial<CreateLessonRequest>): Promise<Lesson> {
+    const response = await api.put<{ lesson: Lesson }>(`/courses/lessons/${lessonId}`, data);
+    return response.data.lesson;
+  },
+
+  // Delete lesson (admin only)
+  async deleteLesson(lessonId: string): Promise<void> {
+    await api.delete(`/courses/lessons/${lessonId}`);
   }
 };
 
