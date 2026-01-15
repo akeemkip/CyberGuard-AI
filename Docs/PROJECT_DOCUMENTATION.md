@@ -178,7 +178,7 @@ npm run dev              # Starts on http://localhost:5173 (or 5174/5175 if busy
 | Admin Analytics | **WORKING** | Real metrics and charts |
 | Admin Settings | **WORKING** | Platform configuration (6 tabs), save/reset |
 | Certificates | **COMPLETE** | Shows earned certificates, printable view |
-| Assessments | **COMPLETE** | 15-question skill test, pass/fail results |
+| Assessments | **COMPLETE** | 30-question skill test with 25-min timer, randomized questions/answers, quit option |
 | Privacy Policy | **COMPLETE** | Professional legal content |
 | Terms of Service | **COMPLETE** | Professional legal content |
 | Cookie Policy | **COMPLETE** | Professional legal content |
@@ -191,6 +191,13 @@ npm run dev              # Starts on http://localhost:5173 (or 5174/5175 if busy
 - [x] Smooth scrolling for anchor links
 - [x] Theme toggle (light/dark mode)
 - [x] Loading states during authentication
+- [x] Toast notifications for user feedback (success/error/info)
+- [x] Zero redundant data across all dashboards
+- [x] Gamified learning insights with milestone tracking
+- [x] Scrollable activity feeds (25 recent activities)
+- [x] Assessment timer with auto-submit on expiration
+- [x] Question and answer randomization (assessments & quizzes)
+- [x] Confirmation dialogs for destructive actions
 
 ### Backend - Fully Functional
 - [x] Express server with CORS (ports 5173, 5174, 5175 allowed)
@@ -917,6 +924,120 @@ Reviewed all student components and documented current state:
 - Comprehensive toast notifications throughout the app
 - All settings toggles working correctly (Show Progress, Auto-play Videos)
 - User can preview settings changes before committing them
+
+---
+
+### January 15, 2026 - Session 10 (Dashboard Redundancy Fixes & Assessment Enhancements)
+**Summary:** Eliminated dashboard redundancy, added comprehensive assessment system with timer, and implemented answer randomization for quizzes
+
+**Part 1 - Dashboard Redundancy Review & Fixes:**
+- [x] Analyzed both student and admin dashboards for redundant data
+- [x] **Admin Dashboard** - Fixed major redundancy:
+  - Removed "Platform Summary" section duplicating stats cards
+  - Replaced with "Engagement Metrics" showing NEW data:
+    - Total Enrollments (prominent display)
+    - Total Courses with published/draft breakdown
+    - Lesson Completion statistics (was unused backend data)
+  - Replaced modal popup with scrollable Recent Activity (25 activities)
+  - Added activity counter in header
+  - Increased backend activity limit from 10 to 25
+- [x] **Student Dashboard** - Fixed sidebar redundancy:
+  - Removed "Your Progress" card duplicating stat cards (Completion Rate, Courses Done, Lessons Done)
+  - Replaced with "Learning Insights" card:
+    - Active Courses counter (in-progress only)
+    - Best Quiz Score display
+    - Gamified milestone tracking system
+    - Dynamic encouragement messages based on progress
+- [x] All redundant data eliminated, better UX with inline scrolling
+- [x] Committed: "Eliminate dashboard redundancy and improve UX"
+
+**Part 2 - Assessment System Complete Overhaul:**
+- [x] **25-Minute Countdown Timer:**
+  - Displays in header with MM:SS format
+  - Visual warnings: Gray (normal) → Yellow (<5 min) → Red pulsing (<2 min)
+  - Auto-submits when timer reaches 0
+  - Timer expiration = automatic failure
+  - Toast notification: "Time's up! Assessment auto-submitted"
+- [x] **Question Randomization:**
+  - Questions shuffled randomly every assessment attempt
+  - Each attempt has different question order
+  - 30 questions total in pool (doubled from 15)
+- [x] **Answer Randomization:**
+  - Answer options shuffled for each question
+  - Correct answer position changes every time
+  - Makes memorizing answer positions impossible
+- [x] **Expanded Question Pool (15 → 30 questions):**
+  - Added 15 new questions covering:
+    - Two-Factor Authentication (2FA)
+    - Brute Force Attacks
+    - Spear Phishing
+    - Encryption Basics
+    - Firewalls
+    - Smartphone Disposal
+    - Malware Definition
+    - Public Wi-Fi Risks
+    - SQL Injection
+    - Software Patching
+    - Least Privilege Principle
+    - DDoS Attacks
+    - Shoulder Surfing
+    - Data Backups
+  - Covers: Access Control, Web Security, Network Security
+- [x] **Quit Assessment Feature:**
+  - "Quit Assessment" button in header (red styled)
+  - Confirmation dialog prevents accidental exits
+  - Shows progress: "You've answered X of 30 questions"
+  - Two options: Continue or Quit (loses all progress)
+  - Toast notification on quit
+- [x] **Enhanced Assessment Flow:**
+  - Landing page updated: 30 questions, 25 minutes
+  - Clear warning about timer expiration and randomization
+  - Results page shows timer expiration message if applicable
+  - All questions/answers displayed correctly with shuffled options
+
+**Part 3 - Course Quiz Enhancement (Minimal Approach):**
+- [x] **Answer Randomization for Course Quizzes:**
+  - Answer options shuffled on quiz load and retakes
+  - Maps shuffled answers back to original indexes for grading
+  - Prevents students from memorizing answer positions
+  - Maintains learning-focused design (no timer pressure)
+  - Keeps 5 questions per quiz
+- [x] **Technical Implementation:**
+  - Created `ShuffledQuizQuestion` interface with option mapping
+  - Fisher-Yates shuffle algorithm for randomization
+  - Proper state management for shuffled data
+  - `originalIndexMap` tracks shuffled → original index mapping
+
+**Technical Implementation Details:**
+- Used Fisher-Yates shuffle algorithm for unbiased randomization
+- Created interfaces: `ShuffledQuestion`, `ShuffledQuizQuestion`
+- Timer with `useEffect` cleanup and auto-submit on expiration
+- Proper state management for shuffled data across components
+- Answer mapping system for accurate grading with shuffled options
+- Toast notifications with Sonner for user feedback
+
+**Files Created:**
+- None (enhancements to existing files only)
+
+**Files Updated:**
+- `frontend/src/app/components/admin-dashboard.tsx` - Removed redundancy, added scrollable activity
+- `frontend/src/app/components/student-dashboard.tsx` - Replaced sidebar with Learning Insights
+- `frontend/src/app/components/assessments-page.tsx` - Complete overhaul (442 lines changed)
+- `frontend/src/app/components/course-player.tsx` - Answer randomization for quizzes
+- `backend/src/controllers/admin.controller.ts` - Increased activity limit to 25
+
+**Commits Pushed:**
+1. "Eliminate dashboard redundancy and improve UX" (fbed44e)
+2. "Add comprehensive assessment and quiz enhancements" (93f75e3)
+
+**Status at End:**
+- All dashboards optimized with zero redundant data
+- Assessment system now production-ready with robust features
+- Course quizzes enhanced to prevent answer memorization
+- Timer adds realistic assessment pressure for certification-style testing
+- All features tested and working in browser
+- TypeScript builds successfully with no errors
+- Three commits pushed to GitHub
 
 ---
 
