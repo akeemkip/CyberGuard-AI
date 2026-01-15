@@ -26,8 +26,15 @@ import courseService, {
   Lesson,
   CourseProgress,
   Quiz,
+  QuizQuestion,
   QuizSubmissionResponse
 } from "../services/course.service";
+
+// Interface for shuffled quiz questions
+interface ShuffledQuizQuestion extends QuizQuestion {
+  shuffledOptions: string[];
+  originalIndexMap: number[]; // Maps shuffled index to original index
+}
 
 interface CoursePlayerProps {
   userEmail: string;
@@ -35,6 +42,29 @@ interface CoursePlayerProps {
   onLogout: () => void;
   courseId: string | null;
 }
+
+// Helper function to shuffle array
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Helper function to shuffle quiz question options
+const shuffleQuizQuestion = (question: QuizQuestion): ShuffledQuizQuestion => {
+  const indexMap = question.options.map((_, index) => index);
+  const shuffledIndexes = shuffleArray(indexMap);
+  const shuffledOptions = shuffledIndexes.map((index) => question.options[index]);
+
+  return {
+    ...question,
+    shuffledOptions,
+    originalIndexMap: shuffledIndexes
+  };
+};
 
 export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: CoursePlayerProps) {
   const { theme, toggleTheme } = useTheme();
@@ -52,6 +82,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
   // Quiz state
   const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [shuffledQuiz, setShuffledQuiz] = useState<ShuffledQuizQuestion[]>([]);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<{ [questionId: string]: number }>({});
   const [quizResult, setQuizResult] = useState<QuizSubmissionResponse | null>(null);
@@ -117,6 +148,9 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
       setLoadingQuiz(true);
       const quizData = await courseService.getQuiz(quizId);
       setQuiz(quizData);
+      // Shuffle the answer options for each question
+      const shuffled = quizData.questions.map(shuffleQuizQuestion);
+      setShuffledQuiz(shuffled);
       setQuizAnswers({});
       setQuizResult(null);
     } catch (err) {
@@ -160,7 +194,18 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
     try {
       setSubmittingQuiz(true);
-      const result = await courseService.submitQuizAttempt(quiz.id, quizAnswers);
+      // Map shuffled answers back to original indexes
+      const originalAnswers: { [questionId: string]: number } = {};
+      Object.keys(quizAnswers).forEach((questionId) => {
+        const shuffledQuestion = shuffledQuiz.find(q => q.id === questionId);
+        if (shuffledQuestion) {
+          const shuffledAnswerIndex = quizAnswers[questionId];
+          // Map back to original index
+          originalAnswers[questionId] = shuffledQuestion.originalIndexMap[shuffledAnswerIndex];
+        }
+      });
+
+      const result = await courseService.submitQuizAttempt(quiz.id, originalAnswers);
       setQuizResult(result);
 
       // If passed, mark lesson complete
@@ -413,13 +458,13 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                       {!quizResult ? (
                         <>
                           <div className="space-y-6">
-                            {quiz.questions.map((q, index) => (
+                            {shuffledQuiz.map((q, index) => (
                               <Card key={q.id} className="p-6">
                                 <h4 className="font-semibold mb-4">
                                   Question {index + 1}: {q.question}
                                 </h4>
                                 <div className="space-y-3">
-                                  {q.options.map((option, optionIndex) => (
+                                  {q.shuffledOptions.map((option, optionIndex) => (
                                     <label
                                       key={optionIndex}
                                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -446,7 +491,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                           <Button
                             onClick={handleQuizSubmit}
                             className="w-full"
-                            disabled={Object.keys(quizAnswers).length !== quiz.questions.length || submittingQuiz}
+                            disabled={Object.keys(quizAnswers).length !== shuffledQuiz.length || submittingQuiz}
                           >
                             {submittingQuiz ? (
                               <>

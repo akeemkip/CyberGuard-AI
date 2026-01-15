@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import {
   Shield,
   Moon,
@@ -16,10 +26,13 @@ import {
   Trophy,
   Target,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Timer,
+  X
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { UserProfileDropdown } from "./user-profile-dropdown";
+import { toast } from "sonner";
 
 interface AssessmentsPageProps {
   onNavigate: (page: string) => void;
@@ -33,6 +46,11 @@ interface Question {
   correctAnswer: number;
   explanation: string;
   topic: string;
+}
+
+interface ShuffledQuestion extends Question {
+  shuffledOptions: string[];
+  shuffledCorrectAnswer: number;
 }
 
 interface AssessmentResult {
@@ -245,8 +263,231 @@ const assessmentQuestions: Question[] = [
     correctAnswer: 1,
     explanation: "VPNs encrypt your internet traffic and mask your IP address, providing privacy and security, especially on public networks.",
     topic: "Network Security"
+  },
+  // Additional questions (16-30)
+  {
+    id: 16,
+    question: "What is two-factor authentication (2FA)?",
+    options: [
+      "Using two different passwords",
+      "Authentication using two independent methods of verification",
+      "Logging in twice",
+      "Having two user accounts"
+    ],
+    correctAnswer: 1,
+    explanation: "2FA requires two different forms of verification (e.g., password + SMS code), making accounts much more secure than password-only authentication.",
+    topic: "Password Security"
+  },
+  {
+    id: 17,
+    question: "What should you do if you receive an email with an unexpected attachment?",
+    options: [
+      "Open it immediately to see what it is",
+      "Download it to scan with antivirus",
+      "Contact the sender through a different channel to verify before opening",
+      "Forward it to everyone to warn them"
+    ],
+    correctAnswer: 2,
+    explanation: "Never open unexpected attachments. Verify with the sender through a separate communication method (phone call, text) before opening any suspicious attachments.",
+    topic: "Phishing"
+  },
+  {
+    id: 18,
+    question: "What is a brute force attack?",
+    options: [
+      "Physically destroying a computer",
+      "Trying many passwords systematically until finding the correct one",
+      "Using excessive force to open a locked file",
+      "Overloading a server with traffic"
+    ],
+    correctAnswer: 1,
+    explanation: "Brute force attacks try numerous password combinations systematically. Strong, long passwords and account lockout policies help defend against these attacks.",
+    topic: "Password Security"
+  },
+  {
+    id: 19,
+    question: "What is spear phishing?",
+    options: [
+      "Phishing attacks that target fish populations",
+      "Highly targeted phishing attacks aimed at specific individuals or organizations",
+      "Phishing using spear-shaped icons",
+      "A type of fishing equipment"
+    ],
+    correctAnswer: 1,
+    explanation: "Spear phishing is a targeted attack customized for specific individuals, often using personal information to appear more legitimate than generic phishing.",
+    topic: "Phishing"
+  },
+  {
+    id: 20,
+    question: "What does 'encryption' mean?",
+    options: [
+      "Deleting data permanently",
+      "Converting data into a coded format to prevent unauthorized access",
+      "Copying data to multiple locations",
+      "Compressing data to save space"
+    ],
+    correctAnswer: 1,
+    explanation: "Encryption converts readable data into coded format that can only be decoded with the correct key, protecting data confidentiality.",
+    topic: "Data Protection"
+  },
+  {
+    id: 21,
+    question: "What is a firewall?",
+    options: [
+      "A physical wall that prevents fire spread",
+      "A security system that monitors and controls network traffic",
+      "Software that removes viruses",
+      "A backup system for important files"
+    ],
+    correctAnswer: 1,
+    explanation: "A firewall monitors incoming and outgoing network traffic and blocks or allows traffic based on security rules, acting as a barrier between trusted and untrusted networks.",
+    topic: "Network Security"
+  },
+  {
+    id: 22,
+    question: "What should you do before disposing of a smartphone?",
+    options: [
+      "Just delete all the apps",
+      "Perform a factory reset and remove SIM/SD cards",
+      "Give it away immediately",
+      "Throw it in regular trash"
+    ],
+    correctAnswer: 1,
+    explanation: "Factory reset the device, remove SIM and SD cards, and sign out of all accounts before disposing. Consider using secure data wiping tools for sensitive data.",
+    topic: "Data Protection"
+  },
+  {
+    id: 23,
+    question: "What is malware?",
+    options: [
+      "Mail that arrives late",
+      "Malicious software designed to harm or exploit devices",
+      "Male-specific software",
+      "Software for shopping malls"
+    ],
+    correctAnswer: 1,
+    explanation: "Malware is any software intentionally designed to cause damage, steal data, or gain unauthorized access to systems. Types include viruses, trojans, ransomware, and spyware.",
+    topic: "Malware"
+  },
+  {
+    id: 24,
+    question: "Why should you be cautious when using public Wi-Fi?",
+    options: [
+      "It's always slower than home Wi-Fi",
+      "Attackers can intercept unencrypted data on public networks",
+      "Public Wi-Fi is illegal",
+      "It costs more money"
+    ],
+    correctAnswer: 1,
+    explanation: "Public Wi-Fi networks are often unencrypted, making it easier for attackers to intercept your data. Use VPNs and avoid sensitive transactions on public networks.",
+    topic: "Network Security"
+  },
+  {
+    id: 25,
+    question: "What is a SQL injection attack?",
+    options: [
+      "Injecting medicine with a needle",
+      "Inserting malicious SQL code into application inputs to manipulate databases",
+      "A medical procedure",
+      "A way to speed up databases"
+    ],
+    correctAnswer: 1,
+    explanation: "SQL injection exploits vulnerabilities in web applications by inserting malicious SQL commands, potentially allowing attackers to access, modify, or delete database information.",
+    topic: "Web Security"
+  },
+  {
+    id: 26,
+    question: "What does it mean to 'patch' software?",
+    options: [
+      "To sew torn software together",
+      "To update software to fix security vulnerabilities or bugs",
+      "To delete unnecessary programs",
+      "To make software work slower"
+    ],
+    correctAnswer: 1,
+    explanation: "Patching means applying updates that fix security vulnerabilities, bugs, or add improvements. Regular patching is critical for maintaining security.",
+    topic: "General Security"
+  },
+  {
+    id: 27,
+    question: "What is the principle of 'least privilege'?",
+    options: [
+      "Giving users only the minimum access rights needed for their role",
+      "Having the least expensive security measures",
+      "Using the simplest passwords possible",
+      "Granting everyone administrator access"
+    ],
+    correctAnswer: 0,
+    explanation: "Least privilege means users should only have the minimum level of access necessary to perform their job functions, reducing potential damage from accidents or attacks.",
+    topic: "Access Control"
+  },
+  {
+    id: 28,
+    question: "What is a DDoS attack?",
+    options: [
+      "Distributed Denial of Service - overwhelming a system with traffic from multiple sources",
+      "Distributed Data Of Service",
+      "Direct Denial Of Security",
+      "A new type of operating system"
+    ],
+    correctAnswer: 0,
+    explanation: "DDoS attacks flood a target with traffic from many sources simultaneously, making services unavailable to legitimate users by overwhelming the system's capacity.",
+    topic: "Network Security"
+  },
+  {
+    id: 29,
+    question: "What is 'shoulder surfing' in cybersecurity?",
+    options: [
+      "Surfing the internet over someone's shoulder",
+      "Observing someone's screen or keyboard to steal sensitive information",
+      "A water sport",
+      "A type of phishing attack"
+    ],
+    correctAnswer: 1,
+    explanation: "Shoulder surfing is watching someone enter passwords, PINs, or view sensitive information. Use privacy screens and be aware of your surroundings when entering credentials.",
+    topic: "Social Engineering"
+  },
+  {
+    id: 30,
+    question: "What is the purpose of backing up data?",
+    options: [
+      "To make computers run faster",
+      "To create copies of data that can be restored if original data is lost or corrupted",
+      "To share data with others",
+      "To delete old files"
+    ],
+    correctAnswer: 1,
+    explanation: "Regular backups ensure you can recover important data after hardware failure, ransomware attacks, accidental deletion, or other data loss events. Follow the 3-2-1 backup rule.",
+    topic: "Data Protection"
   }
 ];
+
+// Helper function to shuffle array
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+// Helper function to shuffle question options
+const shuffleQuestionOptions = (question: Question): ShuffledQuestion => {
+  const indexMap = question.options.map((_, index) => index);
+  const shuffledIndexes = shuffleArray(indexMap);
+  const shuffledOptions = shuffledIndexes.map((index) => question.options[index]);
+  const shuffledCorrectAnswer = shuffledIndexes.indexOf(question.correctAnswer);
+
+  return {
+    ...question,
+    shuffledOptions,
+    shuffledCorrectAnswer
+  };
+};
+
+// Timer duration in seconds (25 minutes)
+const ASSESSMENT_DURATION = 25 * 60;
 
 export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) {
   const { theme, toggleTheme } = useTheme();
@@ -255,12 +496,61 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
   const [answers, setAnswers] = useState<{ [questionId: number]: number }>({});
   const [result, setResult] = useState<AssessmentResult | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [shuffledQuestions, setShuffledQuestions] = useState<ShuffledQuestion[]>([]);
+  const [timeRemaining, setTimeRemaining] = useState(ASSESSMENT_DURATION);
+  const [timerExpired, setTimerExpired] = useState(false);
+  const [showQuitDialog, setShowQuitDialog] = useState(false);
 
-  const currentQuestion = assessmentQuestions[currentQuestionIndex];
-  const totalQuestions = assessmentQuestions.length;
-  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+  const currentQuestion = shuffledQuestions[currentQuestionIndex];
+  const totalQuestions = shuffledQuestions.length;
+  const progress = totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0;
+
+  // Initialize shuffled questions when assessment starts
+  useEffect(() => {
+    if (assessmentStarted && shuffledQuestions.length === 0) {
+      const shuffled = shuffleArray(assessmentQuestions).map(shuffleQuestionOptions);
+      setShuffledQuestions(shuffled);
+      setTimeRemaining(ASSESSMENT_DURATION);
+      setTimerExpired(false);
+    }
+  }, [assessmentStarted]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!assessmentStarted || result || timeRemaining <= 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setTimerExpired(true);
+          toast.error("Time's up! Assessment auto-submitted.");
+          // Auto-submit when time expires
+          setTimeout(() => handleSubmit(true), 100);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [assessmentStarted, result, timeRemaining]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Check if time is running low (less than 5 minutes)
+  const isTimeLow = timeRemaining < 5 * 60 && timeRemaining > 0;
+  const isTimeCritical = timeRemaining < 2 * 60 && timeRemaining > 0;
 
   const handleAnswerSelect = (optionIndex: number) => {
+    if (!currentQuestion) return;
     setAnswers({ ...answers, [currentQuestion.id]: optionIndex });
   };
 
@@ -278,11 +568,11 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
     }
   };
 
-  const handleSubmit = () => {
-    const results = assessmentQuestions.map((q) => ({
+  const handleSubmit = (isTimerExpired = false) => {
+    const results = shuffledQuestions.map((q) => ({
       questionId: q.id,
       userAnswer: answers[q.id] ?? -1,
-      isCorrect: answers[q.id] === q.correctAnswer
+      isCorrect: (answers[q.id] ?? -1) === q.shuffledCorrectAnswer
     }));
 
     const correctCount = results.filter((r) => r.isCorrect).length;
@@ -292,9 +582,26 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
       score: correctCount,
       totalQuestions,
       percentage,
-      passed: percentage >= 70,
+      passed: isTimerExpired ? false : percentage >= 70,
       answers: results
     });
+
+    if (isTimerExpired) {
+      toast.error("Assessment failed - Time expired!");
+    }
+  };
+
+  const handleQuitAssessment = () => {
+    toast.info("Assessment cancelled");
+    setAssessmentStarted(false);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setResult(null);
+    setShowExplanation(false);
+    setShuffledQuestions([]);
+    setTimeRemaining(ASSESSMENT_DURATION);
+    setTimerExpired(false);
+    setShowQuitDialog(false);
   };
 
   const handleRetake = () => {
@@ -303,6 +610,10 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
     setAnswers({});
     setResult(null);
     setShowExplanation(false);
+    setShuffledQuestions([]);
+    setTimeRemaining(ASSESSMENT_DURATION);
+    setTimerExpired(false);
+    setShowQuitDialog(false);
   };
 
   const allQuestionsAnswered = Object.keys(answers).length === totalQuestions;
@@ -348,12 +659,12 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
             <div className="grid grid-cols-2 gap-4 mb-8">
               <Card className="p-4 text-center">
                 <Target className="w-6 h-6 mx-auto mb-2 text-primary" />
-                <div className="text-2xl font-bold">{totalQuestions}</div>
+                <div className="text-2xl font-bold">30</div>
                 <div className="text-sm text-muted-foreground">Questions</div>
               </Card>
               <Card className="p-4 text-center">
                 <Clock className="w-6 h-6 mx-auto mb-2 text-accent" />
-                <div className="text-2xl font-bold">~15</div>
+                <div className="text-2xl font-bold">25</div>
                 <div className="text-sm text-muted-foreground">Minutes</div>
               </Card>
             </div>
@@ -378,8 +689,10 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
                   <p className="font-medium text-foreground mb-1">Assessment Guidelines:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>You need 70% or higher to pass</li>
+                    <li>Questions and answers are randomized each time</li>
+                    <li><strong className="text-warning">You have 25 minutes to complete the assessment</strong></li>
+                    <li>Assessment auto-submits when time expires (automatic fail)</li>
                     <li>You can review explanations after answering</li>
-                    <li>Take your time - there's no time limit</li>
                     <li>You can retake the assessment anytime</li>
                   </ul>
                 </div>
@@ -449,7 +762,12 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
               <p className="text-muted-foreground mb-4">
                 You answered {result.score} out of {result.totalQuestions} questions correctly
               </p>
-              {!result.passed && (
+              {timerExpired && (
+                <p className="text-sm text-destructive font-medium mb-2">
+                  ⏱️ Assessment failed: Time expired
+                </p>
+              )}
+              {!result.passed && !timerExpired && (
                 <p className="text-sm text-muted-foreground">
                   You need 70% to pass. Review the topics below and try again!
                 </p>
@@ -459,9 +777,12 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
 
           <div className="max-w-2xl mx-auto space-y-4 mb-8">
             <h2 className="font-semibold text-lg">Question Review</h2>
-            {assessmentQuestions.map((q, index) => {
+            {shuffledQuestions.map((q, index) => {
               const userAnswer = result.answers.find((a) => a.questionId === q.id);
               const isCorrect = userAnswer?.isCorrect;
+              const userAnswerText = userAnswer?.userAnswer !== undefined && userAnswer.userAnswer >= 0
+                ? q.shuffledOptions[userAnswer.userAnswer]
+                : "Not answered";
 
               return (
                 <Card key={q.id} className="p-4">
@@ -481,12 +802,12 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
                       <p className="text-sm text-muted-foreground">
                         Your answer:{" "}
                         <span className={isCorrect ? "text-green-600" : "text-red-600"}>
-                          {q.options[userAnswer?.userAnswer ?? 0] || "Not answered"}
+                          {userAnswerText}
                         </span>
                       </p>
                       {!isCorrect && (
                         <p className="text-sm text-green-600">
-                          Correct answer: {q.options[q.correctAnswer]}
+                          Correct answer: {q.shuffledOptions[q.shuffledCorrectAnswer]}
                         </p>
                       )}
                       <p className="text-sm text-muted-foreground mt-2 bg-muted/50 p-2 rounded">
@@ -520,9 +841,16 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => setAssessmentStarted(false)}>
-                <ChevronLeft className="w-5 h-5" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowQuitDialog(true)}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Quit Assessment
               </Button>
+              <div className="border-l border-border h-8" />
               <div>
                 <h1 className="font-semibold">Skills Assessment</h1>
                 <p className="text-sm text-muted-foreground">
@@ -531,6 +859,25 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Timer Display */}
+              <Card className={`px-4 py-2 ${
+                isTimeCritical
+                  ? "bg-destructive/10 border-destructive animate-pulse"
+                  : isTimeLow
+                  ? "bg-warning/10 border-warning"
+                  : "bg-muted"
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Timer className={`w-4 h-4 ${
+                    isTimeCritical ? "text-destructive" : isTimeLow ? "text-warning" : "text-muted-foreground"
+                  }`} />
+                  <span className={`font-mono font-semibold ${
+                    isTimeCritical ? "text-destructive" : isTimeLow ? "text-warning" : ""
+                  }`}>
+                    {formatTime(timeRemaining)}
+                  </span>
+                </div>
+              </Card>
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
@@ -547,9 +894,9 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
           <h2 className="text-xl font-semibold mb-6">{currentQuestion.question}</h2>
 
           <div className="space-y-3 mb-6">
-            {currentQuestion.options.map((option, index) => {
+            {currentQuestion.shuffledOptions.map((option, index) => {
               const isSelected = answers[currentQuestion.id] === index;
-              const isCorrect = index === currentQuestion.correctAnswer;
+              const isCorrect = index === currentQuestion.shuffledCorrectAnswer;
               const showCorrect = showExplanation && isCorrect;
               const showWrong = showExplanation && isSelected && !isCorrect;
 
@@ -633,6 +980,32 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
           )}
         </Card>
       </div>
+
+      {/* Quit Assessment Confirmation Dialog */}
+      <AlertDialog open={showQuitDialog} onOpenChange={setShowQuitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Quit Assessment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to quit the assessment? Your progress will be lost and you'll need to start over.
+              {Object.keys(answers).length > 0 && (
+                <span className="block mt-2 font-medium text-foreground">
+                  You've answered {Object.keys(answers).length} of {totalQuestions} questions.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continue Assessment</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleQuitAssessment}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Quit Assessment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
