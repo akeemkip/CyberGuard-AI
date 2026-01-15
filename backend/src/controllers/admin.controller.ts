@@ -107,7 +107,7 @@ export const getAdminStats = async (req: Request, res: Response) => {
     const recentActivity = await prisma.progress.findMany({
       where: { completed: true },
       orderBy: { completedAt: 'desc' },
-      take: 10,
+      take: 25, // Increased from 10 to show more activity in scrollable list
       include: {
         user: {
           select: { firstName: true, lastName: true, email: true }

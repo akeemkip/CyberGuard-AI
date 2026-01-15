@@ -3,13 +3,6 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
-import {
   Moon,
   Sun,
   Users,
@@ -56,7 +49,6 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
-  const [showActivityModal, setShowActivityModal] = useState(false);
 
   const fetchDashboardData = async (showToast = false) => {
     try {
@@ -106,6 +98,8 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
   const recentActivity = dashboardData?.recentActivity || [];
 
   // Calculate mock comparison data (in real app, this would come from backend)
+  // NOTE: These comparison metrics are SIMULATED for demonstration purposes
+  // In a production environment, this should compare actual data from previous period
   const getComparison = (current: number, field: string) => {
     // Mock data - simulate 5-20% growth or decline
     const changePercent = Math.floor(Math.random() * 15) + 5;
@@ -321,21 +315,21 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
               </ResponsiveContainer>
             </Card>
 
-            {/* Platform Summary */}
+            {/* Engagement Metrics */}
             <Card className="p-6">
-              <h3 className="font-semibold mb-4">Platform Summary</h3>
+              <h3 className="font-semibold mb-4">Engagement Metrics</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Users className="w-5 h-5 text-primary" />
+                      <Activity className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">Total Users</p>
-                      <p className="text-sm text-muted-foreground">Registered accounts</p>
+                      <p className="font-medium">Total Enrollments</p>
+                      <p className="text-sm text-muted-foreground">Active course enrollments</p>
                     </div>
                   </div>
-                  <span className="text-2xl font-bold">{stats?.totalUsers || 0}</span>
+                  <span className="text-2xl font-bold">{stats?.totalEnrollments || 0}</span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
@@ -343,23 +337,23 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
                       <BookOpen className="w-5 h-5 text-accent" />
                     </div>
                     <div>
-                      <p className="font-medium">Published Courses</p>
-                      <p className="text-sm text-muted-foreground">Available for enrollment</p>
+                      <p className="font-medium">Total Courses</p>
+                      <p className="text-sm text-muted-foreground">{stats?.publishedCourses || 0} published, {(stats?.totalCourses || 0) - (stats?.publishedCourses || 0)} draft</p>
                     </div>
                   </div>
-                  <span className="text-2xl font-bold">{stats?.publishedCourses || 0}</span>
+                  <span className="text-2xl font-bold">{stats?.totalCourses || 0}</span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
-                      <Award className="w-5 h-5 text-success" />
+                      <Target className="w-5 h-5 text-success" />
                     </div>
                     <div>
-                      <p className="font-medium">Quizzes Passed</p>
-                      <p className="text-sm text-muted-foreground">Out of {stats?.quizzesTaken || 0} attempts</p>
+                      <p className="font-medium">Lesson Completion</p>
+                      <p className="text-sm text-muted-foreground">Out of {stats?.totalLessons || 0} total lessons</p>
                     </div>
                   </div>
-                  <span className="text-2xl font-bold">{stats?.quizzesPassed || 0}</span>
+                  <span className="text-2xl font-bold">{stats?.completedLessonProgress || 0}</span>
                 </div>
               </div>
             </Card>
@@ -403,22 +397,18 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
             </Card>
 
             {/* Recent Activity */}
-            <Card className="p-6 lg:col-span-2">
+            <Card className="p-6 lg:col-span-2 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">Recent Activity</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowActivityModal(true)}
-                >
-                  View All
-                </Button>
+                {recentActivity.length > 0 && (
+                  <span className="text-xs text-muted-foreground">{recentActivity.length} activities</span>
+                )}
               </div>
-              <div className="space-y-4">
+              <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 space-y-4 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
                 {recentActivity.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
                 ) : (
-                  recentActivity.slice(0, 5).map((activity) => (
+                  recentActivity.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                         <Activity className="w-5 h-5 text-primary" />
@@ -440,38 +430,6 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
         </main>
       </div>
 
-      {/* Activity Modal */}
-      <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>All Recent Activity</DialogTitle>
-            <DialogDescription>
-              Complete activity log for the platform
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            {recentActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
-            ) : (
-              recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Activity className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      <span className="font-medium">{activity.user}</span>{" "}
-                      <span className="text-muted-foreground">{activity.action}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">{activity.course} - {activity.lesson}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

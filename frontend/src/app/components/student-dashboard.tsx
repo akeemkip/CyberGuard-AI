@@ -342,32 +342,80 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Progress Summary */}
+            {/* Learning Insights */}
             {savedSettings.showProgress && (
               <Card id="progress-section" className="p-6">
-                <h3 className="font-semibold mb-4">Your Progress</h3>
+                <h3 className="font-semibold mb-4">Learning Insights</h3>
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Overall Completion</span>
-                      <span className="font-medium">{stats?.completionRate || 0}%</span>
+                  {/* Active Courses */}
+                  <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Book className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-sm text-muted-foreground">Active Courses</span>
                     </div>
-                    <Progress value={stats?.completionRate || 0} className="h-2" />
+                    <span className="text-lg font-bold">
+                      {(stats?.coursesEnrolled || 0) - (stats?.coursesCompleted || 0)}
+                    </span>
                   </div>
+
+                  {/* Best Quiz Score */}
+                  {stats?.quizzesTaken > 0 && (
+                    <div className="flex items-center justify-between p-3 bg-accent/5 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center">
+                          <Trophy className="w-4 h-4 text-accent" />
+                        </div>
+                        <span className="text-sm text-muted-foreground">Best Score</span>
+                      </div>
+                      <span className="text-lg font-bold">{stats?.averageQuizScore || 0}%</span>
+                    </div>
+                  )}
+
+                  {/* Next Milestone */}
+                  {enrolledCourses.length > 0 && (
+                    <div className="pt-4 border-t border-border">
+                      <div className="flex items-start gap-2 mb-2">
+                        <Target className="w-4 h-4 text-primary mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Next Milestone</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {stats?.coursesCompleted === 0
+                              ? "Complete your first course"
+                              : stats?.coursesCompleted === 1
+                              ? "Complete 3 courses to earn badge"
+                              : stats?.coursesCompleted < 5
+                              ? `${5 - (stats?.coursesCompleted || 0)} more courses to Expert level`
+                              : "You're a cybersecurity expert! 🎉"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Encouragement Message */}
                   <div className="pt-4 border-t border-border">
-                    <div className="grid grid-cols-2 gap-4 text-center">
-                      <div>
-                        <div className="text-2xl font-bold text-primary">
-                          {stats?.coursesCompleted || 0}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Courses Done</div>
+                    <div className="text-center">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-success/10 rounded-full mb-2">
+                        <TrendingUp className="w-6 h-6 text-success" />
                       </div>
-                      <div>
-                        <div className="text-2xl font-bold text-accent">
-                          {stats?.lessonsCompleted || 0}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Lessons Done</div>
-                      </div>
+                      <p className="text-sm font-medium">
+                        {stats?.completionRate === 0
+                          ? "Start Your Journey!"
+                          : stats?.completionRate < 25
+                          ? "Keep Going!"
+                          : stats?.completionRate < 50
+                          ? "Great Progress!"
+                          : stats?.completionRate < 75
+                          ? "Almost There!"
+                          : stats?.completionRate < 100
+                          ? "You're Crushing It!"
+                          : "Perfect Score! 🏆"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {stats?.lessonsCompleted || 0} lessons completed
+                      </p>
                     </div>
                   </div>
                 </div>
