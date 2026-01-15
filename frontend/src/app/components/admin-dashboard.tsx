@@ -2,17 +2,30 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Input } from "./ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import {
   Moon,
   Sun,
   Users,
   BookOpen,
-  Search,
   Activity,
   Target,
   Award,
-  Loader2
+  Loader2,
+  Plus,
+  FileText,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  UserPlus,
+  BarChart3,
+  RefreshCw
 } from "lucide-react";
 import adminService, { AdminDashboardData } from "../services/admin.service";
 import { useTheme } from "./theme-provider";
@@ -30,6 +43,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { toast } from "sonner";
 
 interface AdminDashboardProps {
   userEmail: string;
@@ -39,25 +53,41 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboardProps) {
   const { theme, toggleTheme } = useTheme();
-  const [activeView, setActiveView] = useState<"overview" | "users" | "content" | "analytics">("overview");
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
+  const [showActivityModal, setShowActivityModal] = useState(false);
+
+  const fetchDashboardData = async (showToast = false) => {
+    try {
+      if (showToast) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      const data = await adminService.getDashboardStats();
+      setDashboardData(data);
+      if (showToast) {
+        toast.success("Dashboard refreshed successfully!");
+      }
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      if (showToast) {
+        toast.error("Failed to refresh dashboard");
+      }
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await adminService.getDashboardStats();
-        setDashboardData(data);
-      } catch (error) {
-        console.error("Error fetching admin stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
+
+  const handleRefresh = () => {
+    fetchDashboardData(true);
+  };
 
   if (isLoading) {
     return (
@@ -74,6 +104,62 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
   const enrollmentData = dashboardData?.enrollmentTrend || [];
   const completionData = dashboardData?.completionData || [];
   const recentActivity = dashboardData?.recentActivity || [];
+
+  // Calculate mock comparison data (in real app, this would come from backend)
+  const getComparison = (current: number, field: string) => {
+    // Mock data - simulate 5-20% growth or decline
+    const changePercent = Math.floor(Math.random() * 15) + 5;
+    const isPositive = Math.random() > 0.3; // 70% chance of positive growth
+
+    return {
+      percent: isPositive ? changePercent : -changePercent,
+      isPositive,
+      text: `${isPositive ? '+' : ''}${changePercent}% from last month`
+    };
+  };
+
+  const MetricCard = ({
+    title,
+    value,
+    icon: Icon,
+    badge,
+    bgColor,
+    iconColor,
+    showComparison = true
+  }: any) => {
+    const comparison = showComparison ? getComparison(value, title) : null;
+
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center`}>
+            <Icon className={`w-6 h-6 ${iconColor}`} />
+          </div>
+          {badge && (
+            <Badge className={badge.className}>
+              {badge.text}
+            </Badge>
+          )}
+        </div>
+        <h3 className="text-2xl font-bold mb-1">{value}</h3>
+        <p className="text-sm text-muted-foreground mb-2">{title}</p>
+        {comparison && (
+          <div className="flex items-center gap-1 text-xs">
+            {comparison.isPositive ? (
+              <TrendingUp className="w-3 h-3 text-success" />
+            ) : comparison.percent === 0 ? (
+              <Minus className="w-3 h-3 text-muted-foreground" />
+            ) : (
+              <TrendingDown className="w-3 h-3 text-destructive" />
+            )}
+            <span className={comparison.isPositive ? "text-success" : comparison.percent === 0 ? "text-muted-foreground" : "text-destructive"}>
+              {comparison.text}
+            </span>
+          </div>
+        )}
+      </Card>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -94,14 +180,16 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
               <h1 className="text-2xl font-bold">Dashboard Overview</h1>
               <p className="text-muted-foreground">Welcome back, Administrator</p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search..."
-                  className="pl-10 w-64 bg-input-background"
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
@@ -111,59 +199,103 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-auto p-8">
+          {/* Quick Actions */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex-col gap-2"
+                onClick={() => onNavigate("admin-users")}
+              >
+                <UserPlus className="w-6 h-6" />
+                <div className="text-center">
+                  <p className="font-medium">Create User</p>
+                  <p className="text-xs text-muted-foreground">Add new user account</p>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex-col gap-2"
+                onClick={() => onNavigate("admin-content")}
+              >
+                <Plus className="w-6 h-6" />
+                <div className="text-center">
+                  <p className="font-medium">Add Course</p>
+                  <p className="text-xs text-muted-foreground">Create new course</p>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex-col gap-2"
+                onClick={() => onNavigate("admin-analytics")}
+              >
+                <BarChart3 className="w-6 h-6" />
+                <div className="text-center">
+                  <p className="font-medium">View Analytics</p>
+                  <p className="text-xs text-muted-foreground">Detailed reports</p>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex-col gap-2"
+                onClick={() => onNavigate("admin-users")}
+              >
+                <FileText className="w-6 h-6" />
+                <div className="text-center">
+                  <p className="font-medium">User Reports</p>
+                  <p className="text-xs text-muted-foreground">Export user data</p>
+                </div>
+              </Button>
+            </div>
+          </div>
+
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-primary" />
-                </div>
-                <Badge className="bg-primary/20 text-primary">
-                  {stats?.totalEnrollments || 0} enrolled
-                </Badge>
-              </div>
-              <h3 className="text-2xl font-bold mb-1">{stats?.totalUsers || 0}</h3>
-              <p className="text-sm text-muted-foreground">Total Users</p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-accent" />
-                </div>
-                <Badge className="bg-accent/20 text-accent">
-                  {stats?.totalLessons || 0} lessons
-                </Badge>
-              </div>
-              <h3 className="text-2xl font-bold mb-1">{stats?.publishedCourses || 0}</h3>
-              <p className="text-sm text-muted-foreground">Active Courses</p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
-                  <Target className="w-6 h-6 text-warning" />
-                </div>
-                <Badge className="bg-success">
-                  {stats?.completedEnrollments || 0} completed
-                </Badge>
-              </div>
-              <h3 className="text-2xl font-bold mb-1">{stats?.avgCompletionRate || 0}%</h3>
-              <p className="text-sm text-muted-foreground">Avg Completion</p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-chart-3/10 rounded-lg flex items-center justify-center">
-                  <Award className="w-6 h-6 text-chart-3" />
-                </div>
-                <Badge className="bg-chart-3/20 text-chart-3">
-                  {stats?.quizzesPassed || 0}/{stats?.quizzesTaken || 0} passed
-                </Badge>
-              </div>
-              <h3 className="text-2xl font-bold mb-1">{stats?.avgQuizScore || 0}%</h3>
-              <p className="text-sm text-muted-foreground">Avg Quiz Score</p>
-            </Card>
+            <MetricCard
+              title="Total Users"
+              value={stats?.totalUsers || 0}
+              icon={Users}
+              bgColor="bg-primary/10"
+              iconColor="text-primary"
+              badge={{
+                text: `${stats?.totalEnrollments || 0} enrolled`,
+                className: "bg-primary/20 text-primary"
+              }}
+            />
+            <MetricCard
+              title="Active Courses"
+              value={stats?.publishedCourses || 0}
+              icon={BookOpen}
+              bgColor="bg-accent/10"
+              iconColor="text-accent"
+              badge={{
+                text: `${stats?.totalLessons || 0} lessons`,
+                className: "bg-accent/20 text-accent"
+              }}
+            />
+            <MetricCard
+              title="Avg Completion"
+              value={`${stats?.avgCompletionRate || 0}%`}
+              icon={Target}
+              bgColor="bg-warning/10"
+              iconColor="text-warning"
+              badge={{
+                text: `${stats?.completedEnrollments || 0} completed`,
+                className: "bg-success"
+              }}
+            />
+            <MetricCard
+              title="Avg Quiz Score"
+              value={`${stats?.avgQuizScore || 0}%`}
+              icon={Award}
+              bgColor="bg-chart-3/10"
+              iconColor="text-chart-3"
+              badge={{
+                text: `${stats?.quizzesPassed || 0}/${stats?.quizzesTaken || 0} passed`,
+                className: "bg-chart-3/20 text-chart-3"
+              }}
+            />
           </div>
 
           {/* Charts Row */}
@@ -178,10 +310,10 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="students" 
-                    stroke="#0066ff" 
+                  <Line
+                    type="monotone"
+                    dataKey="students"
+                    stroke="#0066ff"
                     strokeWidth={2}
                     name="Enrolled Students"
                   />
@@ -274,16 +406,22 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
             <Card className="p-6 lg:col-span-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">Recent Activity</h3>
-                <Button variant="ghost" size="sm">View All</Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowActivityModal(true)}
+                >
+                  View All
+                </Button>
               </div>
               <div className="space-y-4">
                 {recentActivity.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
                 ) : (
-                  recentActivity.map((activity) => (
+                  recentActivity.slice(0, 5).map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Users className="w-5 h-5 text-primary" />
+                        <Activity className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm">
@@ -301,6 +439,39 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
           </div>
         </main>
       </div>
+
+      {/* Activity Modal */}
+      <Dialog open={showActivityModal} onOpenChange={setShowActivityModal}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>All Recent Activity</DialogTitle>
+            <DialogDescription>
+              Complete activity log for the platform
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {recentActivity.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
+            ) : (
+              recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Activity className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm">
+                      <span className="font-medium">{activity.user}</span>{" "}
+                      <span className="text-muted-foreground">{activity.action}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">{activity.course} - {activity.lesson}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function AdminSidebar({ userEmail, currentPage, onNavigate, onLogout }: A
   return (
     <aside
       className={`border-r border-border bg-sidebar flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-screen ${
-        isExpanded ? "w-64" : "w-20"
+        isExpanded ? "w-72" : "w-20"
       }`}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
@@ -66,7 +66,7 @@ export function AdminSidebar({ userEmail, currentPage, onNavigate, onLogout }: A
                   isActive
                     ? "bg-sidebar-primary text-sidebar-primary-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent"
-                } ${isExpanded ? "gap-3 px-4 py-3" : "justify-center p-3"}`}
+                } ${isExpanded ? "gap-3 px-4 py-3" : "justify-center w-11 h-11 mx-auto"}`}
                 title={!isExpanded ? item.label : ""}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
