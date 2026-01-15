@@ -142,18 +142,18 @@ export function LoginPage({
 
           <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground text-center mb-4">
-              Demo Accounts:
+              Quick Access:
             </p>
             <div className="space-y-2 text-xs">
               <div
                 className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => {
-                  setEmail("student@example.com");
-                  setPassword("student123");
+                  setEmail("akeemkippins.gy@gmail.com");
+                  setPassword("C0c@1n380Z");
                 }}
               >
                 <div className="font-medium mb-1">Student Account</div>
-                <div className="text-muted-foreground">student@example.com / student123</div>
+                <div className="text-muted-foreground">akeemkippins.gy@gmail.com / ••••••••</div>
               </div>
               <div
                 className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
@@ -163,7 +163,7 @@ export function LoginPage({
                 }}
               >
                 <div className="font-medium mb-1">Admin Account</div>
-                <div className="text-muted-foreground">admin@cyberguard.com / admin123</div>
+                <div className="text-muted-foreground">admin@cyberguard.com / ••••••••</div>
               </div>
             </div>
           </div>

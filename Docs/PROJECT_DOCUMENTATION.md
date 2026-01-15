@@ -838,6 +838,81 @@ Reviewed all student components and documented current state:
 
 ---
 
+### January 14, 2026 - Session 8 (Laptop Setup & Settings Improvements)
+**Summary:** Set up development environment on laptop, improved settings functionality, and added comprehensive toast notifications
+
+**Part 1 - Laptop Environment Setup:**
+- [x] Created `.env` file with laptop PostgreSQL password (N0v1c3)
+- [x] Installed backend and frontend dependencies (`npm install`)
+- [x] Generated Prisma client (`npx prisma generate`)
+- [x] Verified database connection (restored from SQL backup)
+- [x] Fixed port conflict (killed process on port 3000)
+- [x] Confirmed both frontend and backend running successfully
+
+**Part 2 - User Accounts & Quick Access:**
+- [x] Deleted `student@example.com` account from database
+- [x] Updated login page quick access to use `akeemkippins.gy@gmail.com` / `C0c@1n380Z`
+- [x] Changed "Demo Accounts" to "Quick Access"
+- [x] Hid passwords in quick access display (show ••••••••)
+
+**Part 3 - Branding & UI:**
+- [x] Added favicon (blue shield SVG matching CyberGuard branding)
+- [x] Updated page title to "CyberGuard AI - Cybersecurity Training Platform"
+
+**Part 4 - Toast Notification System:**
+- [x] Integrated Sonner toast library (already installed)
+- [x] Added `<Toaster>` component to App.tsx (top-right, rich colors)
+- [x] Settings: Toast on every toggle change with setting name + enabled/disabled
+- [x] Course Catalog: Success toast on enrollment with course name
+- [x] Course Player: Toast on lesson completion, course completion (celebration), quiz pass/fail with scores
+- [x] Error toasts for all failed operations
+
+**Part 5 - Settings Functionality Overhaul:**
+- [x] Fixed "Show Progress on Dashboard" to hide BOTH:
+  - Top stats cards (Courses Enrolled, Completion Rate, Quiz Score, Lessons Done)
+  - Sidebar "Your Progress" card
+- [x] Fixed "Auto-play Videos" to control YouTube autoplay parameter
+- [x] Changed settings behavior from auto-save to manual save:
+  - Toggles now preview changes without saving
+  - Added "Unsaved changes" indicator when toggles are changed
+  - Save button disabled when no changes
+  - Dashboard and Course Player use **saved** settings only
+- [x] Enhanced "Save Settings" button:
+  - Shows detailed toast with list of what changed
+  - Example: "Show Progress on Dashboard: disabled • Auto-play Videos: enabled"
+  - 4-second duration for readability
+
+**Part 6 - Settings Context Improvements:**
+- [x] Created dual state system: `settings` (current) and `savedSettings` (persisted)
+- [x] Added `hasUnsavedChanges` flag
+- [x] Settings only apply to app after clicking Save
+- [x] Removed auto-save on toggle (was confusing UX)
+
+**Files Created:**
+- `frontend/src/app/context/SettingsContext.tsx` (comprehensive settings management)
+- `backend/.env` (environment configuration for laptop)
+- `backend/check-users.ts` (utility to view database users)
+- `backend/delete-student.ts` (utility to remove student account)
+
+**Files Updated:**
+- `frontend/index.html` - Added favicon and updated title
+- `frontend/src/app/App.tsx` - Added Toaster component and SettingsProvider
+- `frontend/src/app/components/login-page.tsx` - Updated quick access accounts
+- `frontend/src/app/components/settings-page.tsx` - Comprehensive settings UX
+- `frontend/src/app/components/student-dashboard.tsx` - Uses savedSettings, hides progress when toggled
+- `frontend/src/app/components/course-player.tsx` - Uses savedSettings for autoplay
+- `frontend/src/app/components/course-catalog.tsx` - Added enrollment toast
+- `backend/.env` - Database configuration for laptop environment
+
+**Status at End:**
+- Development environment fully configured on laptop
+- Settings system completely redesigned with preview-before-save pattern
+- Comprehensive toast notifications throughout the app
+- All settings toggles working correctly (Show Progress, Auto-play Videos)
+- User can preview settings changes before committing them
+
+---
+
 ## Notes
 
 - For deployment:

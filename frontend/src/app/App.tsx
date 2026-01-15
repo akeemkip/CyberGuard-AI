@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SettingsProvider } from "./context/SettingsContext";
 import { LandingPage } from "./components/landing-page";
 import { LoginPage } from "./components/login-page";
 import { RegisterPage } from "./components/register-page";
@@ -259,7 +261,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <SettingsProvider>
+          <AppContent />
+          <Toaster richColors position="top-right" />
+        </SettingsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

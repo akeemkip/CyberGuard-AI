@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import userService, { UserStats } from "../services/user.service";
 import courseService, { Course, EnrolledCourse } from "../services/course.service";
@@ -35,6 +36,7 @@ interface StudentDashboardProps {
 export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDashboardProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { savedSettings } = useSettings();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -178,46 +180,48 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-muted-foreground">Courses Enrolled</span>
-              <Book className="w-5 h-5 text-primary" />
-            </div>
-            <div className="text-3xl font-bold">{stats?.coursesEnrolled || 0}</div>
-            <div className="text-sm text-muted-foreground mt-1">
-              {stats?.coursesCompleted || 0} completed
-            </div>
-          </Card>
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-muted-foreground">Completion Rate</span>
-              <Trophy className="w-5 h-5 text-warning" />
-            </div>
-            <div className="text-3xl font-bold">{stats?.completionRate || 0}%</div>
-            <div className="text-sm text-muted-foreground mt-1">
-              {stats?.lessonsCompleted || 0} of {stats?.totalLessons || 0} lessons
-            </div>
-          </Card>
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-muted-foreground">Quiz Score</span>
-              <Target className="w-5 h-5 text-accent" />
-            </div>
-            <div className="text-3xl font-bold">{stats?.averageQuizScore || 0}%</div>
-            <div className="text-sm text-muted-foreground mt-1">
-              {stats?.quizzesPassed || 0} of {stats?.quizzesTaken || 0} passed
-            </div>
-          </Card>
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-muted-foreground">Lessons Done</span>
-              <Clock className="w-5 h-5 text-chart-3" />
-            </div>
-            <div className="text-3xl font-bold">{stats?.lessonsCompleted || 0}</div>
-            <div className="text-sm text-muted-foreground mt-1">Total completed</div>
-          </Card>
-        </div>
+        {savedSettings.showProgress && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-muted-foreground">Courses Enrolled</span>
+                <Book className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-3xl font-bold">{stats?.coursesEnrolled || 0}</div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {stats?.coursesCompleted || 0} completed
+              </div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-muted-foreground">Completion Rate</span>
+                <Trophy className="w-5 h-5 text-warning" />
+              </div>
+              <div className="text-3xl font-bold">{stats?.completionRate || 0}%</div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {stats?.lessonsCompleted || 0} of {stats?.totalLessons || 0} lessons
+              </div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-muted-foreground">Quiz Score</span>
+                <Target className="w-5 h-5 text-accent" />
+              </div>
+              <div className="text-3xl font-bold">{stats?.averageQuizScore || 0}%</div>
+              <div className="text-sm text-muted-foreground mt-1">
+                {stats?.quizzesPassed || 0} of {stats?.quizzesTaken || 0} passed
+              </div>
+            </Card>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-muted-foreground">Lessons Done</span>
+                <Clock className="w-5 h-5 text-chart-3" />
+              </div>
+              <div className="text-3xl font-bold">{stats?.lessonsCompleted || 0}</div>
+              <div className="text-sm text-muted-foreground mt-1">Total completed</div>
+            </Card>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -339,34 +343,36 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Progress Summary */}
-            <Card id="progress-section" className="p-6">
-              <h3 className="font-semibold mb-4">Your Progress</h3>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Overall Completion</span>
-                    <span className="font-medium">{stats?.completionRate || 0}%</span>
-                  </div>
-                  <Progress value={stats?.completionRate || 0} className="h-2" />
-                </div>
-                <div className="pt-4 border-t border-border">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-bold text-primary">
-                        {stats?.coursesCompleted || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Courses Done</div>
+            {savedSettings.showProgress && (
+              <Card id="progress-section" className="p-6">
+                <h3 className="font-semibold mb-4">Your Progress</h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Overall Completion</span>
+                      <span className="font-medium">{stats?.completionRate || 0}%</span>
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold text-accent">
-                        {stats?.lessonsCompleted || 0}
+                    <Progress value={stats?.completionRate || 0} className="h-2" />
+                  </div>
+                  <div className="pt-4 border-t border-border">
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-primary">
+                          {stats?.coursesCompleted || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Courses Done</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">Lessons Done</div>
+                      <div>
+                        <div className="text-2xl font-bold text-accent">
+                          {stats?.lessonsCompleted || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Lessons Done</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            )}
 
             {/* AI Assistant CTA */}
             <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">

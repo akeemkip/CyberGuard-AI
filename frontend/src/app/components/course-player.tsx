@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -17,6 +18,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
+import { useSettings } from "../context/SettingsContext";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import courseService, {
   Course,
@@ -35,6 +37,7 @@ interface CoursePlayerProps {
 
 export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: CoursePlayerProps) {
   const { theme, toggleTheme } = useTheme();
+  const { savedSettings } = useSettings();
 
   // Course data state
   const [course, setCourse] = useState<Course | null>(null);
@@ -135,12 +138,17 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
         setProgress(newProgress);
       }
 
+      toast.success('Lesson marked as complete!');
+
       if (result.courseComplete) {
         // Course completed!
-        alert("Congratulations! You've completed this course!");
+        toast.success('🎉 Congratulations! You\'ve completed this course!', {
+          duration: 5000,
+        });
       }
     } catch (err) {
       console.error("Failed to mark lesson complete:", err);
+      toast.error('Failed to mark lesson as complete. Please try again.');
     } finally {
       setMarkingComplete(false);
     }
@@ -156,10 +164,14 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
       // If passed, mark lesson complete
       if (result.summary.passed && !isLessonCompleted) {
+        toast.success(`Quiz passed with ${result.summary.score}%! 🎉`);
         await handleMarkComplete();
+      } else if (!result.summary.passed) {
+        toast.error(`Quiz failed with ${result.summary.score}%. Try again!`);
       }
     } catch (err) {
       console.error("Failed to submit quiz:", err);
+      toast.error('Failed to submit quiz. Please try again.');
     } finally {
       setSubmittingQuiz(false);
     }
@@ -357,7 +369,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
               {currentLesson?.videoUrl && (
                 <div className="aspect-video bg-muted rounded-lg mb-6 overflow-hidden">
                   <iframe
-                    src={currentLesson.videoUrl.replace('watch?v=', 'embed/')}
+                    src={`${currentLesson.videoUrl.replace('watch?v=', 'embed/')}${savedSettings.autoPlayVideos ? '?autoplay=1' : ''}`}
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen

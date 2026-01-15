@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Label } from "./ui/label";
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingsContext";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 
 interface SettingsPageProps {
@@ -29,28 +31,51 @@ interface SettingsPageProps {
 export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { settings, updateSetting, saveSettings, hasUnsavedChanges } = useSettings();
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Settings state
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [courseReminders, setCourseReminders] = useState(true);
-  const [marketingEmails, setMarketingEmails] = useState(false);
-  const [showProgress, setShowProgress] = useState(true);
-  const [autoPlayVideos, setAutoPlayVideos] = useState(true);
+  const settingNames: Record<keyof typeof settings, string> = {
+    emailNotifications: 'Email Notifications',
+    courseReminders: 'Course Reminders',
+    marketingEmails: 'Marketing Emails',
+    showProgress: 'Show Progress on Dashboard',
+    autoPlayVideos: 'Auto-play Videos'
+  };
 
   const handleSave = async () => {
     setSaving(true);
-    setMessage(null);
 
-    // Simulate save - in a real app, this would call an API
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const changes = await saveSettings();
 
-    setMessage({ type: "success", text: "Settings saved successfully!" });
-    setSaving(false);
+      // Build change summary
+      const changedSettings = Object.entries(changes)
+        .filter(([key, value]) => value !== undefined)
+        .map(([key, value]) => {
+          const name = settingNames[key as keyof typeof settings];
+          return `${name}: ${value ? 'enabled' : 'disabled'}`;
+        });
 
-    // Clear message after 3 seconds
-    setTimeout(() => setMessage(null), 3000);
+      if (changedSettings.length > 0) {
+        toast.success(
+          <div>
+            <div className="font-semibold">Settings saved successfully!</div>
+            <div className="text-sm mt-1">
+              {changedSettings.map((change, i) => (
+                <div key={i}>• {change}</div>
+              ))}
+            </div>
+          </div>,
+          { duration: 4000 }
+        );
+      } else {
+        toast.success('Settings saved successfully!');
+      }
+    } catch (error) {
+      toast.error('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -87,16 +112,6 @@ export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto space-y-6">
-          {message && (
-            <div className={`p-3 rounded-lg ${
-              message.type === "success"
-                ? "bg-green-500/10 text-green-600 border border-green-500/20"
-                : "bg-red-500/10 text-red-600 border border-red-500/20"
-            }`}>
-              {message.text}
-            </div>
-          )}
-
           {/* Appearance */}
           <Card className="p-6">
             <div className="flex items-center gap-3 mb-6">
@@ -160,8 +175,8 @@ export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
                   </p>
                 </div>
                 <Switch
-                  checked={emailNotifications}
-                  onCheckedChange={setEmailNotifications}
+                  checked={settings.emailNotifications}
+                  onCheckedChange={(value) => updateSetting('emailNotifications', value)}
                 />
               </div>
 
@@ -173,8 +188,8 @@ export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
                   </p>
                 </div>
                 <Switch
-                  checked={courseReminders}
-                  onCheckedChange={setCourseReminders}
+                  checked={settings.courseReminders}
+                  onCheckedChange={(value) => updateSetting('courseReminders', value)}
                 />
               </div>
 
@@ -186,8 +201,8 @@ export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
                   </p>
                 </div>
                 <Switch
-                  checked={marketingEmails}
-                  onCheckedChange={setMarketingEmails}
+                  checked={settings.marketingEmails}
+                  onCheckedChange={(value) => updateSetting('marketingEmails', value)}
                 />
               </div>
             </div>
@@ -214,8 +229,8 @@ export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
                   </p>
                 </div>
                 <Switch
-                  checked={showProgress}
-                  onCheckedChange={setShowProgress}
+                  checked={settings.showProgress}
+                  onCheckedChange={(value) => updateSetting('showProgress', value)}
                 />
               </div>
 
@@ -227,8 +242,8 @@ export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
                   </p>
                 </div>
                 <Switch
-                  checked={autoPlayVideos}
-                  onCheckedChange={setAutoPlayVideos}
+                  checked={settings.autoPlayVideos}
+                  onCheckedChange={(value) => updateSetting('autoPlayVideos', value)}
                 />
               </div>
             </div>
@@ -263,8 +278,13 @@ export function SettingsPage({ onNavigate, onLogout }: SettingsPageProps) {
           </Card>
 
           {/* Save Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={saving}>
+          <div className="flex justify-end gap-3">
+            {hasUnsavedChanges && (
+              <span className="text-sm text-warning self-center">
+                Unsaved changes
+              </span>
+            )}
+            <Button onClick={handleSave} disabled={saving || !hasUnsavedChanges}>
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (

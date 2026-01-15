@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -71,8 +72,12 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
       setEnrollingId(courseId);
       await courseService.enrollInCourse(courseId);
       setEnrolledCourseIds(prev => new Set([...prev, courseId]));
+
+      const course = courses.find(c => c.id === courseId);
+      toast.success(`Successfully enrolled in ${course?.title || 'course'}!`);
     } catch (error) {
       console.error("Error enrolling in course:", error);
+      toast.error('Failed to enroll in course. Please try again.');
     } finally {
       setEnrollingId(null);
     }
