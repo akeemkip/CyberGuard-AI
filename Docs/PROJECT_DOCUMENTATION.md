@@ -1,6 +1,6 @@
 # CyberGuard AI - Project Documentation
 
-> **Last Updated:** January 16, 2026 (Session 14)
+> **Last Updated:** January 16, 2026 (Session 15)
 > **Status:** In Development - Core Features Working, AI Integration COMPLETE
 
 ---
@@ -1930,6 +1930,147 @@ After:  Platform guide + cybersecurity tutor + personal learning coach
 - Consider adding streaming responses (typewriter effect)
 - Consider adding lesson-specific context when viewing lessons
 - Focus on other platform features or polish
+
+---
+
+### January 16, 2026 - Session 15
+**Summary:** Enhanced demo data with realistic email domains and join dates, implemented backend storage for user settings, and improved admin dashboard chart styling
+
+**Part 1 - Demo Account Enhancements:**
+- [x] **Updated Student Email Domains**
+  - Changed all student emails from @example.com to realistic providers
+  - Mix of @gmail.com, @yahoo.com, and @outlook.com
+  - Makes demo accounts more convincing and professional
+
+- [x] **Added Varied Join Dates**
+  - Spread student registrations across Nov 2025 - Jan 2026
+  - Earlier members (Vishnu, Rohan) have more progress (realistic!)
+  - Recent members (Kumar, Deepak) have less progress
+  - Creates natural-looking user growth pattern
+
+- [x] **Updated Login Page Demo Buttons**
+  - Now shows Rajesh Singh and Priya Persaud as demo accounts
+  - Added descriptive labels explaining each user's profile
+  - Removed personal credentials, replaced with demo accounts
+
+**Part 2 - Settings Backend Storage Implementation:**
+**Problem:** User settings only saved to browser localStorage - lost when clearing cache or switching devices
+
+**Solution:** Implemented full backend storage with database persistence
+
+- [x] **Database Schema Updates (schema.prisma)**
+  - Added 5 settings fields to User model:
+    - `emailNotifications` (Boolean, default: true)
+    - `courseReminders` (Boolean, default: true)
+    - `marketingEmails` (Boolean, default: false)
+    - `showProgress` (Boolean, default: true)
+    - `autoPlayVideos` (Boolean, default: true)
+  - Migration applied with `prisma db push`
+
+- [x] **Backend API Endpoints (user.controller.ts + user.routes.ts)**
+  - Created `GET /api/users/settings` - Fetch authenticated user's settings
+  - Created `PUT /api/users/settings` - Update authenticated user's settings
+  - Added Zod validation schema for settings updates
+  - Each user's settings are completely independent
+  - Settings tied to userId from JWT token
+
+- [x] **Frontend Integration (SettingsContext.tsx)**
+  - Updated to fetch settings from backend API on mount
+  - Updated to save settings to backend when "Save Settings" clicked
+  - Kept localStorage as fallback if backend fails (offline support)
+  - Theme-aware, works with both light and dark modes
+
+- [x] **Testing & Verification**
+  - Tested with curl commands (Rajesh vs Priya different settings)
+  - Confirmed per-user storage working correctly
+  - Backend server restarted to load updated Prisma client
+  - Settings now persist across login sessions and devices
+
+**What Changed:**
+```
+Before: Settings only in browser localStorage
+        - Lost when clearing browser data
+        - Didn't sync across devices
+        - Shared across users in same browser (bug!)
+
+After:  Settings in database per user
+        - Persists permanently
+        - Syncs across all devices
+        - Each user has independent settings
+        - Falls back to localStorage if offline
+```
+
+**Part 3 - Admin Dashboard Chart Improvements:**
+**Problem:** User reported "In Progress" text cut off in pie chart, line chart not visible
+
+**Solution:** Completely redesigned chart styling for better visibility and UX
+
+- [x] **Pie Chart Enhancements:**
+  - ❌ Removed inline labels that were getting cut off
+  - ✅ Increased pie radius from 80 to 95 (bigger, clearer)
+  - ✅ Added 2px padding between slices for separation
+  - ✅ Enhanced legend to show "Completed: 5 (33%)" format
+  - ✅ Made tooltip theme-aware:
+    - Light mode: white background, black text
+    - Dark mode: dark background, white text
+  - ✅ Hover tooltips show exact numbers
+
+- [x] **Line Chart Enhancements:**
+  - ❌ Fixed invisible line (HSL color variables didn't work with Recharts)
+  - ✅ Changed to solid #0066ff blue color
+  - ✅ Increased stroke width from 2px to 3px
+  - ✅ Made dots larger (radius 5) with white borders for visibility
+  - ✅ Added hover effect with 7px active dots
+  - ✅ Made tooltip theme-aware matching pie chart
+  - ✅ Cleaned up axis styling for professional look
+  - ✅ Added proper chart margins for better spacing
+
+**Visual Impact:**
+```
+Pie Chart:
+  Before: Labels overlapping, "In Progress" cut off
+  After:  Clean slices, clear legend with percentages, hover tooltips
+
+Line Chart:
+  Before: Line invisible or hard to see
+  After:  Bold blue line with visible dots, clear data points
+```
+
+**Files Updated:**
+- `backend/prisma/schema.prisma` - User settings fields
+- `backend/prisma/seed.ts` - Email domains and join dates
+- `backend/src/controllers/user.controller.ts` - Settings endpoints
+- `backend/src/routes/user.routes.ts` - Settings routes
+- `frontend/src/app/context/SettingsContext.tsx` - Backend integration
+- `frontend/src/app/components/login-page.tsx` - Demo account buttons
+- `frontend/src/app/components/admin-dashboard.tsx` - Chart styling
+
+**Git Commits Made:**
+1. `943bd51` - Update demo accounts with realistic email domains and varied join dates
+2. `b885bde` - Implement backend storage for user settings
+3. `c11e868` - Improve admin dashboard chart styling and visibility
+
+**Key Learnings:**
+1. **Database persistence matters** - Settings should survive browser clears
+2. **Per-user isolation critical** - localStorage shared between users was a bug
+3. **Chart libraries need explicit colors** - CSS variables don't always work
+4. **Theme awareness essential** - Tooltips must work in both light/dark modes
+5. **Labels can overflow** - Sometimes legends are better than inline labels
+
+**Status at End:**
+- ✅ Demo accounts have realistic emails and join dates
+- ✅ User settings persist to database per-user
+- ✅ Settings sync across devices and sessions
+- ✅ Admin dashboard charts visible and theme-aware
+- ✅ Pie chart clean with clear legend
+- ✅ Line chart bold with visible data points
+- ✅ All commits documented and pushed to GitHub
+
+**Next Session Priorities:**
+- Consider adding email notification system (settings exist but don't send emails)
+- Consider adding more admin analytics and reporting features
+- Consider improving mobile responsiveness of dashboard
+- Focus on final polish and deployment preparation
 
 ---
 
