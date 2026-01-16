@@ -298,18 +298,39 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
             <Card className="p-6">
               <h3 className="font-semibold mb-4">Student Enrollment Trend</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={enrollmentData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                <LineChart data={enrollmentData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.1} />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                    stroke="#888"
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={false}
+                    stroke="#888"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: theme === 'dark' ? '#1f1f1f' : '#ffffff',
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Legend
+                    wrapperStyle={{ paddingTop: '20px' }}
+                    iconType="circle"
+                  />
                   <Line
                     type="monotone"
                     dataKey="students"
                     stroke="#0066ff"
-                    strokeWidth={2}
+                    strokeWidth={3}
                     name="Enrolled Students"
+                    dot={{ fill: '#0066ff', r: 5, strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 7, fill: '#0066ff' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -364,23 +385,35 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
             {/* Completion Rates */}
             <Card className="p-6">
               <h3 className="font-semibold mb-4">Course Completion Status</h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
                     data={completionData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
+                    label={false}
+                    outerRadius={95}
                     fill="#8884d8"
                     dataKey="value"
+                    paddingAngle={2}
                   >
                     {completionData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: theme === 'dark' ? '#1f1f1f' : '#ffffff',
+                      border: '1px solid #333',
+                      borderRadius: '8px',
+                      color: theme === 'dark' ? '#ffffff' : '#000000',
+                    }}
+                    itemStyle={{
+                      color: theme === 'dark' ? '#ffffff' : '#000000',
+                    }}
+                    formatter={(value: number, name: string) => [value, name]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="mt-4 space-y-2">
@@ -388,9 +421,9 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
                   <div key={item.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span>{item.name}</span>
+                      <span className="font-medium">{item.name}</span>
                     </div>
-                    <span className="font-medium">{item.value}</span>
+                    <span className="font-semibold">{item.value} ({((item.value / completionData.reduce((sum, d) => sum + d.value, 0)) * 100).toFixed(0)}%)</span>
                   </div>
                 ))}
               </div>
