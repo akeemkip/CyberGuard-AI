@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import {
   getAdminStats,
-  getAllEnrollments
+  getAllEnrollments,
+  getUserStatistics
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -16,5 +17,8 @@ router.get('/stats', getAdminStats);
 
 // GET /api/admin/enrollments - Get all enrollments
 router.get('/enrollments', getAllEnrollments);
+
+// GET /api/admin/users/:userId/statistics - Get detailed user statistics
+router.get('/users/:userId/statistics', getUserStatistics);
 
 export default router;

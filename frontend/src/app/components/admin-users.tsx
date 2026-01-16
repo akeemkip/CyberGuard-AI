@@ -67,7 +67,7 @@ import { toast } from "sonner";
 
 interface AdminUsersProps {
   userEmail: string;
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, userId?: string) => void;
   onLogout: () => void;
 }
 
@@ -93,7 +93,6 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "ADMIN" | "STUDENT">("all");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showUserDialog, setShowUserDialog] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -569,92 +568,76 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                         {formatDate(user.createdAt)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" onClick={() => setSelectedUser(user)}>
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>User Actions: {getDisplayName(user)}</DialogTitle>
-                              <DialogDescription>
-                                Choose an action to perform on this user
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-2">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onNavigate("admin-user-profile", user.id)}
+                            title="View Profile"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setEditForm({
+                                firstName: user.firstName || "",
+                                lastName: user.lastName || "",
+                                email: user.email
+                              });
+                              setShowEditDialog(true);
+                            }}
+                            title="Edit User"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleChangeRole(user.id, user.role === "ADMIN" ? "STUDENT" : "ADMIN")}
+                            disabled={user.role === "ADMIN"}
+                            title={user.role === "ADMIN" ? "Cannot change admin role" : "Promote to Admin"}
+                          >
+                            <UserCog className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
                               <Button
-                                variant="outline"
-                                className="w-full justify-start"
-                                onClick={() => {
-                                  setShowUserDialog(true);
-                                }}
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Profile
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-start"
-                                onClick={() => {
-                                  setEditForm({
-                                    firstName: user.firstName || "",
-                                    lastName: user.lastName || "",
-                                    email: user.email
-                                  });
-                                  setShowEditDialog(true);
-                                }}
-                              >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit User
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-start"
-                                onClick={() => handleChangeRole(user.id, user.role === "ADMIN" ? "STUDENT" : "ADMIN")}
+                                variant="ghost"
+                                size="icon"
                                 disabled={user.role === "ADMIN"}
+                                title={user.role === "ADMIN" ? "Cannot delete admin" : "Delete User"}
+                                className="text-destructive hover:text-destructive"
                               >
-                                <UserCog className="w-4 h-4 mr-2" />
-                                {user.role === "ADMIN" ? "Cannot Change Admin Role" : "Promote to Admin"}
+                                <Trash2 className="w-4 h-4" />
                               </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-destructive"
-                                    disabled={user.role === "ADMIN"}
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    {user.role === "ADMIN" ? "Cannot Delete Admin" : "Delete User"}
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This action cannot be undone. This will permanently delete the user
-                                      account and all associated data.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDeleteUser(user.id)}
-                                      className="bg-destructive text-destructive-foreground"
-                                      disabled={deletingId === user.id}
-                                    >
-                                      {deletingId === user.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                      ) : (
-                                        "Delete"
-                                      )}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {getDisplayName(user)}? This action cannot be undone. All user data, enrollments, and progress will be permanently deleted.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteUser(user.id)}
+                                  className="bg-destructive text-destructive-foreground"
+                                  disabled={deletingId === user.id}
+                                >
+                                  {deletingId === user.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    "Delete"
+                                  )}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -692,53 +675,6 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
               </div>
             </div>
           </Card>
-
-          {/* User Profile Dialog */}
-          {selectedUser && showUserDialog && (
-            <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>User Profile</DialogTitle>
-                  <DialogDescription>Detailed information for {getDisplayName(selectedUser)}</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-primary font-bold text-2xl">
-                        {getDisplayName(selectedUser).charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{getDisplayName(selectedUser)}</h3>
-                      <p className="text-muted-foreground">{selectedUser.email}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>First Name</Label>
-                      <p className="mt-1">{selectedUser.firstName || "-"}</p>
-                    </div>
-                    <div>
-                      <Label>Last Name</Label>
-                      <p className="mt-1">{selectedUser.lastName || "-"}</p>
-                    </div>
-                    <div>
-                      <Label>Role</Label>
-                      <p className="mt-1">{getRoleBadge(selectedUser.role)}</p>
-                    </div>
-                    <div>
-                      <Label>Joined</Label>
-                      <p className="mt-1">{formatDate(selectedUser.createdAt)}</p>
-                    </div>
-                    <div>
-                      <Label>Courses Enrolled</Label>
-                      <p className="mt-1">{selectedUser._count?.enrollments || 0}</p>
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
 
           {/* Edit User Dialog */}
           {selectedUser && (

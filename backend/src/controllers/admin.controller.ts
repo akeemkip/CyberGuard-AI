@@ -195,6 +195,194 @@ export const getAllEnrollments = async (req: Request, res: Response) => {
   }
 };
 
+// Get detailed user statistics
+export const getUserStatistics = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    // Get user basic info
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true,
+        lastLoginAt: true,
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get enrollments stats
+    const enrollments = await prisma.enrollment.findMany({
+      where: { userId },
+      include: {
+        course: {
+          select: { title: true }
+        }
+      }
+    });
+
+    const totalEnrollments = enrollments.length;
+    const completedEnrollments = enrollments.filter(e => e.completedAt !== null).length;
+    const inProgressEnrollments = totalEnrollments - completedEnrollments;
+
+    // Get lesson progress stats
+    const lessonProgress = await prisma.progress.findMany({
+      where: { userId },
+      select: {
+        completed: true,
+        completedAt: true,
+        lesson: {
+          select: {
+            title: true,
+            course: {
+              select: { title: true }
+            }
+          }
+        }
+      }
+    });
+
+    const totalLessonsCompleted = lessonProgress.filter(p => p.completed).length;
+
+    // Get quiz stats
+    const quizAttempts = await prisma.quizAttempt.findMany({
+      where: { userId },
+      select: {
+        score: true,
+        passed: true,
+        attemptedAt: true,
+        quiz: {
+          select: {
+            title: true,
+            lesson: {
+              select: {
+                title: true,
+                course: {
+                  select: { title: true }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { attemptedAt: 'desc' }
+    });
+
+    const totalQuizzes = quizAttempts.length;
+    const passedQuizzes = quizAttempts.filter(a => a.passed).length;
+    const averageQuizScore = totalQuizzes > 0
+      ? Math.round(quizAttempts.reduce((sum, a) => sum + a.score, 0) / totalQuizzes)
+      : 0;
+
+    // Get certificate stats
+    const certificates = await prisma.certificate.findMany({
+      where: { userId },
+      select: {
+        id: true,
+        issuedAt: true,
+        course: {
+          select: { title: true }
+        }
+      }
+    });
+
+    // Calculate engagement metrics
+    const daysSinceJoined = Math.floor(
+      (new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // Get recent activity (last 10 completed lessons)
+    const recentActivity = lessonProgress
+      .filter(p => p.completed && p.completedAt)
+      .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+      .slice(0, 10)
+      .map(p => ({
+        type: 'lesson_completed',
+        lesson: p.lesson.title,
+        course: p.lesson.course.title,
+        completedAt: p.completedAt
+      }));
+
+    // Get most recent quiz attempts
+    const recentQuizzes = quizAttempts.slice(0, 5).map(q => ({
+      type: 'quiz_attempted',
+      quiz: q.quiz.title,
+      lesson: q.quiz.lesson.title,
+      course: q.quiz.lesson.course.title,
+      score: q.score,
+      passed: q.passed,
+      attemptedAt: q.attemptedAt
+    }));
+
+    // Combine and sort recent activity
+    const allRecentActivity = [...recentActivity, ...recentQuizzes]
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.completedAt || a.attemptedAt).getTime();
+        const dateB = new Date(b.completedAt || b.attemptedAt).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, 15);
+
+    // Course enrollment details
+    const courseDetails = enrollments.map(e => ({
+      courseId: e.courseId,
+      courseName: e.course.title,
+      enrolledAt: e.enrolledAt,
+      completedAt: e.completedAt,
+      isCompleted: e.completedAt !== null
+    }));
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
+        daysSinceJoined
+      },
+      academic: {
+        enrollments: {
+          total: totalEnrollments,
+          completed: completedEnrollments,
+          inProgress: inProgressEnrollments
+        },
+        lessons: {
+          completed: totalLessonsCompleted
+        },
+        quizzes: {
+          total: totalQuizzes,
+          passed: passedQuizzes,
+          averageScore: averageQuizScore,
+          passRate: totalQuizzes > 0 ? Math.round((passedQuizzes / totalQuizzes) * 100) : 0
+        },
+        certificates: {
+          total: certificates.length,
+          list: certificates.map(c => ({
+            id: c.id,
+            courseName: c.course.title,
+            issuedAt: c.issuedAt
+          }))
+        }
+      },
+      courses: courseDetails,
+      recentActivity: allRecentActivity
+    });
+  } catch (error) {
+    console.error('GetUserStatistics error:', error);
+    res.status(500).json({ error: 'Failed to fetch user statistics' });
+  }
+};
+
 // Helper function to get time ago string
 function getTimeAgo(date: Date): string {
   const now = new Date();

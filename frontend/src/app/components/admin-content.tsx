@@ -43,7 +43,8 @@ import {
   Save,
   Loader2,
   Eye,
-  EyeOff
+  EyeOff,
+  BookOpen
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import courseService, { Course } from "../services/course.service";
