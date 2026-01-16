@@ -6,7 +6,9 @@ import {
   updateUser,
   changeUserRole,
   deleteUser,
-  getUserStats
+  getUserStats,
+  getUserSettings,
+  updateUserSettings
 } from '../controllers/user.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -23,6 +25,12 @@ router.get('/', requireAdmin, getAllUsers);
 
 // GET /api/users/stats - Get current user's stats
 router.get('/stats', getUserStats);
+
+// GET /api/users/settings - Get current user's settings
+router.get('/settings', getUserSettings);
+
+// PUT /api/users/settings - Update current user's settings
+router.put('/settings', updateUserSettings);
 
 // GET /api/users/:id - Get user by ID
 router.get('/:id', getUserById);

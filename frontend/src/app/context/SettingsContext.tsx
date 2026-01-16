@@ -31,19 +31,48 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [savedSettings, setSavedSettings] = useState<Settings>(defaultSettings);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Load settings from localStorage on mount
+  // Load settings from backend on mount
   useEffect(() => {
-    const savedSettings = localStorage.getItem('cyberguard-settings');
-    if (savedSettings) {
+    const fetchSettings = async () => {
       try {
-        const parsed = JSON.parse(savedSettings);
-        const merged = { ...defaultSettings, ...parsed };
-        setSettings(merged);
-        setSavedSettings(merged);
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('http://localhost:3000/api/users/settings', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const merged = { ...defaultSettings, ...data.settings };
+          setSettings(merged);
+          setSavedSettings(merged);
+        } else {
+          // Fallback to localStorage if backend fails
+          const localSettings = localStorage.getItem('cyberguard-settings');
+          if (localSettings) {
+            const parsed = JSON.parse(localSettings);
+            const merged = { ...defaultSettings, ...parsed };
+            setSettings(merged);
+            setSavedSettings(merged);
+          }
+        }
       } catch (error) {
-        console.error('Failed to parse settings:', error);
+        console.error('Failed to fetch settings:', error);
+        // Fallback to localStorage if backend fails
+        const localSettings = localStorage.getItem('cyberguard-settings');
+        if (localSettings) {
+          const parsed = JSON.parse(localSettings);
+          const merged = { ...defaultSettings, ...parsed };
+          setSettings(merged);
+          setSavedSettings(merged);
+        }
       }
-    }
+    };
+
+    fetchSettings();
   }, []);
 
   // Check for unsaved changes whenever settings change
@@ -62,27 +91,51 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const saveSettings = async () => {
     // Find what changed
     const changes: Partial<Settings> = {};
-    let changeCount = 0;
 
     (Object.keys(settings) as Array<keyof Settings>).forEach(key => {
       if (settings[key] !== savedSettings[key]) {
         changes[key] = settings[key];
-        changeCount++;
       }
     });
 
-    // Save to localStorage
-    localStorage.setItem('cyberguard-settings', JSON.stringify(settings));
-    setSavedSettings(settings);
-    setHasUnsavedChanges(false);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
 
-    // In a real app, you would also save to the backend API here
-    // Simulate API call
-    await new Promise<void>(resolve => {
-      setTimeout(() => resolve(), 500);
-    });
+      // Save to backend API
+      const response = await fetch('http://localhost:3000/api/users/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(settings)
+      });
 
-    return changes as Settings;
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      const data = await response.json();
+
+      // Save to localStorage as backup
+      localStorage.setItem('cyberguard-settings', JSON.stringify(settings));
+      setSavedSettings(settings);
+      setHasUnsavedChanges(false);
+
+      return changes as Settings;
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+
+      // Fallback to localStorage only
+      localStorage.setItem('cyberguard-settings', JSON.stringify(settings));
+      setSavedSettings(settings);
+      setHasUnsavedChanges(false);
+
+      return changes as Settings;
+    }
   };
 
   return (

@@ -7,101 +7,138 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model courses {
-  id          String        @id
-  title       String
-  description String
-  thumbnail   String?
-  difficulty  String        @default("Beginner")
-  duration    String?
-  isPublished Boolean       @default(false)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime
-  enrollments enrollments[]
-  lessons     lessons[]
+model Course {
+  id           String        @id @default(uuid())
+  title        String
+  description  String
+  thumbnail    String?
+  difficulty   String        @default("Beginner")
+  duration     String?
+  isPublished  Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  enrollments  Enrollment[]
+  lessons      Lesson[]
+  certificates Certificate[]
+
+  @@map("courses")
 }
 
-model enrollments {
-  id          String    @id
+model Enrollment {
+  id          String    @id @default(uuid())
   userId      String
   courseId    String
   enrolledAt  DateTime  @default(now())
   completedAt DateTime?
-  courses     courses   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  users       users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+  @@map("enrollments")
 }
 
-model lessons {
-  id        String     @id
+model Lesson {
+  id        String    @id @default(uuid())
   title     String
   content   String
   videoUrl  String?
   order     Int
   courseId  String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime
-  courses   courses    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  progress  progress[]
-  quizzes   quizzes?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress  Progress[]
+  quiz      Quiz?
+
+  @@map("lessons")
 }
 
-model progress {
-  id          String    @id
+model Progress {
+  id          String    @id @default(uuid())
   userId      String
   lessonId    String
   completed   Boolean   @default(false)
   completedAt DateTime?
-  lessons     lessons   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  users       users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+  @@map("progress")
 }
 
-model questions {
-  id            String   @id
+model Question {
+  id            String  @id @default(uuid())
   quizId        String
   question      String
   options       String[]
   correctAnswer Int
   order         Int
-  quizzes       quizzes  @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz          Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("questions")
 }
 
-model quiz_attempts {
-  id          String   @id
+model QuizAttempt {
+  id          String   @id @default(uuid())
   userId      String
   quizId      String
   score       Int
   passed      Boolean
   attemptedAt DateTime @default(now())
-  quizzes     quizzes  @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  users       users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
 }
 
-model quizzes {
-  id            String          @id
-  lessonId      String          @unique
-  title         String
-  passingScore  Int             @default(70)
-  questions     questions[]
-  quiz_attempts quiz_attempts[]
-  lessons       lessons         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+model Quiz {
+  id           String        @id @default(uuid())
+  lessonId     String        @unique
+  title        String
+  passingScore Int           @default(70)
+  questions    Question[]
+  attempts     QuizAttempt[]
+  lesson       Lesson        @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("quizzes")
 }
 
-model users {
-  id            String          @id
-  email         String          @unique
-  password      String
-  firstName     String
-  lastName      String
-  role          Role            @default(STUDENT)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime
-  enrollments   enrollments[]
-  progress      progress[]
-  quiz_attempts quiz_attempts[]
+model User {
+  id                   String        @id @default(uuid())
+  email                String        @unique
+  password             String
+  firstName            String
+  lastName             String
+  role                 Role          @default(STUDENT)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  lastLoginAt          DateTime?
+
+  // Settings
+  emailNotifications   Boolean       @default(true)
+  courseReminders      Boolean       @default(true)
+  marketingEmails      Boolean       @default(false)
+  showProgress         Boolean       @default(true)
+  autoPlayVideos       Boolean       @default(true)
+
+  enrollments          Enrollment[]
+  progress             Progress[]
+  quizAttempts         QuizAttempt[]
+  certificates         Certificate[]
+
+  @@map("users")
+}
+
+model Certificate {
+  id       String   @id @default(uuid())
+  userId   String
+  courseId String
+  issuedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("certificates")
 }
 
 enum Role {

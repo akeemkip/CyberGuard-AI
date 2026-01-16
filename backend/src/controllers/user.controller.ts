@@ -23,6 +23,14 @@ const changeRoleSchema = z.object({
   role: z.enum(['STUDENT', 'ADMIN'], { required_error: 'Role is required' })
 });
 
+const updateSettingsSchema = z.object({
+  emailNotifications: z.boolean().optional(),
+  courseReminders: z.boolean().optional(),
+  marketingEmails: z.boolean().optional(),
+  showProgress: z.boolean().optional(),
+  autoPlayVideos: z.boolean().optional()
+});
+
 // Create user (admin only)
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -303,5 +311,63 @@ export const getUserStats = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('GetUserStats error:', error);
     res.status(500).json({ error: 'Failed to fetch user stats' });
+  }
+};
+
+// Get user settings
+export const getUserSettings = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        emailNotifications: true,
+        courseReminders: true,
+        marketingEmails: true,
+        showProgress: true,
+        autoPlayVideos: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ settings: user });
+  } catch (error) {
+    console.error('GetUserSettings error:', error);
+    res.status(500).json({ error: 'Failed to fetch user settings' });
+  }
+};
+
+// Update user settings
+export const updateUserSettings = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const validatedData = updateSettingsSchema.parse(req.body);
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: validatedData,
+      select: {
+        emailNotifications: true,
+        courseReminders: true,
+        marketingEmails: true,
+        showProgress: true,
+        autoPlayVideos: true
+      }
+    });
+
+    res.json({
+      message: 'Settings updated successfully',
+      settings: user
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    console.error('UpdateUserSettings error:', error);
+    res.status(500).json({ error: 'Failed to update settings' });
   }
 };
