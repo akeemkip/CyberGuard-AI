@@ -3,23 +3,19 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
-import { 
-  Shield, 
-  Moon, 
+import {
+  Moon,
   Sun,
   Send,
   Sparkles,
   ChevronLeft,
   Bot,
   User,
-  Lightbulb,
-  Menu,
-  AlertCircle,
-  Loader
+  Lightbulb
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { UserProfileDropdown } from "./user-profile-dropdown";
-import { sendMessageToCopilot, getCybersecurityContext, type ChatMessage } from "../services/copilot.service";
+import api from "../services/api";
 
 interface AIChatProps {
   userEmail: string;
@@ -32,10 +28,12 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
-  streaming?: boolean;
 }
 
-type ConversationMessage = ChatMessage;
+interface AIResponse {
+  response: string;
+  timestamp: string;
+}
 
 const suggestedPrompts = [
   "What is phishing and how can I identify it?",
@@ -65,10 +63,7 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,30 +73,36 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
     scrollToBottom();
   }, [messages]);
 
-  // Get fallback response (for when API is unavailable)
-  const getFallbackResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes("phish")) {
-      return aiResponses.phishing;
-    } else if (lowerMessage.includes("password") || lowerMessage.includes("credential")) {
-      return aiResponses.password;
-    } else if (lowerMessage.includes("social engineering") || lowerMessage.includes("manipulation")) {
-      return aiResponses.social;
-    } else if (lowerMessage.includes("click") && lowerMessage.includes("link")) {
-      return aiResponses.link;
-    } else {
-      return aiResponses.default;
+  // Get AI response from backend API (with fallback to keyword matching)
+  const getAIResponse = async (userMessage: string): Promise<string> => {
+    try {
+      // Call backend AI API
+      const response = await api.post<AIResponse>('/ai/chat', { message: userMessage });
+      return response.data.response;
+    } catch (error) {
+      console.warn('AI API unavailable, using fallback responses:', error);
+
+      // Fallback to keyword matching if API fails
+      const lowerMessage = userMessage.toLowerCase();
+
+      if (lowerMessage.includes("phish")) {
+        return aiResponses.phishing;
+      } else if (lowerMessage.includes("password") || lowerMessage.includes("credential")) {
+        return aiResponses.password;
+      } else if (lowerMessage.includes("social engineering") || lowerMessage.includes("manipulation")) {
+        return aiResponses.social;
+      } else if (lowerMessage.includes("click") && lowerMessage.includes("link")) {
+        return aiResponses.link;
+      } else {
+        return aiResponses.default;
+      }
     }
   };
 
-  // Send message to Copilot API with streaming
+  // Send message and get AI response
   const handleSendMessage = async (content?: string) => {
     const messageContent = content || inputValue.trim();
     if (!messageContent) return;
-
-    setError(null);
-    abortControllerRef.current = new AbortController();
 
     // Add user message
     const userMessage: Message = {
@@ -115,120 +116,28 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
     setInputValue("");
     setIsTyping(true);
 
-    // Add to conversation history for context
-    const updatedHistory: ConversationMessage[] = [
-      ...conversationHistory,
-      { role: "user", content: messageContent },
-    ];
-    setConversationHistory(updatedHistory);
+    // Simulate thinking delay for better UX
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
-    try {
-      // Create placeholder message for streaming response
-      const assistantMessageId = messages.length + 2;
-      const assistantMessage: Message = {
-        id: assistantMessageId,
-        role: "assistant",
-        content: "",
-        timestamp: new Date(),
-        streaming: true,
-      };
+    // Get AI response (from API or fallback)
+    const aiResponse = await getAIResponse(messageContent);
 
-      setMessages((prev) => [...prev, assistantMessage]);
+    // Add AI response
+    const assistantMessage: Message = {
+      id: messages.length + 2,
+      role: "assistant",
+      content: aiResponse,
+      timestamp: new Date(),
+    };
 
-      // Prepare messages for API (include system context)
-      const systemContext = getCybersecurityContext(messageContent);
-      const apiMessages: ConversationMessage[] = [
-        ...systemContext,
-        ...updatedHistory,
-      ];
-
-      let fullResponse = "";
-
-      // Call Copilot API with streaming
-      try {
-        fullResponse = await sendMessageToCopilot(
-          apiMessages,
-          (chunk: string) => {
-            fullResponse += chunk;
-            // Update the streaming message in real-time
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === assistantMessageId
-                  ? { ...msg, content: fullResponse }
-                  : msg
-              )
-            );
-          },
-          true // Enable streaming
-        );
-
-        // Update conversation history with the complete response
-        setConversationHistory([
-          ...updatedHistory,
-          { role: "assistant", content: fullResponse },
-        ]);
-
-        // Mark message as no longer streaming
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId
-              ? { ...msg, streaming: false }
-              : msg
-          )
-        );
-      } catch (apiError) {
-        // Fallback to hardcoded response if API fails
-        console.warn("Copilot API error, using fallback response:", apiError);
-        const fallbackResponse = getFallbackResponse(messageContent);
-        
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId
-              ? { 
-                  ...msg, 
-                  content: fallbackResponse,
-                  streaming: false,
-                }
-              : msg
-          )
-        );
-
-        setConversationHistory([
-          ...updatedHistory,
-          { role: "assistant", content: fallbackResponse },
-        ]);
-
-        // Show warning to user
-        if (apiError instanceof Error) {
-          setError(`API Unavailable - Using fallback response. Error: ${apiError.message}`);
-        } else {
-          setError("API Unavailable - Using fallback response.");
-        }
-
-        // Clear error after 5 seconds
-        setTimeout(() => setError(null), 5000);
-      }
-
-      setIsTyping(false);
-    } catch (err) {
-      console.error("Error handling message:", err);
-      setIsTyping(false);
-      setError("Failed to process your message. Please try again.");
-      setTimeout(() => setError(null), 5000);
-    }
+    setMessages((prev) => [...prev, assistantMessage]);
+    setIsTyping(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
-    }
-  };
-
-  const handleStopStreaming = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      setIsTyping(false);
     }
   };
 
@@ -266,14 +175,6 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
 
       {/* Chat Container */}
       <div className="flex-1 container mx-auto px-4 py-6 flex flex-col max-w-4xl">
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-
         <div className="flex-1 overflow-y-auto mb-4 space-y-4">
           {messages.map((message) => (
             <div
@@ -293,22 +194,19 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
               </div>
               <div className={`flex-1 ${message.role === "user" ? "flex justify-end" : ""}`}>
                 <Card className={`p-4 max-w-[80%] ${
-                  message.role === "user" 
-                    ? "bg-primary text-primary-foreground" 
+                  message.role === "user"
+                    ? "bg-primary text-primary-foreground"
                     : "bg-card"
                 }`}>
                   <p className="whitespace-pre-wrap">{message.content}</p>
-                  {message.streaming && (
-                    <div className="inline-block ml-2 w-2 h-2 bg-current rounded-full animate-pulse" />
-                  )}
                   <p className={`text-xs mt-2 ${
-                    message.role === "user" 
-                      ? "text-primary-foreground/70" 
+                    message.role === "user"
+                      ? "text-primary-foreground/70"
                       : "text-muted-foreground"
                   }`}>
-                    {message.timestamp.toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit'
                     })}
                   </p>
                 </Card>
@@ -366,21 +264,12 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
               className="flex-1 bg-input-background"
               disabled={isTyping}
             />
-            {isTyping ? (
-              <Button 
-                onClick={handleStopStreaming}
-                variant="destructive"
-              >
-                <Loader className="w-4 h-4 animate-spin" />
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => handleSendMessage()}
-                disabled={!inputValue.trim() || isTyping}
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            )}
+            <Button
+              onClick={() => handleSendMessage()}
+              disabled={!inputValue.trim() || isTyping}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             Press Enter to send, Shift + Enter for new line
