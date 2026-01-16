@@ -31,18 +31,147 @@ async function main() {
   });
   console.log('✅ Created admin user: admin@cyberguard.com / admin123');
 
-  // Create Student User
+  // Create Student Users (including original + new Guyanese students)
   const studentPassword = await bcrypt.hash('student123', 10);
-  const student = await prisma.user.create({
-    data: {
-      email: 'student@example.com',
-      password: studentPassword,
-      firstName: 'John',
-      lastName: 'Doe',
-      role: 'STUDENT'
-    }
-  });
-  console.log('✅ Created student user: student@example.com / student123');
+
+  const students = await Promise.all([
+    // Original student
+    prisma.user.create({
+      data: {
+        email: 'student@example.com',
+        password: studentPassword,
+        firstName: 'John',
+        lastName: 'Doe',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-15T10:30:00Z')
+      }
+    }),
+
+    // Guyanese Students
+    prisma.user.create({
+      data: {
+        email: 'rajesh.singh@gmail.com',
+        password: studentPassword,
+        firstName: 'Rajesh',
+        lastName: 'Singh',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-01T08:15:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'priya.persaud@yahoo.com',
+        password: studentPassword,
+        firstName: 'Priya',
+        lastName: 'Persaud',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-10T14:22:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'kumar.ramnauth@outlook.com',
+        password: studentPassword,
+        firstName: 'Kumar',
+        lastName: 'Ramnauth',
+        role: 'STUDENT',
+        createdAt: new Date('2026-01-15T09:45:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'anita.khan@gmail.com',
+        password: studentPassword,
+        firstName: 'Anita',
+        lastName: 'Khan',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-05T16:30:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'arjun.jaipaul@yahoo.com',
+        password: studentPassword,
+        firstName: 'Arjun',
+        lastName: 'Jaipaul',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-20T11:10:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'kavita.ramkissoon@outlook.com',
+        password: studentPassword,
+        firstName: 'Kavita',
+        lastName: 'Ramkissoon',
+        role: 'STUDENT',
+        createdAt: new Date('2026-01-08T13:20:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'nadira.mohamed@gmail.com',
+        password: studentPassword,
+        firstName: 'Nadira',
+        lastName: 'Mohamed',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-28T10:05:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'rohan.narine@yahoo.com',
+        password: studentPassword,
+        firstName: 'Rohan',
+        lastName: 'Narine',
+        role: 'STUDENT',
+        createdAt: new Date('2025-11-28T15:40:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'simran.samaroo@outlook.com',
+        password: studentPassword,
+        firstName: 'Simran',
+        lastName: 'Samaroo',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-12T09:25:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'deepak.lall@gmail.com',
+        password: studentPassword,
+        firstName: 'Deepak',
+        lastName: 'Lall',
+        role: 'STUDENT',
+        createdAt: new Date('2026-01-10T12:50:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'maya.ramdass@yahoo.com',
+        password: studentPassword,
+        firstName: 'Maya',
+        lastName: 'Ramdass',
+        role: 'STUDENT',
+        createdAt: new Date('2025-12-08T14:15:00Z')
+      }
+    }),
+    prisma.user.create({
+      data: {
+        email: 'vishnu.bisram@outlook.com',
+        password: studentPassword,
+        firstName: 'Vishnu',
+        lastName: 'Bisram',
+        role: 'STUDENT',
+        createdAt: new Date('2025-11-25T08:00:00Z')
+      }
+    })
+  ]);
+
+  const student = students[0]; // Keep reference to original student for backward compatibility
+  console.log(`✅ Created ${students.length} student users (all use password: student123)`);
 
   // Create Courses
   const courses = await Promise.all([
@@ -1397,12 +1526,294 @@ Proactively searching for threats that have evaded existing security controls.
 
   console.log('✅ Created 4 quizzes with questions');
 
+  // ============================================
+  // ADD REALISTIC STUDY DATA FOR ALL STUDENTS
+  // ============================================
+
+  // Get all quizzes for quiz attempts
+  const allQuizzes = await prisma.quiz.findMany({
+    include: { lesson: true }
+  });
+
+  // Rajesh Singh - Active learner (enrolled in 4 courses, completed 2, high scores)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[1].id, courseId: courses[0].id, completedAt: new Date('2026-01-10') },
+      { userId: students[1].id, courseId: courses[1].id, completedAt: new Date('2026-01-14') },
+      { userId: students[1].id, courseId: courses[2].id },
+      { userId: students[1].id, courseId: courses[3].id }
+    ]
+  });
+  // Complete all lessons in first two courses
+  for (const lesson of lessonsByCourse[courses[0].id]) {
+    await prisma.progress.create({
+      data: { userId: students[1].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-09') }
+    });
+  }
+  for (const lesson of lessonsByCourse[courses[1].id]) {
+    await prisma.progress.create({
+      data: { userId: students[1].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-13') }
+    });
+  }
+  // Complete first lesson of course 3
+  await prisma.progress.create({
+    data: { userId: students[1].id, lessonId: lessonsByCourse[courses[2].id][0].id, completed: true, completedAt: new Date('2026-01-15') }
+  });
+  // Quiz attempts - passed both
+  const rajeshQuiz1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+  const rajeshQuiz2 = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
+  if (rajeshQuiz1) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[1].id, quizId: rajeshQuiz1.id, score: 85, passed: true, attemptedAt: new Date('2026-01-10') }
+    });
+  }
+  if (rajeshQuiz2) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[1].id, quizId: rajeshQuiz2.id, score: 90, passed: true, attemptedAt: new Date('2026-01-14') }
+    });
+  }
+
+  // Priya Persaud - Struggling student (enrolled in 2, failed quiz once, retook and passed)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[2].id, courseId: courses[0].id },
+      { userId: students[2].id, courseId: courses[1].id }
+    ]
+  });
+  // Complete 2 lessons from course 1
+  for (let i = 0; i < 2; i++) {
+    await prisma.progress.create({
+      data: { userId: students[2].id, lessonId: lessonsByCourse[courses[0].id][i].id, completed: true, completedAt: new Date('2026-01-12') }
+    });
+  }
+  // Failed quiz, then retook and passed
+  const priyaQuiz = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+  if (priyaQuiz) {
+    await prisma.quizAttempt.createMany({
+      data: [
+        { userId: students[2].id, quizId: priyaQuiz.id, score: 65, passed: false, attemptedAt: new Date('2026-01-13') },
+        { userId: students[2].id, quizId: priyaQuiz.id, score: 75, passed: true, attemptedAt: new Date('2026-01-15') }
+      ]
+    });
+  }
+
+  // Kumar Ramnauth - New student (enrolled in 1 course, just started)
+  await prisma.enrollment.create({
+    data: { userId: students[3].id, courseId: courses[0].id }
+  });
+  // Complete only first lesson
+  await prisma.progress.create({
+    data: { userId: students[3].id, lessonId: lessonsByCourse[courses[0].id][0].id, completed: true, completedAt: new Date('2026-01-16') }
+  });
+
+  // Anita Khan - Completed student (finished 1 course completely with cert)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[4].id, courseId: courses[0].id, completedAt: new Date('2026-01-11') },
+      { userId: students[4].id, courseId: courses[3].id }
+    ]
+  });
+  // Complete all lessons from course 1
+  for (const lesson of lessonsByCourse[courses[0].id]) {
+    await prisma.progress.create({
+      data: { userId: students[4].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-10') }
+    });
+  }
+  // Passed quiz
+  const anitaQuiz = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+  if (anitaQuiz) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[4].id, quizId: anitaQuiz.id, score: 80, passed: true, attemptedAt: new Date('2026-01-11') }
+    });
+  }
+
+  // Arjun Jaipaul - Average student (enrolled in 3, completed half of each)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[5].id, courseId: courses[0].id },
+      { userId: students[5].id, courseId: courses[1].id },
+      { userId: students[5].id, courseId: courses[2].id }
+    ]
+  });
+  // Complete first 2 lessons of each course
+  for (const course of [courses[0], courses[1], courses[2]]) {
+    for (let i = 0; i < 2; i++) {
+      await prisma.progress.create({
+        data: { userId: students[5].id, lessonId: lessonsByCourse[course.id][i].id, completed: true, completedAt: new Date('2026-01-14') }
+      });
+    }
+  }
+
+  // Kavita Ramkissoon - Focused learner (1 course, almost done)
+  await prisma.enrollment.create({
+    data: { userId: students[6].id, courseId: courses[1].id }
+  });
+  // Complete all lessons
+  for (const lesson of lessonsByCourse[courses[1].id]) {
+    await prisma.progress.create({
+      data: { userId: students[6].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-15') }
+    });
+  }
+  // About to take quiz
+
+  // Nadira Mohamed - Inactive student (enrolled but no progress)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[7].id, courseId: courses[0].id },
+      { userId: students[7].id, courseId: courses[4].id }
+    ]
+  });
+
+  // Rohan Narine - Advanced student (taking advanced course)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[8].id, courseId: courses[0].id, completedAt: new Date('2026-01-08') },
+      { userId: students[8].id, courseId: courses[5].id }
+    ]
+  });
+  // Completed all lessons in course 1
+  for (const lesson of lessonsByCourse[courses[0].id]) {
+    await prisma.progress.create({
+      data: { userId: students[8].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-07') }
+    });
+  }
+  // Working on advanced course - 2 lessons done
+  for (let i = 0; i < 2; i++) {
+    await prisma.progress.create({
+      data: { userId: students[8].id, lessonId: lessonsByCourse[courses[5].id][i].id, completed: true, completedAt: new Date('2026-01-15') }
+    });
+  }
+  // Passed first quiz with high score
+  const rohanQuiz = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+  if (rohanQuiz) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[8].id, quizId: rohanQuiz.id, score: 95, passed: true, attemptedAt: new Date('2026-01-08') }
+    });
+  }
+
+  // Simran Samaroo - Moderate progress (2 courses, working through steadily)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[9].id, courseId: courses[1].id },
+      { userId: students[9].id, courseId: courses[3].id }
+    ]
+  });
+  // Complete all lessons in course 2
+  for (const lesson of lessonsByCourse[courses[1].id]) {
+    await prisma.progress.create({
+      data: { userId: students[9].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-12') }
+    });
+  }
+  // Complete 1 lesson in course 4
+  await prisma.progress.create({
+    data: { userId: students[9].id, lessonId: lessonsByCourse[courses[3].id][0].id, completed: true, completedAt: new Date('2026-01-14') }
+  });
+  // Passed quiz 2
+  const simranQuiz = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
+  if (simranQuiz) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[9].id, quizId: simranQuiz.id, score: 78, passed: true, attemptedAt: new Date('2026-01-12') }
+    });
+  }
+
+  // Deepak Lall - Just browsing (enrolled in many, minimal progress)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[10].id, courseId: courses[0].id },
+      { userId: students[10].id, courseId: courses[1].id },
+      { userId: students[10].id, courseId: courses[2].id },
+      { userId: students[10].id, courseId: courses[3].id },
+      { userId: students[10].id, courseId: courses[4].id }
+    ]
+  });
+  // Only completed 1 lesson across all courses
+  await prisma.progress.create({
+    data: { userId: students[10].id, lessonId: lessonsByCourse[courses[0].id][0].id, completed: true, completedAt: new Date('2026-01-13') }
+  });
+
+  // Maya Ramdass - Consistent learner (enrolled in 2, steady progress)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[11].id, courseId: courses[0].id },
+      { userId: students[11].id, courseId: courses[2].id }
+    ]
+  });
+  // Complete all lessons in course 1
+  for (const lesson of lessonsByCourse[courses[0].id]) {
+    await prisma.progress.create({
+      data: { userId: students[11].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-11') }
+    });
+  }
+  // Complete 2 lessons in course 3
+  for (let i = 0; i < 2; i++) {
+    await prisma.progress.create({
+      data: { userId: students[11].id, lessonId: lessonsByCourse[courses[2].id][i].id, completed: true, completedAt: new Date('2026-01-15') }
+    });
+  }
+  // Passed quiz 1
+  const mayaQuiz = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+  if (mayaQuiz) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[11].id, quizId: mayaQuiz.id, score: 82, passed: true, attemptedAt: new Date('2026-01-11') }
+    });
+  }
+
+  // Vishnu Bisram - High achiever (completed 3 courses, high scores)
+  await prisma.enrollment.createMany({
+    data: [
+      { userId: students[12].id, courseId: courses[0].id, completedAt: new Date('2026-01-06') },
+      { userId: students[12].id, courseId: courses[1].id, completedAt: new Date('2026-01-09') },
+      { userId: students[12].id, courseId: courses[2].id, completedAt: new Date('2026-01-12') },
+      { userId: students[12].id, courseId: courses[4].id }
+    ]
+  });
+  // Complete all lessons in first 3 courses
+  for (const course of [courses[0], courses[1], courses[2]]) {
+    for (const lesson of lessonsByCourse[course.id]) {
+      await prisma.progress.create({
+        data: { userId: students[12].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-05') }
+      });
+    }
+  }
+  // Passed all 3 quizzes with excellent scores
+  const vishnuQuiz1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+  const vishnuQuiz2 = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
+  const vishnuQuiz3 = allQuizzes.find(q => q.lesson.courseId === courses[2].id);
+  if (vishnuQuiz1) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[12].id, quizId: vishnuQuiz1.id, score: 100, passed: true, attemptedAt: new Date('2026-01-06') }
+    });
+  }
+  if (vishnuQuiz2) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[12].id, quizId: vishnuQuiz2.id, score: 95, passed: true, attemptedAt: new Date('2026-01-09') }
+    });
+  }
+  if (vishnuQuiz3) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[12].id, quizId: vishnuQuiz3.id, score: 92, passed: true, attemptedAt: new Date('2026-01-12') }
+    });
+  }
+
+  console.log('✅ Added realistic study data for all students');
+
   console.log('\n🎉 Seed completed successfully!\n');
   console.log('Test accounts:');
   console.log('  Admin: admin@cyberguard.com / admin123');
-  console.log('  Student: student@example.com / student123');
-  console.log('\nTo add historical data to an existing user, run:');
-  console.log('  npm run db:add-history');
+  console.log('\nStudents (all passwords: student123):');
+  console.log('  John Doe: student@example.com');
+  console.log('  Rajesh Singh: rajesh.singh@gmail.com (Active - 4 enrollments, 2 completed)');
+  console.log('  Priya Persaud: priya.persaud@yahoo.com (Struggling - failed then passed quiz)');
+  console.log('  Kumar Ramnauth: kumar.ramnauth@outlook.com (New - just started)');
+  console.log('  Anita Khan: anita.khan@gmail.com (Completed 1 course)');
+  console.log('  Arjun Jaipaul: arjun.jaipaul@yahoo.com (Average - 3 courses, halfway)');
+  console.log('  Kavita Ramkissoon: kavita.ramkissoon@outlook.com (Focused - 1 course almost done)');
+  console.log('  Nadira Mohamed: nadira.mohamed@gmail.com (Inactive - enrolled but no progress)');
+  console.log('  Rohan Narine: rohan.narine@yahoo.com (Advanced - taking advanced course)');
+  console.log('  Simran Samaroo: simran.samaroo@outlook.com (Moderate - steady progress)');
+  console.log('  Deepak Lall: deepak.lall@gmail.com (Browsing - many enrollments, minimal progress)');
+  console.log('  Maya Ramdass: maya.ramdass@yahoo.com (Consistent - 2 courses, good progress)');
+  console.log('  Vishnu Bisram: vishnu.bisram@outlook.com (High achiever - 3 completed, 100% scores)');
 }
 
 main()

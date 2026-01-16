@@ -142,18 +142,28 @@ export function LoginPage({
 
           <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground text-center mb-4">
-              Quick Access:
+              Demo Accounts - Click to Login:
             </p>
             <div className="space-y-2 text-xs">
               <div
                 className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
                 onClick={() => {
-                  setEmail("akeemkippins.gy@gmail.com");
-                  setPassword("C0c@1n380Z");
+                  setEmail("rajesh.singh@gmail.com");
+                  setPassword("student123");
                 }}
               >
-                <div className="font-medium mb-1">Student Account</div>
-                <div className="text-muted-foreground">akeemkippins.gy@gmail.com / ••••••••</div>
+                <div className="font-medium mb-1">Student Account - Rajesh Singh</div>
+                <div className="text-muted-foreground">Active learner with 4 enrollments, 2 completed courses</div>
+              </div>
+              <div
+                className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                onClick={() => {
+                  setEmail("priya.persaud@yahoo.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1">Student Account - Priya Persaud</div>
+                <div className="text-muted-foreground">Improving student, retook quiz and passed</div>
               </div>
               <div
                 className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
@@ -163,7 +173,7 @@ export function LoginPage({
                 }}
               >
                 <div className="font-medium mb-1">Admin Account</div>
-                <div className="text-muted-foreground">admin@cyberguard.com / ••••••••</div>
+                <div className="text-muted-foreground">Full administrative access</div>
               </div>
             </div>
           </div>
