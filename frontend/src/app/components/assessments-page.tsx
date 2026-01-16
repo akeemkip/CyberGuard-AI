@@ -28,7 +28,8 @@ import {
   Clock,
   AlertCircle,
   Timer,
-  X
+  X,
+  Loader2
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { UserProfileDropdown } from "./user-profile-dropdown";
@@ -830,6 +831,18 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
             </Button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Loading state while questions are being shuffled
+  if (assessmentStarted && shuffledQuestions.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-lg text-muted-foreground">Preparing your assessment...</p>
+        </Card>
       </div>
     );
   }

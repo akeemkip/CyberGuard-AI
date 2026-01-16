@@ -17,6 +17,7 @@ import { CoursePlayer } from "./components/course-player";
 import { AIChat } from "./components/ai-chat";
 import { AdminDashboard } from "./components/admin-dashboard";
 import { AdminUsers } from "./components/admin-users";
+import { AdminUserProfile } from "./components/admin-user-profile";
 import { AdminContent } from "./components/admin-content";
 import { AdminAnalytics } from "./components/admin-analytics";
 import { AdminSettings } from "./components/admin-settings";
@@ -25,10 +26,10 @@ import { AssessmentsPage } from "./components/assessments-page";
 import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
 
-type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-content" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-content", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -43,6 +44,9 @@ function AppContent() {
   });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(() => {
     return localStorage.getItem("selectedCourseId");
+  });
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(() => {
+    return localStorage.getItem("selectedUserId");
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -90,6 +94,15 @@ function AppContent() {
     const handlePopState = (event: PopStateEvent) => {
       if (event.state?.page) {
         setCurrentPage(event.state.page as Page);
+        if (event.state.idParam) {
+          const page = event.state.page as Page;
+          if (page === "course-player") {
+            setSelectedCourseId(event.state.idParam);
+          } else if (page === "admin-user-profile") {
+            setSelectedUserId(event.state.idParam);
+          }
+        }
+        // Legacy support for old courseId format
         if (event.state.courseId) {
           setSelectedCourseId(event.state.courseId);
         }
@@ -103,7 +116,8 @@ function AppContent() {
 
     // Set initial history state
     if (isInitialized && !window.history.state?.page) {
-      window.history.replaceState({ page: currentPage, courseId: selectedCourseId }, "", window.location.pathname);
+      const idParam = selectedCourseId || selectedUserId;
+      window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
     }
 
     return () => window.removeEventListener("popstate", handlePopState);
@@ -114,16 +128,25 @@ function AppContent() {
     setCurrentPage("landing");
     localStorage.removeItem("currentPage");
     localStorage.removeItem("selectedCourseId");
+    localStorage.removeItem("selectedUserId");
     window.history.pushState({ page: "landing" }, "", window.location.pathname);
   };
 
-  const handleNavigate = (page: string, courseId?: string) => {
+  const handleNavigate = (page: string, idParam?: string) => {
     // Push to browser history for back button support
-    window.history.pushState({ page, courseId }, "", window.location.pathname);
+    window.history.pushState({ page, idParam }, "", window.location.pathname);
     setCurrentPage(page as Page);
-    if (courseId) {
-      setSelectedCourseId(courseId);
-      localStorage.setItem("selectedCourseId", courseId);
+
+    // Handle course ID for course player
+    if (page === "course-player" && idParam) {
+      setSelectedCourseId(idParam);
+      localStorage.setItem("selectedCourseId", idParam);
+    }
+
+    // Handle user ID for user profile
+    if (page === "admin-user-profile" && idParam) {
+      setSelectedUserId(idParam);
+      localStorage.setItem("selectedUserId", idParam);
     }
   };
 
@@ -229,6 +252,21 @@ function AppContent() {
         );
       case "admin-users":
         return (
+          <AdminUsers
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        );
+      case "admin-user-profile":
+        return selectedUserId ? (
+          <AdminUserProfile
+            userId={selectedUserId}
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        ) : (
           <AdminUsers
             userEmail={userEmail}
             onNavigate={handleNavigate}
