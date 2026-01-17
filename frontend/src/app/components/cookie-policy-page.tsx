@@ -19,7 +19,7 @@ export function CookiePolicyPage({ onNavigate }: CookiePolicyPageProps) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onNavigate("landing")}
+              onClick={() => window.history.back()}
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
