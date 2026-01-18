@@ -730,3 +730,307 @@ export const deleteQuiz = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to delete quiz' });
   }
 };
+
+// ============================================================
+// MODULE MANAGEMENT ENDPOINTS
+// ============================================================
+
+// Get all modules for a course with lesson count
+export const getCourseModules = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Get all modules for the course
+    const modules = await prisma.module.findMany({
+      where: { courseId },
+      include: {
+        _count: {
+          select: { lessons: true }
+        }
+      },
+      orderBy: { order: 'asc' }
+    });
+
+    // Format response
+    const modulesWithCount = modules.map(module => ({
+      id: module.id,
+      title: module.title,
+      description: module.description,
+      order: module.order,
+      courseId: module.courseId,
+      lessonCount: module._count.lessons,
+      createdAt: module.createdAt,
+      updatedAt: module.updatedAt
+    }));
+
+    res.json({ modules: modulesWithCount });
+  } catch (error) {
+    console.error('GetCourseModules error:', error);
+    res.status(500).json({ error: 'Failed to fetch modules' });
+  }
+};
+
+// Create new module
+export const createModule = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const { title, description, order } = req.body;
+
+    // Validation
+    if (!title || title.trim().length < 3) {
+      return res.status(400).json({ error: 'Title must be at least 3 characters' });
+    }
+
+    if (title.trim().length > 200) {
+      return res.status(400).json({ error: 'Title must not exceed 200 characters' });
+    }
+
+    if (description && description.length > 500) {
+      return res.status(400).json({ error: 'Description must not exceed 500 characters' });
+    }
+
+    if (order === undefined || order < 0) {
+      return res.status(400).json({ error: 'Order must be a positive integer' });
+    }
+
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Create module
+    const module = await prisma.module.create({
+      data: {
+        title: title.trim(),
+        description: description?.trim() || null,
+        order,
+        courseId
+      }
+    });
+
+    res.status(201).json({
+      message: 'Module created successfully',
+      module
+    });
+  } catch (error) {
+    console.error('CreateModule error:', error);
+    res.status(500).json({ error: 'Failed to create module' });
+  }
+};
+
+// Update module
+export const updateModule = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const id = req.params.id as string;
+    const { title, description, order } = req.body;
+
+    // Validation
+    if (!title || title.trim().length < 3) {
+      return res.status(400).json({ error: 'Title must be at least 3 characters' });
+    }
+
+    if (title.trim().length > 200) {
+      return res.status(400).json({ error: 'Title must not exceed 200 characters' });
+    }
+
+    if (description && description.length > 500) {
+      return res.status(400).json({ error: 'Description must not exceed 500 characters' });
+    }
+
+    if (order === undefined || order < 0) {
+      return res.status(400).json({ error: 'Order must be a positive integer' });
+    }
+
+    // Check if module exists and belongs to the course
+    const existingModule = await prisma.module.findUnique({
+      where: { id }
+    });
+
+    if (!existingModule) {
+      return res.status(404).json({ error: 'Module not found' });
+    }
+
+    if (existingModule.courseId !== courseId) {
+      return res.status(400).json({ error: 'Module does not belong to this course' });
+    }
+
+    // Update module
+    const module = await prisma.module.update({
+      where: { id },
+      data: {
+        title: title.trim(),
+        description: description?.trim() || null,
+        order
+      }
+    });
+
+    res.json({
+      message: 'Module updated successfully',
+      module
+    });
+  } catch (error) {
+    console.error('UpdateModule error:', error);
+    res.status(500).json({ error: 'Failed to update module' });
+  }
+};
+
+// Delete module
+export const deleteModule = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const id = req.params.id as string;
+
+    // Check if module exists and belongs to the course
+    const module = await prisma.module.findUnique({
+      where: { id },
+      include: {
+        lessons: true
+      }
+    });
+
+    if (!module) {
+      return res.status(404).json({ error: 'Module not found' });
+    }
+
+    if (module.courseId !== courseId) {
+      return res.status(400).json({ error: 'Module does not belong to this course' });
+    }
+
+    // Delete module (cascade will set lessons' moduleId to NULL)
+    await prisma.module.delete({
+      where: { id }
+    });
+
+    res.json({
+      message: 'Module deleted successfully',
+      affectedLessons: module.lessons.length
+    });
+  } catch (error) {
+    console.error('DeleteModule error:', error);
+    res.status(500).json({ error: 'Failed to delete module' });
+  }
+};
+
+// Reorder modules
+export const reorderModules = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const { moduleOrders } = req.body;
+
+    // Validation
+    if (!Array.isArray(moduleOrders) || moduleOrders.length === 0) {
+      return res.status(400).json({ error: 'Module orders must be a non-empty array' });
+    }
+
+    // Validate each module order entry
+    for (const entry of moduleOrders) {
+      if (!entry.id || typeof entry.order !== 'number') {
+        return res.status(400).json({ error: 'Each entry must have id and order' });
+      }
+    }
+
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Update all module orders in a transaction
+    await prisma.$transaction(
+      moduleOrders.map(({ id, order }) =>
+        prisma.module.updateMany({
+          where: { id, courseId }, // Ensure module belongs to this course
+          data: { order }
+        })
+      )
+    );
+
+    res.json({ message: 'Modules reordered successfully' });
+  } catch (error) {
+    console.error('ReorderModules error:', error);
+    res.status(500).json({ error: 'Failed to reorder modules' });
+  }
+};
+
+// Assign lesson to module (or remove from module)
+export const assignLessonToModule = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const moduleId = req.params.moduleId as string;
+    const lessonId = req.params.lessonId as string;
+    const { moduleId: newModuleId, order } = req.body;
+
+    // Validation
+    if (newModuleId !== null && typeof newModuleId !== 'string') {
+      return res.status(400).json({ error: 'Invalid moduleId' });
+    }
+
+    if (order === undefined || order < 0) {
+      return res.status(400).json({ error: 'Order must be a positive integer' });
+    }
+
+    // Check if lesson exists and belongs to the course
+    const lesson = await prisma.lesson.findUnique({
+      where: { id: lessonId }
+    });
+
+    if (!lesson) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    if (lesson.courseId !== courseId) {
+      return res.status(400).json({ error: 'Lesson does not belong to this course' });
+    }
+
+    // If assigning to a module, verify module exists and belongs to course
+    if (newModuleId) {
+      const module = await prisma.module.findUnique({
+        where: { id: newModuleId }
+      });
+
+      if (!module) {
+        return res.status(404).json({ error: 'Module not found' });
+      }
+
+      if (module.courseId !== courseId) {
+        return res.status(400).json({ error: 'Module does not belong to this course' });
+      }
+    }
+
+    // Update lesson
+    const updatedLesson = await prisma.lesson.update({
+      where: { id: lessonId },
+      data: {
+        moduleId: newModuleId,
+        order
+      }
+    });
+
+    res.json({
+      message: newModuleId
+        ? 'Lesson assigned to module successfully'
+        : 'Lesson removed from module successfully',
+      lesson: updatedLesson
+    });
+  } catch (error) {
+    console.error('AssignLessonToModule error:', error);
+    res.status(500).json({ error: 'Failed to assign lesson to module' });
+  }
+};

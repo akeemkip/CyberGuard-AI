@@ -10,6 +10,8 @@ import {
   Sun,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Check,
   Play,
   FileText,
@@ -23,6 +25,7 @@ import { useSettings } from "../context/SettingsContext";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import courseService, {
   Course,
+  Module,
   Lesson,
   CourseProgress,
   Quiz,
@@ -87,6 +90,21 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   const [quizAnswers, setQuizAnswers] = useState<{ [questionId: string]: number }>({});
   const [quizResult, setQuizResult] = useState<QuizSubmissionResponse | null>(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
+
+  // Module collapse state (track which modules are collapsed)
+  const [collapsedModules, setCollapsedModules] = useState<Set<string>>(new Set());
+
+  const toggleModuleCollapse = (moduleId: string) => {
+    setCollapsedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId);
+      } else {
+        newSet.add(moduleId);
+      }
+      return newSet;
+    });
+  };
 
   // Fetch course data
   useEffect(() => {
@@ -701,43 +719,152 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
           <div className="lg:col-span-1">
             <Card className="p-6 sticky top-24">
               <h3 className="font-semibold mb-4">Course Content</h3>
-              <div className="space-y-2">
-                {lessons.map((lesson, index) => {
-                  const lessonProgress = progress?.lessons?.find(l => l.id === lesson.id);
-                  const isComplete = lessonProgress?.completed || false;
+              <div className="space-y-3">
+                {/* Group lessons by module */}
+                {(() => {
+                  const modules = course?.modules || [];
+                  const lessonsWithModule = lessons.filter(l => l.moduleId);
+                  const lessonsWithoutModule = lessons.filter(l => !l.moduleId);
+                  const modulesWithLessons = modules
+                    .map(module => ({
+                      module,
+                      lessons: lessonsWithModule
+                        .filter(l => l.moduleId === module.id)
+                        .sort((a, b) => a.order - b.order)
+                    }))
+                    .filter(m => m.lessons.length > 0)
+                    .sort((a, b) => a.module.order - b.module.order);
 
                   return (
-                    <button
-                      key={lesson.id}
-                      onClick={() => setCurrentLessonIndex(index)}
-                      className={`w-full text-left p-3 rounded-lg transition-colors ${
-                        currentLessonIndex === index
-                          ? "bg-primary text-primary-foreground"
-                          : isComplete
-                          ? "bg-muted hover:bg-muted/70"
-                          : "bg-card hover:bg-muted/50"
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className="flex-shrink-0 mt-0.5">
-                          {isComplete ? (
-                            <CheckCircle2 className="w-4 h-4" />
-                          ) : (
-                            <Circle className="w-4 h-4" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">{lesson.title}</div>
-                          <div className={`text-xs mt-1 ${
-                            currentLessonIndex === index ? "opacity-90" : "text-muted-foreground"
-                          }`}>
-                            {lesson.quiz ? "Quiz" : lesson.videoUrl ? "Video" : "Reading"}
+                    <>
+                      {/* Render modules with lessons */}
+                      {modulesWithLessons.map(({ module, lessons: moduleLessons }) => {
+                        const isCollapsed = collapsedModules.has(module.id);
+                        const completedCount = moduleLessons.filter(lesson =>
+                          progress?.lessons?.find(l => l.id === lesson.id)?.completed
+                        ).length;
+
+                        return (
+                          <div key={module.id} className="border border-border rounded-lg overflow-hidden">
+                            {/* Module Header */}
+                            <button
+                              onClick={() => toggleModuleCollapse(module.id)}
+                              className="w-full px-4 py-3 bg-muted hover:bg-muted/70 transition-colors flex items-center justify-between"
+                            >
+                              <div className="flex-1 text-left">
+                                <div className="font-medium text-sm">{module.title}</div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {completedCount}/{moduleLessons.length} completed
+                                </div>
+                              </div>
+                              {isCollapsed ? (
+                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </button>
+
+                            {/* Module Lessons */}
+                            {!isCollapsed && (
+                              <div className="p-2 space-y-1">
+                                {moduleLessons.map((lesson) => {
+                                  const index = lessons.findIndex(l => l.id === lesson.id);
+                                  const lessonProgress = progress?.lessons?.find(l => l.id === lesson.id);
+                                  const isComplete = lessonProgress?.completed || false;
+
+                                  return (
+                                    <button
+                                      key={lesson.id}
+                                      onClick={() => setCurrentLessonIndex(index)}
+                                      className={`w-full text-left p-2 rounded transition-colors ${
+                                        currentLessonIndex === index
+                                          ? "bg-primary text-primary-foreground"
+                                          : isComplete
+                                          ? "bg-muted/50 hover:bg-muted/70"
+                                          : "bg-card hover:bg-muted/50"
+                                      }`}
+                                    >
+                                      <div className="flex items-start gap-2">
+                                        <div className="flex-shrink-0 mt-0.5">
+                                          {isComplete ? (
+                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                          ) : (
+                                            <Circle className="w-3.5 h-3.5" />
+                                          )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="text-sm font-medium truncate">{lesson.title}</div>
+                                          <div className={`text-xs mt-0.5 ${
+                                            currentLessonIndex === index ? "opacity-90" : "text-muted-foreground"
+                                          }`}>
+                                            {lesson.quiz ? "Quiz" : lesson.videoUrl ? "Video" : "Reading"}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {/* Render unorganized lessons */}
+                      {lessonsWithoutModule.length > 0 && (
+                        <div className="border border-border rounded-lg overflow-hidden">
+                          <div className="px-4 py-3 bg-muted">
+                            <div className="font-medium text-sm">Other Lessons</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {lessonsWithoutModule.filter(lesson =>
+                                progress?.lessons?.find(l => l.id === lesson.id)?.completed
+                              ).length}/{lessonsWithoutModule.length} completed
+                            </div>
+                          </div>
+                          <div className="p-2 space-y-1">
+                            {lessonsWithoutModule.map((lesson) => {
+                              const index = lessons.findIndex(l => l.id === lesson.id);
+                              const lessonProgress = progress?.lessons?.find(l => l.id === lesson.id);
+                              const isComplete = lessonProgress?.completed || false;
+
+                              return (
+                                <button
+                                  key={lesson.id}
+                                  onClick={() => setCurrentLessonIndex(index)}
+                                  className={`w-full text-left p-2 rounded transition-colors ${
+                                    currentLessonIndex === index
+                                      ? "bg-primary text-primary-foreground"
+                                      : isComplete
+                                      ? "bg-muted/50 hover:bg-muted/70"
+                                      : "bg-card hover:bg-muted/50"
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <div className="flex-shrink-0 mt-0.5">
+                                      {isComplete ? (
+                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                      ) : (
+                                        <Circle className="w-3.5 h-3.5" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-sm font-medium truncate">{lesson.title}</div>
+                                      <div className={`text-xs mt-0.5 ${
+                                        currentLessonIndex === index ? "opacity-90" : "text-muted-foreground"
+                                      }`}>
+                                        {lesson.quiz ? "Quiz" : lesson.videoUrl ? "Video" : "Reading"}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
-                      </div>
-                    </button>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </div>
             </Card>
           </div>

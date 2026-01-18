@@ -1,5 +1,15 @@
 import api from './api';
 
+export interface Module {
+  id: string;
+  title: string;
+  description: string | null;
+  order: number;
+  courseId: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Lesson {
   id: string;
   title: string;
@@ -7,6 +17,7 @@ export interface Lesson {
   videoUrl: string | null;
   order: number;
   courseId: string;
+  moduleId?: string | null;
   quiz?: {
     id: string;
     title: string;
@@ -25,6 +36,7 @@ export interface Course {
   createdAt: string;
   updatedAt: string;
   lessons?: Lesson[];
+  modules?: Module[];
   _count?: {
     lessons: number;
     enrollments: number;

@@ -7,7 +7,13 @@ import {
   getQuizById,
   createQuiz,
   updateQuiz,
-  deleteQuiz
+  deleteQuiz,
+  getCourseModules,
+  createModule,
+  updateModule,
+  deleteModule,
+  reorderModules,
+  assignLessonToModule
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -41,5 +47,24 @@ router.put('/quizzes/:id', updateQuiz);
 
 // DELETE /api/admin/quizzes/:id - Delete quiz
 router.delete('/quizzes/:id', deleteQuiz);
+
+// Module Management Routes
+// GET /api/admin/courses/:courseId/modules - Get all modules for a course
+router.get('/courses/:courseId/modules', getCourseModules);
+
+// POST /api/admin/courses/:courseId/modules - Create new module
+router.post('/courses/:courseId/modules', createModule);
+
+// PUT /api/admin/courses/:courseId/modules/reorder - Reorder modules (must come before /:id)
+router.put('/courses/:courseId/modules/reorder', reorderModules);
+
+// PUT /api/admin/courses/:courseId/modules/:id - Update module
+router.put('/courses/:courseId/modules/:id', updateModule);
+
+// DELETE /api/admin/courses/:courseId/modules/:id - Delete module
+router.delete('/courses/:courseId/modules/:id', deleteModule);
+
+// PUT /api/admin/courses/:courseId/modules/:moduleId/lessons/:lessonId - Assign lesson to module
+router.put('/courses/:courseId/modules/:moduleId/lessons/:lessonId', assignLessonToModule);
 
 export default router;

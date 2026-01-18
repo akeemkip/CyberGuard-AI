@@ -172,6 +172,55 @@ export interface UpdateQuizRequest {
   questions: Omit<QuizQuestion, 'id'>[];
 }
 
+// ============================================
+// MODULE MANAGEMENT TYPES
+// ============================================
+
+export interface Module {
+  id: string;
+  title: string;
+  description?: string | null;
+  order: number;
+  courseId: string;
+  lessonCount?: number;
+  lessons?: Lesson[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  content: string;
+  videoUrl?: string | null;
+  order: number;
+  courseId: string;
+  moduleId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateModuleRequest {
+  title: string;
+  description?: string;
+  order: number;
+}
+
+export interface UpdateModuleRequest {
+  title: string;
+  description?: string;
+  order: number;
+}
+
+export interface ReorderModulesRequest {
+  moduleOrders: { id: string; order: number }[];
+}
+
+export interface AssignLessonToModuleRequest {
+  moduleId: string | null;
+  order: number;
+}
+
 const adminService = {
   // Get admin dashboard stats
   async getDashboardStats(): Promise<AdminDashboardData> {
@@ -222,6 +271,46 @@ const adminService = {
   // Delete quiz
   async deleteQuiz(quizId: string): Promise<{ message: string; deletedAttempts: number }> {
     const response = await api.delete<{ message: string; deletedAttempts: number }>(`/admin/quizzes/${quizId}`);
+    return response.data;
+  },
+
+  // ============================================
+  // MODULE MANAGEMENT METHODS
+  // ============================================
+
+  // Get all modules for a course with lesson count
+  async getCourseModules(courseId: string): Promise<Module[]> {
+    const response = await api.get<{ modules: Module[] }>(`/admin/courses/${courseId}/modules`);
+    return response.data.modules;
+  },
+
+  // Create new module
+  async createModule(courseId: string, data: CreateModuleRequest): Promise<{ message: string; module: Module }> {
+    const response = await api.post<{ message: string; module: Module }>(`/admin/courses/${courseId}/modules`, data);
+    return response.data;
+  },
+
+  // Update module
+  async updateModule(courseId: string, moduleId: string, data: UpdateModuleRequest): Promise<{ message: string; module: Module }> {
+    const response = await api.put<{ message: string; module: Module }>(`/admin/courses/${courseId}/modules/${moduleId}`, data);
+    return response.data;
+  },
+
+  // Delete module
+  async deleteModule(courseId: string, moduleId: string): Promise<{ message: string; affectedLessons: number }> {
+    const response = await api.delete<{ message: string; affectedLessons: number }>(`/admin/courses/${courseId}/modules/${moduleId}`);
+    return response.data;
+  },
+
+  // Reorder modules
+  async reorderModules(courseId: string, data: ReorderModulesRequest): Promise<{ message: string }> {
+    const response = await api.put<{ message: string }>(`/admin/courses/${courseId}/modules/reorder`, data);
+    return response.data;
+  },
+
+  // Assign lesson to module (or remove from module)
+  async assignLessonToModule(courseId: string, moduleId: string, lessonId: string, data: AssignLessonToModuleRequest): Promise<{ message: string; lesson: Lesson }> {
+    const response = await api.put<{ message: string; lesson: Lesson }>(`/admin/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`, data);
     return response.data;
   }
 };

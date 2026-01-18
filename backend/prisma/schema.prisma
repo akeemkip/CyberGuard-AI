@@ -19,6 +19,7 @@ model Course {
   updatedAt    DateTime      @updatedAt
   enrollments  Enrollment[]
   lessons      Lesson[]
+  modules      Module[]
   certificates Certificate[]
 
   @@map("courses")
@@ -37,6 +38,20 @@ model Enrollment {
   @@map("enrollments")
 }
 
+model Module {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  order       Int
+  courseId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+
+  @@map("modules")
+}
+
 model Lesson {
   id        String    @id @default(uuid())
   title     String
@@ -44,9 +59,11 @@ model Lesson {
   videoUrl  String?
   order     Int
   courseId  String
+  moduleId  String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  module    Module?   @relation(fields: [moduleId], references: [id], onDelete: SetNull)
   progress  Progress[]
   quiz      Quiz?
 

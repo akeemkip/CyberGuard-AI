@@ -77,7 +77,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import courseService, { Course, Lesson } from "../services/course.service";
-import adminService, { QuizWithStats } from "../services/admin.service";
+import adminService, { QuizWithStats, Module } from "../services/admin.service";
 import { AdminSidebar } from "./admin-sidebar";
 
 // Sortable Lesson Item Component
@@ -144,6 +144,91 @@ function SortableLesson({ lesson, onEdit, onDelete }: SortableLessonProps) {
           <Trash2 className="w-4 h-4 text-destructive" />
         </Button>
       </div>
+    </div>
+  );
+}
+
+// Sortable Module Card Component
+interface SortableModuleCardProps {
+  module: Module;
+  onEdit: (module: Module) => void;
+  onDelete: (module: Module) => void;
+  isDeleting: boolean;
+}
+
+function SortableModuleCard({ module, onEdit, onDelete, isDeleting }: SortableModuleCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: module.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className="p-6 transition-all duration-200 hover:shadow-md">
+        <div className="flex items-start gap-4">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing touch-none mt-1"
+          >
+            <GripVertical className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-1">{module.title}</h3>
+                {module.description && (
+                  <p className="text-sm text-muted-foreground mb-2">{module.description}</p>
+                )}
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <BookOpen className="w-4 h-4" />
+                    {module.lessonCount || 0} lesson{(module.lessonCount || 0) !== 1 ? 's' : ''}
+                  </span>
+                  <span>Order: {module.order + 1}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(module)}
+                  disabled={isDeleting}
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDelete(module)}
+                  disabled={isDeleting}
+                  className="text-destructive hover:text-destructive"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -339,6 +424,24 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null);
   const [showDeleteQuizDialog, setShowDeleteQuizDialog] = useState(false);
   const [quizToDelete, setQuizToDelete] = useState<QuizWithStats | null>(null);
+
+  // Module management state
+  const [modules, setModules] = useState<Module[]>([]);
+  const [selectedCourseForModules, setSelectedCourseForModules] = useState<string>("");
+  const [isLoadingModules, setIsLoadingModules] = useState(false);
+  const [showCreateModule, setShowCreateModule] = useState(false);
+  const [showEditModule, setShowEditModule] = useState(false);
+  const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [isCreatingModule, setIsCreatingModule] = useState(false);
+  const [isUpdatingModule, setIsUpdatingModule] = useState(false);
+  const [deletingModuleId, setDeletingModuleId] = useState<string | null>(null);
+  const [showDeleteModuleDialog, setShowDeleteModuleDialog] = useState(false);
+  const [moduleToDelete, setModuleToDelete] = useState<Module | null>(null);
+  const [newModule, setNewModule] = useState({
+    title: "",
+    description: "",
+    order: 0
+  });
 
   useEffect(() => {
     // Restore tab from browser history state if available (for back button navigation)
@@ -778,6 +881,163 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       return quiz ? { id: courseId, title: quiz.courseTitle } : null;
     })
     .filter(Boolean) as { id: string; title: string }[];
+
+  // ============================================
+  // MODULE MANAGEMENT FUNCTIONS
+  // ============================================
+
+  const fetchModulesForCourse = async (courseId: string) => {
+    try {
+      setIsLoadingModules(true);
+      const courseModules = await adminService.getCourseModules(courseId);
+      setModules(courseModules);
+    } catch (error) {
+      console.error("Error fetching modules:", error);
+      toast.error("Failed to load modules");
+      setModules([]);
+    } finally {
+      setIsLoadingModules(false);
+    }
+  };
+
+  const handleCreateModule = async () => {
+    if (!selectedCourseForModules) {
+      toast.error("Please select a course first");
+      return;
+    }
+    if (!newModule.title.trim()) {
+      toast.error("Please enter a module title");
+      return;
+    }
+
+    try {
+      setIsCreatingModule(true);
+      const result = await adminService.createModule(selectedCourseForModules, {
+        title: newModule.title.trim(),
+        description: newModule.description.trim() || undefined,
+        order: modules.length // Add to end
+      });
+
+      // Add to list
+      setModules([...modules, result.module]);
+      toast.success("Module created successfully");
+      setShowCreateModule(false);
+      setNewModule({ title: "", description: "", order: 0 });
+    } catch (error: any) {
+      console.error("Error creating module:", error);
+      toast.error(error.response?.data?.error || "Failed to create module");
+    } finally {
+      setIsCreatingModule(false);
+    }
+  };
+
+  const handleEditModuleClick = (module: Module) => {
+    setEditingModule(module);
+    setNewModule({
+      title: module.title,
+      description: module.description || "",
+      order: module.order
+    });
+    setShowEditModule(true);
+  };
+
+  const handleUpdateModule = async () => {
+    if (!editingModule || !selectedCourseForModules) return;
+    if (!newModule.title.trim()) {
+      toast.error("Please enter a module title");
+      return;
+    }
+
+    try {
+      setIsUpdatingModule(true);
+      const result = await adminService.updateModule(selectedCourseForModules, editingModule.id, {
+        title: newModule.title.trim(),
+        description: newModule.description.trim() || undefined,
+        order: newModule.order
+      });
+
+      // Update in list
+      setModules(modules.map(m => m.id === editingModule.id ? result.module : m));
+      toast.success("Module updated successfully");
+      setShowEditModule(false);
+      setEditingModule(null);
+      setNewModule({ title: "", description: "", order: 0 });
+    } catch (error: any) {
+      console.error("Error updating module:", error);
+      toast.error(error.response?.data?.error || "Failed to update module");
+    } finally {
+      setIsUpdatingModule(false);
+    }
+  };
+
+  const handleDeleteModuleClick = (module: Module) => {
+    setModuleToDelete(module);
+    setShowDeleteModuleDialog(true);
+  };
+
+  const confirmDeleteModule = async () => {
+    if (!moduleToDelete || !selectedCourseForModules) return;
+
+    try {
+      setDeletingModuleId(moduleToDelete.id);
+      const result = await adminService.deleteModule(selectedCourseForModules, moduleToDelete.id);
+
+      // Remove from list
+      setModules(modules.filter(m => m.id !== moduleToDelete.id));
+
+      toast.success(`Module deleted successfully. ${result.affectedLessons} lessons moved to unorganized.`);
+      setShowDeleteModuleDialog(false);
+      setModuleToDelete(null);
+
+      // Refresh courses to update lesson moduleIds
+      await fetchCourses();
+    } catch (error: any) {
+      console.error("Error deleting module:", error);
+      toast.error(error.response?.data?.error || "Failed to delete module");
+    } finally {
+      setDeletingModuleId(null);
+    }
+  };
+
+  const handleModuleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || !selectedCourseForModules) {
+      return;
+    }
+
+    const oldIndex = modules.findIndex((m) => m.id === active.id);
+    const newIndex = modules.findIndex((m) => m.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Optimistically update UI
+    const reorderedModules = arrayMove(modules, oldIndex, newIndex);
+    setModules(reorderedModules);
+
+    // Update order values
+    const moduleOrders = reorderedModules.map((module, index) => ({
+      id: module.id,
+      order: index
+    }));
+
+    try {
+      await adminService.reorderModules(selectedCourseForModules, { moduleOrders });
+      toast.success("Modules reordered");
+    } catch (error) {
+      console.error("Error reordering modules:", error);
+      toast.error("Failed to reorder modules");
+      // Revert on error
+      fetchModulesForCourse(selectedCourseForModules);
+    }
+  };
+
+  // When course is selected for modules, fetch its modules
+  useEffect(() => {
+    if (selectedCourseForModules && activeTab === 'modules') {
+      fetchModulesForCourse(selectedCourseForModules);
+    }
+  }, [selectedCourseForModules, activeTab]);
 
   if (isLoading) {
     return (
@@ -1247,6 +1507,258 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+            </TabsContent>
+
+            <TabsContent value="modules" className="space-y-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold">Course Modules</h2>
+                <p className="text-muted-foreground">Organize lessons into modules within each course</p>
+              </div>
+
+              {/* Course Selector */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <Label htmlFor="module-course-select">Select Course</Label>
+                    <Select
+                      value={selectedCourseForModules}
+                      onValueChange={setSelectedCourseForModules}
+                    >
+                      <SelectTrigger id="module-course-select" className="bg-input-background mt-1.5">
+                        <SelectValue placeholder="Choose a course..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {selectedCourseForModules && (
+                    <Button
+                      onClick={() => setShowCreateModule(true)}
+                      className="mt-7"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Module
+                    </Button>
+                  )}
+                </div>
+              </Card>
+
+              {/* Module List */}
+              {selectedCourseForModules ? (
+                isLoadingModules ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => (
+                      <Card key={i} className="p-6 animate-pulse">
+                        <div className="h-6 bg-muted rounded mb-4"></div>
+                        <div className="h-4 bg-muted rounded w-2/3"></div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : modules.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2">No modules yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Create your first module to organize lessons
+                    </p>
+                    <Button onClick={() => setShowCreateModule(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Module
+                    </Button>
+                  </Card>
+                ) : (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleModuleDragEnd}
+                  >
+                    <SortableContext
+                      items={modules.map(m => m.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-4">
+                        {modules.map((module) => (
+                          <SortableModuleCard
+                            key={module.id}
+                            module={module}
+                            onEdit={handleEditModuleClick}
+                            onDelete={handleDeleteModuleClick}
+                            isDeleting={deletingModuleId === module.id}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )
+              ) : (
+                <Card className="p-12 text-center">
+                  <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">Select a course</h3>
+                  <p className="text-muted-foreground">
+                    Choose a course from the dropdown above to manage its modules
+                  </p>
+                </Card>
+              )}
+
+              {/* Create Module Dialog */}
+              <Dialog open={showCreateModule} onOpenChange={setShowCreateModule}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Module</DialogTitle>
+                    <DialogDescription>
+                      Add a new module to organize lessons in this course
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="module-title">Module Title *</Label>
+                      <Input
+                        id="module-title"
+                        placeholder="e.g., Introduction to Security"
+                        value={newModule.title}
+                        onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
+                        className="bg-input-background"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="module-description">Description (optional)</Label>
+                      <Textarea
+                        id="module-description"
+                        placeholder="Brief description of this module..."
+                        value={newModule.description}
+                        onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
+                        className="bg-input-background"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowCreateModule(false);
+                        setNewModule({ title: "", description: "", order: 0 });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleCreateModule}
+                      disabled={isCreatingModule}
+                    >
+                      {isCreatingModule ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        "Create Module"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit Module Dialog */}
+              <Dialog open={showEditModule} onOpenChange={setShowEditModule}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Module</DialogTitle>
+                    <DialogDescription>
+                      Update the module details
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-module-title">Module Title *</Label>
+                      <Input
+                        id="edit-module-title"
+                        placeholder="e.g., Introduction to Security"
+                        value={newModule.title}
+                        onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
+                        className="bg-input-background"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-module-description">Description (optional)</Label>
+                      <Textarea
+                        id="edit-module-description"
+                        placeholder="Brief description of this module..."
+                        value={newModule.description}
+                        onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
+                        className="bg-input-background"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowEditModule(false);
+                        setEditingModule(null);
+                        setNewModule({ title: "", description: "", order: 0 });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleUpdateModule}
+                      disabled={isUpdatingModule}
+                    >
+                      {isUpdatingModule ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        "Update Module"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Delete Module Confirmation Dialog */}
+              <AlertDialog open={showDeleteModuleDialog} onOpenChange={setShowDeleteModuleDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Module?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will delete the module "{moduleToDelete?.title}".
+                      {moduleToDelete && moduleToDelete.lessonCount && moduleToDelete.lessonCount > 0 && (
+                        <>
+                          <br /><br />
+                          <strong>Warning:</strong> This module has {moduleToDelete.lessonCount} lesson(s).
+                          They will be moved to "Unorganized Lessons" and will not be deleted.
+                        </>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={confirmDeleteModule}
+                      disabled={deletingModuleId === moduleToDelete?.id}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deletingModuleId === moduleToDelete?.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Delete Module"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </TabsContent>
 
             <TabsContent value="lessons" className="space-y-6">
