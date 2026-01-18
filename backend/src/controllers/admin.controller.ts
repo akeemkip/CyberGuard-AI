@@ -387,3 +387,346 @@ function getTimeAgo(date: Date): string {
   if (diffDays < 7) return `${diffDays} days ago`;
   return date.toLocaleDateString();
 }
+
+// ============================================
+// QUIZ MANAGEMENT
+// ============================================
+
+// Get all quizzes with statistics
+export const getAllQuizzes = async (req: Request, res: Response) => {
+  try {
+    const quizzes = await prisma.quiz.findMany({
+      include: {
+        lesson: {
+          include: {
+            course: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        },
+        questions: {
+          select: {
+            id: true
+          }
+        },
+        attempts: {
+          select: {
+            score: true,
+            passed: true
+          }
+        }
+      },
+      orderBy: { lesson: { title: 'asc' } }
+    });
+
+    // Format with statistics
+    const quizzesWithStats = quizzes.map(quiz => {
+      const totalAttempts = quiz.attempts.length;
+      const passedAttempts = quiz.attempts.filter(a => a.passed).length;
+      const passRate = totalAttempts > 0
+        ? Math.round((passedAttempts / totalAttempts) * 100)
+        : 0;
+      const averageScore = totalAttempts > 0
+        ? Math.round(quiz.attempts.reduce((sum, a) => sum + a.score, 0) / totalAttempts)
+        : 0;
+
+      return {
+        id: quiz.id,
+        title: quiz.title,
+        passingScore: quiz.passingScore,
+        lessonId: quiz.lessonId,
+        lessonTitle: quiz.lesson.title,
+        courseId: quiz.lesson.course.id,
+        courseTitle: quiz.lesson.course.title,
+        questionCount: quiz.questions.length,
+        totalAttempts,
+        passRate,
+        averageScore
+      };
+    });
+
+    res.json({ quizzes: quizzesWithStats });
+  } catch (error) {
+    console.error('GetAllQuizzes error:', error);
+    res.status(500).json({ error: 'Failed to fetch quizzes' });
+  }
+};
+
+// Get quiz by ID with full details
+export const getQuizById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    const quiz = await prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        lesson: {
+          include: {
+            course: {
+              select: {
+                id: true,
+                title: true
+              }
+            }
+          }
+        },
+        questions: {
+          orderBy: { order: 'asc' }
+        },
+        attempts: {
+          select: {
+            score: true,
+            passed: true
+          }
+        }
+      }
+    });
+
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // Calculate statistics
+    const totalAttempts = quiz.attempts.length;
+    const passedAttempts = quiz.attempts.filter(a => a.passed).length;
+    const passRate = totalAttempts > 0
+      ? Math.round((passedAttempts / totalAttempts) * 100)
+      : 0;
+    const averageScore = totalAttempts > 0
+      ? Math.round(quiz.attempts.reduce((sum, a) => sum + a.score, 0) / totalAttempts)
+      : 0;
+
+    res.json({
+      id: quiz.id,
+      title: quiz.title,
+      passingScore: quiz.passingScore,
+      lessonId: quiz.lessonId,
+      lesson: {
+        title: quiz.lesson.title,
+        course: {
+          id: quiz.lesson.course.id,
+          title: quiz.lesson.course.title
+        }
+      },
+      questions: quiz.questions,
+      stats: {
+        totalAttempts,
+        passRate,
+        averageScore
+      }
+    });
+  } catch (error) {
+    console.error('GetQuizById error:', error);
+    res.status(500).json({ error: 'Failed to fetch quiz' });
+  }
+};
+
+// Create new quiz
+export const createQuiz = async (req: Request, res: Response) => {
+  try {
+    const { lessonId, title, passingScore, questions } = req.body;
+
+    // Validation
+    if (!lessonId || !title || !passingScore || !questions || !Array.isArray(questions)) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (questions.length < 2) {
+      return res.status(400).json({ error: 'Quiz must have at least 2 questions' });
+    }
+
+    if (passingScore < 1 || passingScore > 100) {
+      return res.status(400).json({ error: 'Passing score must be between 1 and 100' });
+    }
+
+    // Validate each question
+    for (const question of questions) {
+      if (!question.question || !question.options || question.correctAnswer === undefined) {
+        return res.status(400).json({ error: 'Each question must have text, options, and correct answer' });
+      }
+      if (question.options.length < 2 || question.options.length > 6) {
+        return res.status(400).json({ error: 'Each question must have 2-6 options' });
+      }
+      if (question.correctAnswer < 0 || question.correctAnswer >= question.options.length) {
+        return res.status(400).json({ error: 'Invalid correct answer index' });
+      }
+    }
+
+    // Check if lesson exists
+    const lesson = await prisma.lesson.findUnique({
+      where: { id: lessonId }
+    });
+
+    if (!lesson) {
+      return res.status(400).json({ error: 'Lesson does not exist' });
+    }
+
+    // Check if lesson already has a quiz
+    const existingQuiz = await prisma.quiz.findUnique({
+      where: { lessonId }
+    });
+
+    if (existingQuiz) {
+      return res.status(409).json({ error: 'This lesson already has a quiz' });
+    }
+
+    // Create quiz with questions
+    const quiz = await prisma.quiz.create({
+      data: {
+        lessonId,
+        title,
+        passingScore,
+        questions: {
+          create: questions.map((q: any, index: number) => ({
+            question: q.question,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            order: q.order !== undefined ? q.order : index
+          }))
+        }
+      },
+      include: {
+        questions: true
+      }
+    });
+
+    res.status(201).json({
+      message: 'Quiz created successfully',
+      quiz
+    });
+  } catch (error) {
+    console.error('CreateQuiz error:', error);
+    res.status(500).json({ error: 'Failed to create quiz' });
+  }
+};
+
+// Update quiz
+export const updateQuiz = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { lessonId, title, passingScore, questions } = req.body;
+
+    // Validation
+    if (!lessonId || !title || !passingScore || !questions || !Array.isArray(questions)) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (questions.length < 2) {
+      return res.status(400).json({ error: 'Quiz must have at least 2 questions' });
+    }
+
+    if (passingScore < 1 || passingScore > 100) {
+      return res.status(400).json({ error: 'Passing score must be between 1 and 100' });
+    }
+
+    // Validate each question
+    for (const question of questions) {
+      if (!question.question || !question.options || question.correctAnswer === undefined) {
+        return res.status(400).json({ error: 'Each question must have text, options, and correct answer' });
+      }
+      if (question.options.length < 2 || question.options.length > 6) {
+        return res.status(400).json({ error: 'Each question must have 2-6 options' });
+      }
+      if (question.correctAnswer < 0 || question.correctAnswer >= question.options.length) {
+        return res.status(400).json({ error: 'Invalid correct answer index' });
+      }
+    }
+
+    // Check if quiz exists
+    const existingQuiz = await prisma.quiz.findUnique({
+      where: { id }
+    });
+
+    if (!existingQuiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // If changing lesson, check if new lesson already has a quiz
+    if (lessonId !== existingQuiz.lessonId) {
+      const lesson = await prisma.lesson.findUnique({
+        where: { id: lessonId }
+      });
+
+      if (!lesson) {
+        return res.status(400).json({ error: 'Lesson does not exist' });
+      }
+
+      const quizOnNewLesson = await prisma.quiz.findUnique({
+        where: { lessonId }
+      });
+
+      if (quizOnNewLesson) {
+        return res.status(409).json({ error: 'The selected lesson already has a quiz' });
+      }
+    }
+
+    // Delete old questions and create new ones (simpler than updating)
+    await prisma.question.deleteMany({
+      where: { quizId: id }
+    });
+
+    // Update quiz and create new questions
+    const updatedQuiz = await prisma.quiz.update({
+      where: { id },
+      data: {
+        lessonId,
+        title,
+        passingScore,
+        questions: {
+          create: questions.map((q: any, index: number) => ({
+            question: q.question,
+            options: q.options,
+            correctAnswer: q.correctAnswer,
+            order: q.order !== undefined ? q.order : index
+          }))
+        }
+      },
+      include: {
+        questions: true
+      }
+    });
+
+    res.json({
+      message: 'Quiz updated successfully',
+      quiz: updatedQuiz
+    });
+  } catch (error) {
+    console.error('UpdateQuiz error:', error);
+    res.status(500).json({ error: 'Failed to update quiz' });
+  }
+};
+
+// Delete quiz
+export const deleteQuiz = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    // Check if quiz exists
+    const quiz = await prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        attempts: true
+      }
+    });
+
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // Delete quiz (cascade will delete questions and attempts)
+    await prisma.quiz.delete({
+      where: { id }
+    });
+
+    res.json({
+      message: 'Quiz deleted successfully',
+      deletedAttempts: quiz.attempts.length
+    });
+  } catch (error) {
+    console.error('DeleteQuiz error:', error);
+    res.status(500).json({ error: 'Failed to delete quiz' });
+  }
+};

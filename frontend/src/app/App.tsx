@@ -20,6 +20,7 @@ import { AdminUsers } from "./components/admin-users";
 import { AdminUserProfile } from "./components/admin-user-profile";
 import { AdminContent } from "./components/admin-content";
 import { AdminLessonEdit } from "./components/admin-lesson-edit";
+import { AdminQuizEdit } from "./components/admin-quiz-edit";
 import { AdminAnalytics } from "./components/admin-analytics";
 import { AdminSettings } from "./components/admin-settings";
 import { CertificatesPage } from "./components/certificates-page";
@@ -27,10 +28,10 @@ import { AssessmentsPage } from "./components/assessments-page";
 import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
 
-type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -51,6 +52,9 @@ function AppContent() {
   });
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(() => {
     return localStorage.getItem("selectedLessonId");
+  });
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(() => {
+    return localStorage.getItem("selectedQuizId");
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -106,6 +110,8 @@ function AppContent() {
             setSelectedUserId(event.state.idParam);
           } else if (page === "admin-lesson-edit") {
             setSelectedLessonId(event.state.idParam);
+          } else if (page === "admin-quiz-edit") {
+            setSelectedQuizId(event.state.idParam);
           }
         }
         // Legacy support for old courseId format
@@ -122,7 +128,7 @@ function AppContent() {
 
     // Set initial history state
     if (isInitialized && !window.history.state?.page) {
-      const idParam = selectedCourseId || selectedUserId || selectedLessonId;
+      const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId;
       window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
     }
 
@@ -136,6 +142,7 @@ function AppContent() {
     localStorage.removeItem("selectedCourseId");
     localStorage.removeItem("selectedUserId");
     localStorage.removeItem("selectedLessonId");
+    localStorage.removeItem("selectedQuizId");
     localStorage.removeItem("adminContentTab");
     localStorage.removeItem("adminSettingsTab");
     window.history.pushState({ page: "landing" }, "", window.location.pathname);
@@ -162,6 +169,12 @@ function AppContent() {
     if (page === "admin-lesson-edit" && idParam) {
       setSelectedLessonId(idParam);
       localStorage.setItem("selectedLessonId", idParam);
+    }
+
+    // Handle quiz ID for quiz edit
+    if (page === "admin-quiz-edit" && idParam) {
+      setSelectedQuizId(idParam);
+      localStorage.setItem("selectedQuizId", idParam);
     }
   };
 
@@ -306,6 +319,15 @@ function AppContent() {
           />
         ) : (
           <AdminContent
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        );
+      case "admin-quiz-edit":
+        return (
+          <AdminQuizEdit
+            quizId={selectedQuizId}
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}

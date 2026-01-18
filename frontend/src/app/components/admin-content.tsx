@@ -68,10 +68,16 @@ import {
   Upload,
   Link,
   GripVertical,
-  Image
+  Image,
+  Search,
+  HelpCircle,
+  TrendingUp,
+  Target,
+  Users
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import courseService, { Course, Lesson } from "../services/course.service";
+import adminService, { QuizWithStats } from "../services/admin.service";
 import { AdminSidebar } from "./admin-sidebar";
 
 // Sortable Lesson Item Component
@@ -325,6 +331,15 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     order: 1
   });
 
+  // Quiz management state
+  const [quizzes, setQuizzes] = useState<QuizWithStats[]>([]);
+  const [isLoadingQuizzes, setIsLoadingQuizzes] = useState(false);
+  const [quizSearch, setQuizSearch] = useState("");
+  const [quizFilterCourse, setQuizFilterCourse] = useState<string>("all");
+  const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null);
+  const [showDeleteQuizDialog, setShowDeleteQuizDialog] = useState(false);
+  const [quizToDelete, setQuizToDelete] = useState<QuizWithStats | null>(null);
+
   useEffect(() => {
     // Restore tab from browser history state if available (for back button navigation)
     const historyState = window.history.state;
@@ -346,6 +361,11 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       "",
       window.location.pathname
     );
+
+    // Fetch quizzes when switching to quizzes tab
+    if (activeTab === 'quizzes' && quizzes.length === 0) {
+      fetchQuizzes();
+    }
   }, [activeTab]);
 
   const fetchCourses = async () => {
@@ -691,6 +711,73 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       ));
     }
   };
+
+  // ============================================
+  // QUIZ MANAGEMENT FUNCTIONS
+  // ============================================
+
+  const fetchQuizzes = async () => {
+    try {
+      setIsLoadingQuizzes(true);
+      const allQuizzes = await adminService.getAllQuizzes();
+      setQuizzes(allQuizzes);
+    } catch (error) {
+      console.error("Error fetching quizzes:", error);
+      toast.error("Failed to load quizzes");
+    } finally {
+      setIsLoadingQuizzes(false);
+    }
+  };
+
+  const handleEditQuiz = (quizId: string) => {
+    // Navigate to quiz edit page
+    onNavigate('admin-quiz-edit', quizId);
+  };
+
+  const handleDeleteQuizClick = (quiz: QuizWithStats) => {
+    setQuizToDelete(quiz);
+    setShowDeleteQuizDialog(true);
+  };
+
+  const confirmDeleteQuiz = async () => {
+    if (!quizToDelete) return;
+
+    try {
+      setDeletingQuizId(quizToDelete.id);
+      const result = await adminService.deleteQuiz(quizToDelete.id);
+
+      // Remove from list
+      setQuizzes(quizzes.filter(q => q.id !== quizToDelete.id));
+
+      toast.success(`Quiz deleted successfully. ${result.deletedAttempts} student attempts were also removed.`);
+      setShowDeleteQuizDialog(false);
+      setQuizToDelete(null);
+    } catch (error: any) {
+      console.error("Error deleting quiz:", error);
+      toast.error(error.response?.data?.error || "Failed to delete quiz");
+    } finally {
+      setDeletingQuizId(null);
+    }
+  };
+
+  // Filter quizzes based on search and course filter
+  const filteredQuizzes = quizzes.filter(quiz => {
+    const matchesSearch = quiz.title.toLowerCase().includes(quizSearch.toLowerCase()) ||
+      quiz.lessonTitle.toLowerCase().includes(quizSearch.toLowerCase()) ||
+      quiz.courseTitle.toLowerCase().includes(quizSearch.toLowerCase());
+
+    const matchesCourse = quizFilterCourse === 'all' || quiz.courseId === quizFilterCourse;
+
+    return matchesSearch && matchesCourse;
+  });
+
+  // Get unique courses for filter dropdown
+  const uniqueCourses = Array.from(new Set(quizzes.map(q => q.courseId)))
+    .map(courseId => {
+      const quiz = quizzes.find(q => q.courseId === courseId);
+      return quiz ? { id: courseId, title: quiz.courseTitle } : null;
+    })
+    .filter(Boolean) as { id: string; title: string }[];
 
   if (isLoading) {
     return (
@@ -1246,16 +1333,212 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
             </TabsContent>
 
             <TabsContent value="quizzes" className="space-y-6">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold">Quizzes</h2>
-                <p className="text-muted-foreground">Quizzes are attached to lessons within courses</p>
+              {/* Quizzes Header with Search and Filter */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold">Quizzes</h2>
+                  <p className="text-muted-foreground">Manage all quizzes across courses</p>
+                </div>
+                <Button onClick={() => onNavigate('admin-quiz-edit')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Quiz
+                </Button>
               </div>
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  Quiz management is available when editing lessons within a course.
-                  Each lesson can have an attached quiz with multiple questions.
-                </p>
-              </Card>
+
+              {/* Search and Filter Bar */}
+              <div className="flex gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search quizzes by title, lesson, or course..."
+                    value={quizSearch}
+                    onChange={(e) => setQuizSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={quizFilterCourse} onValueChange={setQuizFilterCourse}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filter by course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Courses</SelectItem>
+                    {uniqueCourses.map(course => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Quiz List */}
+              {isLoadingQuizzes ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3].map(i => (
+                    <Card key={i} className="p-6">
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-4 bg-muted rounded w-3/4"></div>
+                        <div className="h-3 bg-muted rounded w-1/2"></div>
+                        <div className="h-3 bg-muted rounded w-2/3"></div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              ) : filteredQuizzes.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <HelpCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  {quizSearch || quizFilterCourse !== 'all' ? (
+                    <>
+                      <h3 className="font-semibold mb-2">No quizzes found</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Try adjusting your search or filter criteria
+                      </p>
+                      <Button variant="outline" onClick={() => { setQuizSearch(""); setQuizFilterCourse("all"); }}>
+                        Clear Filters
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="font-semibold mb-2">No quizzes yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Create your first quiz to test student knowledge
+                      </p>
+                      <Button onClick={() => onNavigate('admin-quiz-edit')}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Quiz
+                      </Button>
+                    </>
+                  )}
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredQuizzes.map(quiz => (
+                    <Card key={quiz.id} className="p-6 hover:shadow-lg transition-shadow">
+                      <div className="space-y-4">
+                        {/* Quiz Title */}
+                        <div>
+                          <h3 className="font-semibold text-lg mb-1">{quiz.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {quiz.courseTitle} • {quiz.lessonTitle}
+                          </p>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2">
+                            <HelpCircle className="w-4 h-4 text-blue-500" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Questions</p>
+                              <p className="font-semibold">{quiz.questionCount}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Target className="w-4 h-4 text-green-500" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Pass Score</p>
+                              <p className="font-semibold">{quiz.passingScore}%</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-purple-500" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Attempts</p>
+                              <p className="font-semibold">{quiz.totalAttempts}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-orange-500" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Pass Rate</p>
+                              <p className="font-semibold">{quiz.passRate}%</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Average Score Bar */}
+                        {quiz.totalAttempts > 0 && (
+                          <div>
+                            <div className="flex justify-between text-xs mb-1">
+                              <span className="text-muted-foreground">Avg Score</span>
+                              <span className="font-semibold">{quiz.averageScore}%</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full transition-all ${
+                                  quiz.averageScore >= quiz.passingScore
+                                    ? 'bg-green-500'
+                                    : 'bg-orange-500'
+                                }`}
+                                style={{ width: `${quiz.averageScore}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleEditQuiz(quiz.id)}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteQuizClick(quiz)}
+                            disabled={deletingQuizId === quiz.id}
+                          >
+                            {deletingQuizId === quiz.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Delete Confirmation Dialog */}
+              <AlertDialog open={showDeleteQuizDialog} onOpenChange={setShowDeleteQuizDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Quiz?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{quizToDelete?.title}"?
+                      {quizToDelete && quizToDelete.totalAttempts > 0 && (
+                        <span className="block mt-2 text-orange-600 dark:text-orange-400 font-semibold">
+                          ⚠️ This will delete {quizToDelete.totalAttempts} student attempt{quizToDelete.totalAttempts !== 1 ? 's' : ''}.
+                        </span>
+                      )}
+                      This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={deletingQuizId !== null}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={confirmDeleteQuiz}
+                      disabled={deletingQuizId !== null}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {deletingQuizId ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        'Delete Quiz'
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </TabsContent>
 
             <TabsContent value="labs" className="space-y-6">
