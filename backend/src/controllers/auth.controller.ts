@@ -21,10 +21,12 @@ const loginSchema = z.object({
 
 // Generate JWT token
 const generateToken = (userId: string, role: string): string => {
+  const secret = process.env.JWT_SECRET || 'fallback-secret';
+  const expiresIn: string = process.env.JWT_EXPIRES_IN || '7d';
   return jwt.sign(
     { userId, role },
-    process.env.JWT_SECRET || 'fallback-secret',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    secret,
+    { expiresIn } as jwt.SignOptions
   );
 };
 

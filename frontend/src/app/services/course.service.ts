@@ -185,6 +185,12 @@ const courseService = {
     return response.data;
   },
 
+  // Get lesson by ID (admin only)
+  async getLessonById(lessonId: string): Promise<Lesson> {
+    const response = await api.get<{ lesson: Lesson }>(`/courses/lessons/${lessonId}`);
+    return response.data.lesson;
+  },
+
   // Create lesson (admin only)
   async createLesson(courseId: string, data: CreateLessonRequest): Promise<Lesson> {
     const response = await api.post<{ lesson: Lesson }>(`/courses/${courseId}/lessons`, data);

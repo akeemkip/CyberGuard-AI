@@ -256,7 +256,7 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
             const isEnrolling = enrollingId === course.id;
 
             return (
-              <Card key={course.id} className="p-6 hover:shadow-lg transition-shadow flex flex-col">
+              <Card key={course.id} className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 flex flex-col">
                 <div className="w-full h-40 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
                   {course.thumbnail ? (
                     <img

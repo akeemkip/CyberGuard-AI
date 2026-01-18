@@ -52,7 +52,7 @@ export const getAllCourses = async (req: Request, res: Response) => {
 // Get course by ID
 export const getCourseById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const course = await prisma.course.findUnique({
       where: { id },
@@ -110,7 +110,7 @@ export const createCourse = async (req: Request, res: Response) => {
 // Update course (admin only)
 export const updateCourse = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const validatedData = updateCourseSchema.parse(req.body);
 
     const course = await prisma.course.update({
@@ -131,7 +131,7 @@ export const updateCourse = async (req: Request, res: Response) => {
 // Delete course (admin only)
 export const deleteCourse = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     await prisma.course.delete({
       where: { id }
@@ -147,7 +147,7 @@ export const deleteCourse = async (req: Request, res: Response) => {
 // Enroll in course
 export const enrollInCourse = async (req: AuthRequest, res: Response) => {
   try {
-    const { id: courseId } = req.params;
+    const courseId = req.params.id as string;
     const userId = req.userId!;
 
     // Check if already enrolled
@@ -251,7 +251,7 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
 // Get course progress for specific course
 export const getCourseProgress = async (req: AuthRequest, res: Response) => {
   try {
-    const { id: courseId } = req.params;
+    const courseId = req.params.id as string;
     const userId = req.userId!;
 
     // Get all lessons for the course
@@ -296,7 +296,7 @@ export const getCourseProgress = async (req: AuthRequest, res: Response) => {
 // Get quiz with questions
 export const getQuiz = async (req: Request, res: Response) => {
   try {
-    const { quizId } = req.params;
+    const quizId = req.params.quizId as string;
 
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
@@ -335,7 +335,7 @@ export const getQuiz = async (req: Request, res: Response) => {
 // Submit quiz attempt
 export const submitQuizAttempt = async (req: AuthRequest, res: Response) => {
   try {
-    const { quizId } = req.params;
+    const quizId = req.params.quizId as string;
     const userId = req.userId!;
     const { answers } = req.body; // { questionId: selectedOptionIndex }
 
@@ -398,7 +398,7 @@ export const submitQuizAttempt = async (req: AuthRequest, res: Response) => {
 // Mark lesson as complete
 export const markLessonComplete = async (req: AuthRequest, res: Response) => {
   try {
-    const { lessonId } = req.params;
+    const lessonId = req.params.lessonId as string;
     const userId = req.userId!;
 
     // Verify lesson exists
@@ -464,10 +464,39 @@ export const markLessonComplete = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Get lesson by ID (admin only)
+export const getLessonById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    const lesson = await prisma.lesson.findUnique({
+      where: { id },
+      include: {
+        quiz: {
+          select: {
+            id: true,
+            title: true,
+            passingScore: true
+          }
+        }
+      }
+    });
+
+    if (!lesson) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    res.json({ lesson });
+  } catch (error) {
+    console.error('GetLessonById error:', error);
+    res.status(500).json({ error: 'Failed to fetch lesson' });
+  }
+};
+
 // Create lesson (admin only)
 export const createLesson = async (req: Request, res: Response) => {
   try {
-    const { courseId } = req.params;
+    const courseId = req.params.courseId as string;
     const validatedData = createLessonSchema.parse(req.body);
 
     // Verify course exists
@@ -499,7 +528,7 @@ export const createLesson = async (req: Request, res: Response) => {
 // Update lesson (admin only)
 export const updateLesson = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const validatedData = updateLessonSchema.parse(req.body);
 
     const lesson = await prisma.lesson.update({
@@ -520,7 +549,7 @@ export const updateLesson = async (req: Request, res: Response) => {
 // Delete lesson (admin only)
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     await prisma.lesson.delete({
       where: { id }

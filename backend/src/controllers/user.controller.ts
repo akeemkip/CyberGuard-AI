@@ -115,7 +115,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // Get user by ID
 export const getUserById = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Users can only view their own profile unless they're admin
     if (req.userRole !== 'ADMIN' && req.userId !== id) {
@@ -159,7 +159,7 @@ export const getUserById = async (req: AuthRequest, res: Response) => {
 // Update user
 export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     // Users can only update their own profile unless they're admin
     if (req.userRole !== 'ADMIN' && req.userId !== id) {
@@ -194,7 +194,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 // Change user role (admin only)
 export const changeUserRole = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const validatedData = changeRoleSchema.parse(req.body);
 
     const user = await prisma.user.update({
@@ -231,7 +231,7 @@ export const changeUserRole = async (req: Request, res: Response) => {
 // Delete user (admin only)
 export const deleteUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     await prisma.user.delete({
       where: { id }

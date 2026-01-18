@@ -182,7 +182,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
         {/* Stats Cards */}
         {savedSettings.showProgress && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-muted-foreground">Courses Enrolled</span>
                 <Book className="w-5 h-5 text-primary" />
@@ -192,7 +192,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 {stats?.coursesCompleted || 0} completed
               </div>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-muted-foreground">Completion Rate</span>
                 <Trophy className="w-5 h-5 text-warning" />
@@ -202,7 +202,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 {stats?.lessonsCompleted || 0} of {stats?.totalLessons || 0} lessons
               </div>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-muted-foreground">Quiz Score</span>
                 <Target className="w-5 h-5 text-accent" />
@@ -212,7 +212,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 {stats?.quizzesPassed || 0} of {stats?.quizzesTaken || 0} passed
               </div>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-muted-foreground">Lessons Done</span>
                 <Clock className="w-5 h-5 text-chart-3" />
@@ -251,7 +251,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
               ) : (
                 <div className="space-y-4">
                   {enrolledCourses.map((enrollment) => (
-                    <Card key={enrollment.id} className="p-6 hover:shadow-lg transition-shadow">
+                    <Card key={enrollment.id} className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
                       <div className="flex items-start gap-4">
                         <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                           {enrollment.course.thumbnail ? (

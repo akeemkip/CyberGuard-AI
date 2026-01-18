@@ -346,21 +346,21 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
         <main className="flex-1 overflow-auto p-8">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-muted-foreground">Total Users</span>
                 <Users className="w-5 h-5 text-primary" />
               </div>
               <div className="text-3xl font-bold">{users.length}</div>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-muted-foreground">Students</span>
                 <UserCheck className="w-5 h-5 text-success" />
               </div>
               <div className="text-3xl font-bold">{users.filter(u => u.role === "STUDENT").length}</div>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-muted-foreground">Admins</span>
                 <Shield className="w-5 h-5 text-primary" />

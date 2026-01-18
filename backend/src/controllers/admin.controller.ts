@@ -198,7 +198,7 @@ export const getAllEnrollments = async (req: Request, res: Response) => {
 // Get detailed user statistics
 export const getUserStatistics = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
 
     // Get user basic info
     const user = await prisma.user.findUnique({
@@ -235,12 +235,9 @@ export const getUserStatistics = async (req: Request, res: Response) => {
     // Get lesson progress stats
     const lessonProgress = await prisma.progress.findMany({
       where: { userId },
-      select: {
-        completed: true,
-        completedAt: true,
+      include: {
         lesson: {
-          select: {
-            title: true,
+          include: {
             course: {
               select: { title: true }
             }
@@ -254,16 +251,11 @@ export const getUserStatistics = async (req: Request, res: Response) => {
     // Get quiz stats
     const quizAttempts = await prisma.quizAttempt.findMany({
       where: { userId },
-      select: {
-        score: true,
-        passed: true,
-        attemptedAt: true,
+      include: {
         quiz: {
-          select: {
-            title: true,
+          include: {
             lesson: {
-              select: {
-                title: true,
+              include: {
                 course: {
                   select: { title: true }
                 }
@@ -284,9 +276,7 @@ export const getUserStatistics = async (req: Request, res: Response) => {
     // Get certificate stats
     const certificates = await prisma.certificate.findMany({
       where: { userId },
-      select: {
-        id: true,
-        issuedAt: true,
+      include: {
         course: {
           select: { title: true }
         }

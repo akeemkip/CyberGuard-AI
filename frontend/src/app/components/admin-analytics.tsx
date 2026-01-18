@@ -214,7 +214,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
         <main className="flex-1 overflow-auto p-8">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Avg. Completion Rate</span>
                 <TrendingUp className="w-4 h-4 text-success" />
@@ -224,7 +224,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 {stats?.completedEnrollments || 0} courses completed
               </Badge>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Avg. Quiz Score</span>
                 <TrendingUp className="w-4 h-4 text-success" />
@@ -234,7 +234,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 {stats?.quizzesPassed || 0}/{stats?.quizzesTaken || 0} passed
               </Badge>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Total Users</span>
                 <Users className="w-4 h-4 text-primary" />
@@ -244,7 +244,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 {stats?.totalEnrollments || 0} enrollments
               </Badge>
             </Card>
-            <Card className="p-6">
+            <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Lessons Completed</span>
                 <Activity className="w-4 h-4 text-primary" />

@@ -235,92 +235,148 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
     }
   };
 
-  // Render markdown-ish content (simple parser)
+  // Render HTML content from rich text editor
   const renderContent = (content: string) => {
     if (!content) return null;
 
-    const lines = content.split('\n');
-    const elements: JSX.Element[] = [];
-    let currentList: string[] = [];
-    let listType: 'ul' | 'ol' | null = null;
+    // Check if content is HTML or plain text
+    const hasHTML = /<[a-z][\s\S]*>/i.test(content);
 
-    const flushList = () => {
-      if (currentList.length > 0 && listType) {
-        const ListTag = listType === 'ol' ? 'ol' : 'ul';
-        elements.push(
-          <ListTag key={elements.length} className={`${listType === 'ol' ? 'list-decimal' : 'list-disc'} list-inside space-y-1 mb-4 text-muted-foreground`}>
-            {currentList.map((item, i) => <li key={i}>{item}</li>)}
-          </ListTag>
-        );
-        currentList = [];
-        listType = null;
-      }
-    };
+    let processedContent = content;
 
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
+    // If it's plain text or markdown-like text, convert to HTML
+    if (!hasHTML) {
+      // First, insert newlines before markdown headers if they're inline
+      let textContent = content
+        .replace(/\s*(#{1,4})\s+/g, '\n$1 ')  // Add newline before headers
+        .replace(/\s*###\s+/g, '\n### ')       // Ensure ### headers have newlines
+        .trim();
 
-      // Headers
-      if (trimmedLine.startsWith('# ')) {
-        flushList();
-        elements.push(<h1 key={index} className="text-2xl font-bold mb-4 mt-6">{trimmedLine.slice(2)}</h1>);
-      } else if (trimmedLine.startsWith('## ')) {
-        flushList();
-        elements.push(<h2 key={index} className="text-xl font-semibold mb-3 mt-5">{trimmedLine.slice(3)}</h2>);
-      } else if (trimmedLine.startsWith('### ')) {
-        flushList();
-        elements.push(<h3 key={index} className="text-lg font-semibold mb-2 mt-4">{trimmedLine.slice(4)}</h3>);
-      } else if (trimmedLine.startsWith('#### ')) {
-        flushList();
-        elements.push(<h4 key={index} className="text-base font-semibold mb-2 mt-3">{trimmedLine.slice(5)}</h4>);
-      }
-      // Unordered list items
-      else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
-        if (listType !== 'ul') {
-          flushList();
-          listType = 'ul';
+      // Parse markdown-style formatting
+      const lines = textContent.split('\n');
+      const htmlLines: string[] = [];
+      let inUnorderedList = false;
+      let inOrderedList = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (!line) {
+          // Close any open lists
+          if (inUnorderedList) {
+            htmlLines.push('</ul>');
+            inUnorderedList = false;
+          }
+          if (inOrderedList) {
+            htmlLines.push('</ol>');
+            inOrderedList = false;
+          }
+          htmlLines.push('<br>');
+          continue;
         }
-        currentList.push(trimmedLine.slice(2));
-      }
-      // Ordered list items
-      else if (/^\d+\.\s/.test(trimmedLine)) {
-        if (listType !== 'ol') {
-          flushList();
-          listType = 'ol';
+
+        // Check for headers (must be at start of line)
+        if (line.startsWith('#### ')) {
+          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
+          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
+          htmlLines.push(`<h4>${line.substring(5).trim()}</h4>`);
+        } else if (line.startsWith('### ')) {
+          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
+          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
+          htmlLines.push(`<h3>${line.substring(4).trim()}</h3>`);
+        } else if (line.startsWith('## ')) {
+          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
+          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
+          htmlLines.push(`<h2>${line.substring(3).trim()}</h2>`);
+        } else if (line.startsWith('# ')) {
+          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
+          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
+          htmlLines.push(`<h1>${line.substring(2).trim()}</h1>`);
         }
-        currentList.push(trimmedLine.replace(/^\d+\.\s/, ''));
+        // Check for unordered list items
+        else if (line.startsWith('- ') || line.startsWith('* ')) {
+          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
+          if (!inUnorderedList) {
+            htmlLines.push('<ul>');
+            inUnorderedList = true;
+          }
+          htmlLines.push(`<li>${line.substring(2).trim()}</li>`);
+        }
+        // Check for numbered lists
+        else if (/^\d+\.\s/.test(line)) {
+          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
+          if (!inOrderedList) {
+            htmlLines.push('<ol>');
+            inOrderedList = true;
+          }
+          htmlLines.push(`<li>${line.replace(/^\d+\.\s/, '').trim()}</li>`);
+        }
+        // Regular paragraph
+        else {
+          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
+          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
+          htmlLines.push(`<p>${line}</p>`);
+        }
       }
-      // Bold text with **
-      else if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-        flushList();
-        elements.push(<p key={index} className="font-semibold mb-2">{trimmedLine.slice(2, -2)}</p>);
-      }
-      // Empty line
-      else if (trimmedLine === '') {
-        flushList();
-      }
-      // Regular paragraph
-      else if (trimmedLine) {
-        flushList();
-        // Handle inline formatting
-        const formattedLine = trimmedLine
-          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-          .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm">$1</code>');
 
-        // Sanitize HTML to prevent XSS attacks
-        const sanitizedHTML = DOMPurify.sanitize(formattedLine, {
-          ALLOWED_TAGS: ['strong', 'code'],
-          ALLOWED_ATTR: ['class']
-        });
+      // Close any remaining open lists
+      if (inUnorderedList) htmlLines.push('</ul>');
+      if (inOrderedList) htmlLines.push('</ol>');
 
-        elements.push(
-          <p key={index} className="mb-3 text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
-        );
+      processedContent = htmlLines.join('\n');
+    }
+
+    // Sanitize HTML to prevent XSS attacks
+    const sanitizedHTML = DOMPurify.sanitize(processedContent, {
+      ALLOWED_TAGS: [
+        'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'ul', 'ol', 'li',
+        'blockquote',
+        'a', 'img',
+        'table', 'thead', 'tbody', 'tr', 'th', 'td',
+        'span', 'div'
+      ],
+      ALLOWED_ATTR: [
+        'href', 'target', 'rel', 'src', 'alt', 'title',
+        'class', 'style', 'align'
+      ],
+      ALLOWED_STYLES: {
+        '*': {
+          'color': [/^#[0-9a-fA-F]{3,6}$/, /^rgb\(/, /^rgba\(/],
+          'background-color': [/^#[0-9a-fA-F]{3,6}$/, /^rgb\(/, /^rgba\(/],
+          'text-align': [/^left$/, /^right$/, /^center$/, /^justify$/],
+          'line-height': [/.*/]
+        }
       }
     });
 
-    flushList();
-    return elements;
+    return (
+      <div
+        className="lesson-content"
+        dangerouslySetInnerHTML={{ __html: sanitizedHTML }}
+      />
+    );
+  };
+
+  // Render quiz question text (supports HTML or plain text)
+  const renderQuizText = (text: string) => {
+    if (!text) return null;
+
+    // Check if it contains HTML tags
+    const hasHTML = /<[a-z][\s\S]*>/i.test(text);
+
+    if (hasHTML) {
+      // Sanitize and render as HTML
+      const sanitizedHTML = DOMPurify.sanitize(text, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'code'],
+        ALLOWED_ATTR: []
+      });
+      return <span dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />;
+    }
+
+    // Return as plain text
+    return <span>{text}</span>;
   };
 
   // Loading state
@@ -433,7 +489,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
               {/* Lesson content */}
               {currentLesson?.content && !currentLesson?.quiz && (
-                <div className="prose max-w-none dark:prose-invert">
+                <div className="max-w-none">
                   {renderContent(currentLesson.content)}
                 </div>
               )}
@@ -461,7 +517,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                             {shuffledQuiz.map((q, index) => (
                               <Card key={q.id} className="p-6">
                                 <h4 className="font-semibold mb-4">
-                                  Question {index + 1}: {q.question}
+                                  Question {index + 1}: {renderQuizText(q.question)}
                                 </h4>
                                 <div className="space-y-3">
                                   {q.shuffledOptions.map((option, optionIndex) => (
@@ -553,7 +609,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                                     )}
                                     <div className="flex-1">
                                       <h4 className="font-semibold mb-2">
-                                        Question {index + 1}: {q.question}
+                                        Question {index + 1}: {renderQuizText(q.question)}
                                       </h4>
                                       <p className="text-sm text-muted-foreground mb-2">
                                         Your answer:{" "}

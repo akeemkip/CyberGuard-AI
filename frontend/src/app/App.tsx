@@ -19,6 +19,7 @@ import { AdminDashboard } from "./components/admin-dashboard";
 import { AdminUsers } from "./components/admin-users";
 import { AdminUserProfile } from "./components/admin-user-profile";
 import { AdminContent } from "./components/admin-content";
+import { AdminLessonEdit } from "./components/admin-lesson-edit";
 import { AdminAnalytics } from "./components/admin-analytics";
 import { AdminSettings } from "./components/admin-settings";
 import { CertificatesPage } from "./components/certificates-page";
@@ -26,10 +27,10 @@ import { AssessmentsPage } from "./components/assessments-page";
 import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
 
-type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -47,6 +48,9 @@ function AppContent() {
   });
   const [selectedUserId, setSelectedUserId] = useState<string | null>(() => {
     return localStorage.getItem("selectedUserId");
+  });
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(() => {
+    return localStorage.getItem("selectedLessonId");
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -100,6 +104,8 @@ function AppContent() {
             setSelectedCourseId(event.state.idParam);
           } else if (page === "admin-user-profile") {
             setSelectedUserId(event.state.idParam);
+          } else if (page === "admin-lesson-edit") {
+            setSelectedLessonId(event.state.idParam);
           }
         }
         // Legacy support for old courseId format
@@ -116,7 +122,7 @@ function AppContent() {
 
     // Set initial history state
     if (isInitialized && !window.history.state?.page) {
-      const idParam = selectedCourseId || selectedUserId;
+      const idParam = selectedCourseId || selectedUserId || selectedLessonId;
       window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
     }
 
@@ -129,6 +135,7 @@ function AppContent() {
     localStorage.removeItem("currentPage");
     localStorage.removeItem("selectedCourseId");
     localStorage.removeItem("selectedUserId");
+    localStorage.removeItem("selectedLessonId");
     window.history.pushState({ page: "landing" }, "", window.location.pathname);
   };
 
@@ -147,6 +154,12 @@ function AppContent() {
     if (page === "admin-user-profile" && idParam) {
       setSelectedUserId(idParam);
       localStorage.setItem("selectedUserId", idParam);
+    }
+
+    // Handle lesson ID for lesson edit
+    if (page === "admin-lesson-edit" && idParam) {
+      setSelectedLessonId(idParam);
+      localStorage.setItem("selectedLessonId", idParam);
     }
   };
 
@@ -281,6 +294,21 @@ function AppContent() {
             onLogout={handleLogout}
           />
         );
+      case "admin-lesson-edit":
+        return selectedLessonId ? (
+          <AdminLessonEdit
+            lessonId={selectedLessonId}
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        ) : (
+          <AdminContent
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        );
       case "admin-analytics":
         return (
           <AdminAnalytics
@@ -313,7 +341,7 @@ export default function App() {
           <ErrorBoundary>
             <AppContent />
           </ErrorBoundary>
-          <Toaster richColors position="top-right" />
+          <Toaster richColors position="top-right" duration={2000} />
         </SettingsProvider>
       </AuthProvider>
     </ThemeProvider>

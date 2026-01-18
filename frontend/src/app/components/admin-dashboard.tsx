@@ -124,7 +124,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
     const comparison = showComparison ? getComparison(value, title) : null;
 
     return (
-      <Card className="p-6">
+      <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
         <div className="flex items-center justify-between mb-4">
           <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center`}>
             <Icon className={`w-6 h-6 ${iconColor}`} />
