@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -84,6 +84,9 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const { theme, toggleTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem("adminSettingsTab") || "general";
+  });
 
   // Initialize with default settings
   const [settings, setSettings] = useState<PlatformSettings>({
@@ -128,6 +131,27 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     favicon: "",
     customCss: "",
   });
+
+  // Restore tab from browser history state on mount
+  useEffect(() => {
+    const historyState = window.history.state;
+    if (historyState?.activeTab) {
+      setActiveTab(historyState.activeTab);
+    }
+  }, []);
+
+  // Save active tab to localStorage and update browser history
+  useEffect(() => {
+    localStorage.setItem("adminSettingsTab", activeTab);
+
+    // Update the current history state with the active tab
+    const currentState = window.history.state || {};
+    window.history.replaceState(
+      { ...currentState, activeTab },
+      "",
+      window.location.pathname
+    );
+  }, [activeTab]);
 
   const handleChange = (key: keyof PlatformSettings, value: any) => {
     setSettings({ ...settings, [key]: value });
@@ -213,7 +237,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
 
         {/* Content */}
         <main className="flex-1 overflow-auto p-8">
-          <Tabs defaultValue="general" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-6 mb-8">
               <TabsTrigger value="general">
                 <Settings className="w-4 h-4 mr-2" />

@@ -261,7 +261,9 @@ interface AdminContentProps {
 
 export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentProps) {
   const { theme, toggleTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState("courses");
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem("adminContentTab") || "courses";
+  });
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
@@ -324,8 +326,27 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   });
 
   useEffect(() => {
+    // Restore tab from browser history state if available (for back button navigation)
+    const historyState = window.history.state;
+    if (historyState?.activeTab) {
+      setActiveTab(historyState.activeTab);
+    }
+
     fetchCourses();
   }, []);
+
+  // Save active tab to localStorage and update browser history
+  useEffect(() => {
+    localStorage.setItem("adminContentTab", activeTab);
+
+    // Update the current history state with the active tab
+    const currentState = window.history.state || {};
+    window.history.replaceState(
+      { ...currentState, activeTab },
+      "",
+      window.location.pathname
+    );
+  }, [activeTab]);
 
   const fetchCourses = async () => {
     try {

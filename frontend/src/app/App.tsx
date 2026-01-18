@@ -136,6 +136,8 @@ function AppContent() {
     localStorage.removeItem("selectedCourseId");
     localStorage.removeItem("selectedUserId");
     localStorage.removeItem("selectedLessonId");
+    localStorage.removeItem("adminContentTab");
+    localStorage.removeItem("adminSettingsTab");
     window.history.pushState({ page: "landing" }, "", window.location.pathname);
   };
 
