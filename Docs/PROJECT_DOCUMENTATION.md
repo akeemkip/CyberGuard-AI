@@ -1,7 +1,7 @@
 # CyberGuard AI - Project Documentation
 
-> **Last Updated:** January 16, 2026 (Session 15)
-> **Status:** In Development - Core Features Working, AI Integration COMPLETE
+> **Last Updated:** January 17, 2026 (Session 16)
+> **Status:** In Development - Core Features Working, Rich Content Editor COMPLETE
 
 ---
 
@@ -42,7 +42,10 @@ Josh/
 │   │       │   ├── admin-dashboard.tsx
 │   │       │   ├── admin-users.tsx
 │   │       │   ├── admin-content.tsx
+│   │       │   ├── admin-lesson-edit.tsx    # Dedicated lesson edit page
 │   │       │   ├── admin-analytics.tsx
+│   │       │   ├── RichTextEditor.tsx       # TipTap rich text editor
+│   │       │   ├── tiptap.css               # Rich text editor styles
 │   │       │   ├── privacy-policy-page.tsx
 │   │       │   ├── terms-of-service-page.tsx
 │   │       │   ├── cookie-policy-page.tsx
@@ -420,6 +423,9 @@ All admin pages now connected to real backend data:
 | Jan 14, 2026 | Multi-port CORS | Vite may use different ports, allow 5173-5175 |
 | Jan 14, 2026 | History API | Browser back button support without react-router |
 | Jan 14, 2026 | localStorage | Page persistence across refresh |
+| Jan 17, 2026 | Dedicated page for complex editing | Modal pattern inappropriate for rich text editing - dedicated pages for complex content |
+| Jan 17, 2026 | TipTap for rich text | Extensible, modern, better than alternatives for React |
+| Jan 17, 2026 | Markdown backward compatibility | Support legacy plain-text content with auto-conversion to HTML |
 
 ### Decisions Pending
 - Hosting platform (Vercel + Railway recommended)
@@ -462,6 +468,10 @@ All admin pages now connected to real backend data:
 | POST | `/courses/lessons/:lessonId/complete` | Mark lesson complete | Yes |
 | GET | `/courses/quiz/:quizId` | Get quiz with questions | Yes |
 | POST | `/courses/quiz/:quizId/submit` | Submit quiz answers | Yes |
+| GET | `/courses/lessons/:id` | Get lesson by ID | Admin |
+| POST | `/courses/:courseId/lessons` | Create new lesson | Admin |
+| PUT | `/courses/lessons/:id` | Update lesson | Admin |
+| DELETE | `/courses/lessons/:id` | Delete lesson | Admin |
 
 ### Admin Endpoints
 | Method | Endpoint | Description | Auth Required |
@@ -2101,3 +2111,115 @@ npm run db:studio    # Open Prisma Studio (visual DB browser)
 npm run dev          # Start dev server
 npm run build        # Build for production
 ```
+
+---
+
+### January 17, 2026 - Session 16
+**Summary:** Comprehensive rich text editor implementation and content formatting system
+
+**Part 1 - Modal to Page Conversion:**
+- Identified architectural issue: rich text editing in modal caused focus management conflicts
+- Converted lesson editing from 90% viewport modal to dedicated full-page experience
+- Created admin-lesson-edit.tsx component (369 lines)
+- Added GET /api/courses/lessons/:id backend endpoint
+- Removed 75+ lines of modal-related code from admin-content.tsx
+- Documented architectural lesson: "When workarounds pile up, question the architecture"
+
+**Part 2 - Rich Text Editor Implementation:**
+- Created RichTextEditor component with TipTap integration
+- Added comprehensive formatting toolbar:
+  - Text formatting: Bold, Italic, Underline, Strikethrough
+  - Headings: H1, H2, H3, H4
+  - Alignment: Left, Center, Right, Justify
+  - Lists: Bulleted and Numbered
+  - Advanced: Links, Images, Blockquotes, Code blocks
+  - Color picker for text colors
+  - Line height/spacing selector (8 presets)
+- Implemented HTML sanitization with DOMPurify for XSS protection
+- Added custom LineHeight TipTap extension
+
+**Part 3 - Content Formatting System:**
+- Created .lesson-content CSS class with professional document styling
+- Typography: Proper heading hierarchy, paragraph spacing, line heights
+- Theme-aware colors for light/dark modes
+- Support for code blocks, blockquotes, tables, lists
+- Handle empty paragraphs from TipTap gracefully
+
+**Part 4 - Markdown Backward Compatibility:**
+- Built markdown-to-HTML converter for legacy content
+- Handles inline markdown where headers were on same line
+- Converts # → h1, ## → h2, ### → h3, #### → h4
+- Converts lists (-, *, 1., 2.) to proper HTML ul/ol
+- Auto-detects content type (HTML vs. plain text)
+- Works in both course player (student view) and admin edit
+
+**Part 5 - Testing and Bug Fixes:**
+- Added backend API endpoint for fetching individual lessons
+- Killed conflicting port processes
+- Tested full edit workflow end-to-end
+- Verified markdown parsing for legacy content
+- Confirmed professional document appearance
+
+**Files Created:**
+- `frontend/src/app/components/admin-lesson-edit.tsx` (369 lines)
+- `frontend/src/app/components/RichTextEditor.tsx` (417 lines)
+- `frontend/src/app/components/tiptap.css` (TipTap editor styles)
+- `Docs/MODAL_TO_PAGE_CONVERSION.md` (detailed refactor documentation)
+- `Docs/ARCHITECTURAL_LESSONS.md` (decision framework template)
+
+**Files Updated:**
+- `backend/src/controllers/course.controller.ts` - Added getLessonById
+- `backend/src/routes/course.routes.ts` - Added GET /courses/lessons/:id route
+- `frontend/src/app/App.tsx` - Added admin-lesson-edit routing
+- `frontend/src/app/components/admin-content.tsx` - Removed modal, updated navigation
+- `frontend/src/app/components/course-player.tsx` - Added markdown parser and HTML rendering
+- `frontend/src/app/services/course.service.ts` - Added getLessonById method
+- `frontend/src/styles/index.css` - Added .lesson-content styling
+- `frontend/package.json` - Added TipTap dependencies
+
+**Git Commits Made:**
+1. `5372dfe` - Add lesson content formatting and rich text editor improvements
+
+**Key Architectural Lessons:**
+1. **Modal vs. Page Pattern:**
+   - Use modals for: Simple forms (< 5 fields), quick actions (< 1 min), basic inputs
+   - Use pages for: Rich editors, extended editing, complex validation, file uploads
+   - Red flag: If you need > 3 workarounds, the architecture is wrong
+
+2. **Focus Management:**
+   - Modals use focus trapping to contain keyboard navigation
+   - Rich text editors need complex focus for selection, toolbar, and content
+   - These systems conflict and require hacky workarounds
+
+3. **Content Flexibility:**
+   - Support multiple content formats (HTML, Markdown, plain text)
+   - Auto-detect and convert when possible
+   - Maintain backward compatibility with legacy content
+
+**Benefits Achieved:**
+- ✅ Eliminated all focus/selection issues with editor
+- ✅ Professional document appearance for lesson content
+- ✅ Full-page editing experience with better UX
+- ✅ Backward compatible with existing markdown content
+- ✅ Simpler, more maintainable codebase
+- ✅ Proper separation of concerns
+- ✅ Bookmarkable edit URLs with browser back button support
+- ✅ Security: All HTML sanitized with DOMPurify
+
+**Status at End:**
+- ✅ Rich text editor fully functional with 15+ formatting options
+- ✅ Lesson editing as dedicated page (no modal conflicts)
+- ✅ Content displays beautifully formatted like Word documents
+- ✅ Markdown content auto-converts to HTML
+- ✅ Quiz questions support HTML formatting
+- ✅ Backend API endpoint for individual lesson retrieval
+- ✅ Comprehensive documentation of architectural decisions
+- ✅ All code committed and pushed to GitHub
+
+**Next Session Priorities:**
+- Consider adding image upload to cloud storage (currently URL-based)
+- Consider adding autosave functionality for lesson editing
+- Consider adding version history for lesson content
+- Consider adding preview mode for lesson editor
+- Focus on quiz builder improvements (currently managed separately)
+
