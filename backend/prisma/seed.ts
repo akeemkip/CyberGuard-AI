@@ -11,8 +11,11 @@ async function main() {
   await prisma.question.deleteMany();
   await prisma.quiz.deleteMany();
   await prisma.progress.deleteMany();
+  await prisma.labProgress.deleteMany();
   await prisma.enrollment.deleteMany();
   await prisma.lesson.deleteMany();
+  await prisma.lab.deleteMany();
+  await prisma.module.deleteMany();
   await prisma.course.deleteMany();
   await prisma.user.deleteMany();
 
@@ -1525,6 +1528,918 @@ Proactively searching for threats that have evaded existing security controls.
   });
 
   console.log('✅ Created 4 quizzes with questions');
+
+  // ============================================
+  // CREATE LABS FOR ALL COURSES
+  // ============================================
+
+  // Labs for Course 1: Phishing Detection Fundamentals
+  await prisma.lab.createMany({
+    data: [
+      {
+        title: 'Phishing Email Analysis Exercise',
+        description: 'Practice identifying phishing emails by analyzing real-world examples and documenting red flags.',
+        instructions: `# Lab Overview
+You will analyze a collection of emails to determine which are legitimate and which are phishing attempts.
+
+## Setup Instructions
+1. Download the sample email collection from the resources section
+2. Review each email carefully
+3. Document your findings in the analysis template
+
+## Tasks
+### Task 1: Email Header Analysis
+- Examine the sender's email address
+- Check for domain spoofing
+- Verify reply-to addresses
+
+### Task 2: Content Red Flags
+- Identify urgency tactics
+- Check for grammar/spelling errors
+- Analyze link destinations (hover, don't click!)
+
+### Task 3: Link Analysis
+- Use URL analysis tools to check suspicious links
+- Document any shortened URLs
+- Identify typosquatting domains
+
+### Task 4: Attachment Review
+- Note file types of any attachments
+- Identify potentially dangerous file extensions
+- Check for macro-enabled documents
+
+### Task 5: Documentation
+- Complete the analysis worksheet
+- Rate each email's threat level (Low/Medium/High/Critical)
+- Provide reasoning for your assessments
+
+## Submission
+Upload your completed analysis worksheet showing:
+- Email classification (Legitimate/Phishing)
+- Red flags identified
+- Threat assessment
+- Recommended actions`,
+        scenario: 'You are a security analyst at a mid-sized company. The IT department has forwarded you a collection of suspicious emails reported by employees. Your task is to analyze each email and provide a detailed assessment to help train the staff on phishing recognition.',
+        objectives: [
+          'Correctly identify at least 8 out of 10 phishing emails',
+          'Document at least 3 red flags for each phishing email',
+          'Analyze email headers for spoofing indicators',
+          'Use URL analysis tools to verify link destinations',
+          'Provide actionable recommendations for each email'
+        ],
+        resources: 'Sample Email Collection: https://example.com/phishing-samples\nURL Analysis Tools: VirusTotal, URLVoid, URLScan\nEmail Header Analyzer: MXToolbox\nPhishing Red Flags Checklist: Included in lab files',
+        hints: 'Start with obvious red flags like misspelled domains and urgent language. Use "View Source" to see raw email headers. Remember that even professional-looking emails can be phishing. When in doubt, verify through official channels.',
+        difficulty: 'Beginner',
+        estimatedTime: 45,
+        order: 1,
+        courseId: courses[0].id,
+        isPublished: true
+      }
+    ]
+  });
+
+  // Labs for Course 2: Password Security Best Practices
+  await prisma.lab.createMany({
+    data: [
+      {
+        title: 'Password Strength Testing Lab',
+        description: 'Test various password types against simulated attacks to understand what makes passwords strong or weak.',
+        instructions: `# Lab Overview
+Use password cracking simulations to understand how different password strategies stand up to attacks.
+
+## Setup Instructions
+1. Access the password testing VM provided
+2. Review the pre-loaded password lists
+3. Familiarize yourself with the cracking tools
+
+## Tasks
+### Task 1: Baseline Testing
+Test these password types and record time to crack:
+- Dictionary words: "password", "football", "welcome"
+- Dictionary + numbers: "password123", "football2024"
+- Common patterns: "qwerty123", "abc123"
+
+### Task 2: Complexity Testing
+Test passwords with various complexity levels:
+- 8 characters mixed: "P@ssw0rd"
+- 12 characters mixed: "MyP@ssw0rd12"
+- 16 characters mixed: "MyP@ssw0rd123456"
+
+### Task 3: Passphrase Testing
+Test passphrase effectiveness:
+- Short phrase: "ilovecats"
+- Long phrase: "ILoveMyThreeCatsVeryMuch"
+- Random words: "correct-horse-battery-staple"
+
+### Task 4: Real-World Comparison
+- Test 5 passwords you currently use (or similar strength)
+- Document vulnerabilities discovered
+- Calculate estimated crack time for each
+
+### Task 5: Best Practices
+- Create 3 strong passwords using different methods
+- Test them against cracking tools
+- Document which method you prefer and why
+
+## Analysis Questions
+1. How does password length affect crack time?
+2. Which is more effective: complexity or length?
+3. Why are dictionary words dangerous even with substitutions?
+4. What makes passphrases effective?
+5. How do password managers help security?
+
+## Deliverables
+- Completed testing matrix with crack times
+- Analysis document answering all questions
+- Three strong passwords you created (for testing only)
+- Recommendations document`,
+        scenario: 'As a security consultant, you need to demonstrate to a client why their current password policy (8 characters minimum with 1 number) is insufficient. Use this lab to gather evidence showing the difference between weak and strong passwords.',
+        objectives: [
+          'Test at least 15 different passwords across various categories',
+          'Document crack time differences between weak and strong passwords',
+          'Understand the relationship between password length and security',
+          'Create three strong passwords using different methodologies',
+          'Provide evidence-based password policy recommendations'
+        ],
+        resources: 'Password Testing VM: Access via lab portal\nHashcat Tutorial: Included\nPassword Lists: RockYou, Common Passwords\nCrack Time Calculator: https://howsecureismypassword.net\nPassword Policy Templates: NIST Guidelines',
+        hints: 'Focus on comparing apples-to-apples - test similar passwords with one variable changed. Note that even "complex" short passwords crack quickly. Passphrases are your friend. Hardware matters - results will vary.',
+        difficulty: 'Intermediate',
+        estimatedTime: 60,
+        order: 1,
+        courseId: courses[1].id,
+        isPublished: true
+      },
+      {
+        title: 'Password Manager Setup & Migration',
+        description: 'Set up and configure a password manager, then migrate existing passwords and generate strong new ones.',
+        instructions: `# Lab Overview
+Learn to properly configure and use a password manager for maximum security.
+
+## Setup Instructions
+1. Choose a password manager (Bitwarden recommended for this lab)
+2. Create an account with a STRONG master password
+3. Install browser extensions and mobile apps
+
+## Tasks
+### Task 1: Master Password Creation
+- Create a master password using the passphrase method
+- Aim for 20+ characters
+- Test strength using multiple tools
+- Document your password creation strategy
+
+### Task 2: Two-Factor Authentication
+- Enable 2FA on your password manager
+- Use an authenticator app (not SMS)
+- Save recovery codes securely
+- Test 2FA login
+
+### Task 3: Password Audit
+- Conduct an audit of your current passwords:
+  * Count reused passwords
+  * Identify weak passwords
+  * List passwords written down or in plaintext
+- Document findings
+
+### Task 4: Password Migration
+- Add 10 existing accounts to password manager
+- For each account:
+  * Save current credentials
+  * Generate strong new password (16+ chars)
+  * Update the account
+  * Test login
+  * Delete old password record
+
+### Task 5: Secure Notes & Emergency Access
+- Set up secure notes for:
+  * WiFi password
+  * Security questions
+  * Software licenses
+- Configure emergency access for trusted person
+- Document emergency access procedures
+
+### Task 6: Browser Integration
+- Install and test autofill
+- Practice using password generator
+- Set up automatic capture of new logins
+- Test across different websites
+
+## Security Checklist
+✅ Master password 20+ characters
+✅ 2FA enabled with authenticator app
+✅ Recovery codes backed up securely
+✅ Browser extension installed
+✅ At least 10 accounts migrated
+✅ All new passwords are unique and strong
+✅ Emergency access configured
+✅ Autofill tested and working
+
+## Deliverables
+- Configuration screenshot showing 2FA enabled
+- Password audit report (anonymized)
+- Migration log for 10 accounts
+- Emergency access procedure document`,
+        scenario: 'Your company is implementing a password manager requirement for all employees. You need to not only set up your own account but also create a guide for colleagues. Complete this lab to become proficient and help others migrate safely.',
+        objectives: [
+          'Create a secure master password of 20+ characters',
+          'Enable 2FA using an authenticator app',
+          'Successfully migrate at least 10 accounts',
+          'Generate and test strong unique passwords for each account',
+          'Document the process for training others'
+        ],
+        resources: 'Bitwarden: https://bitwarden.com\nAuthenticator Apps: Authy, Google Authenticator\nPassword Strength Tester: https://bitwarden.com/password-strength\nMigration Guide: Included in lab files\nBest Practices Checklist: Included',
+        hints: 'Take your time with the master password - you can\'t change it easily later. Start with less critical accounts for migration practice. Use the password generator for all new passwords. Keep recovery codes in a physical safe place.',
+        difficulty: 'Beginner',
+        estimatedTime: 50,
+        order: 2,
+        courseId: courses[1].id,
+        isPublished: true
+      }
+    ]
+  });
+
+  // Labs for Course 3: Social Engineering Awareness
+  await prisma.lab.createMany({
+    data: [
+      {
+        title: 'Social Engineering Attack Simulation',
+        description: 'Participate in simulated social engineering scenarios to recognize manipulation tactics and practice appropriate responses.',
+        instructions: `# Lab Overview
+Experience common social engineering attacks in a safe environment and learn to recognize and respond to them.
+
+## Setup Instructions
+1. Access the social engineering simulation portal
+2. Review the company background document
+3. Familiarize yourself with the reporting procedures
+
+## Scenarios
+You will face 6 different scenarios. For each:
+- Read the scenario carefully
+- Identify red flags
+- Choose your response
+- Document your reasoning
+
+### Scenario 1: The Urgent IT Request
+You receive a call from someone claiming to be from IT support saying your account will be locked unless you verify your password immediately.
+
+**Your Tasks:**
+- Identify red flags in the approach
+- Determine appropriate response
+- Document what you would do instead
+
+### Scenario 2: The Helpful Stranger
+Someone in the parking lot with arms full of boxes asks you to badge them into the building.
+
+**Your Tasks:**
+- Assess the security risk
+- Decide how to handle the situation
+- Consider alternative ways to help
+
+### Scenario 3: The Executive Email
+You receive an email appearing to be from the CEO requesting an urgent wire transfer to a new vendor.
+
+**Your Tasks:**
+- Analyze email indicators
+- Identify verification steps needed
+- Document proper escalation procedure
+
+### Scenario 4: The Survey Scam
+A caller says you've been selected for a customer satisfaction survey with a prize, but needs to verify your employee ID.
+
+**Your Tasks:**
+- Recognize the scam indicators
+- Determine what information is safe to share
+- Plan appropriate response
+
+### Scenario 5: The Vendor Visit
+Someone arrives claiming to be from a maintenance company to inspect fire safety equipment but has no appointment on record.
+
+**Your Tasks:**
+- Assess credibility indicators
+- Determine verification requirements
+- Follow proper protocol
+
+### Scenario 6: The LinkedIn Connection
+You receive a LinkedIn message from a recruiter for an amazing opportunity who wants your personal email and phone number right away.
+
+**Your Tasks:**
+- Identify potential risks
+- Determine safe information sharing
+- Recognize professional vs. suspicious behavior
+
+## For Each Scenario Document:
+1. Red flags identified (minimum 3)
+2. Psychological tactics being used
+3. Your chosen response
+4. Correct company policy to follow
+5. How to verify legitimacy
+
+## Analysis Questions
+1. What psychological principles were attackers using?
+2. Which scenario was hardest to identify? Why?
+3. What policies would help prevent these attacks?
+4. How would you train others on these scenarios?
+
+## Deliverables
+- Completed scenario response forms (all 6)
+- Red flag identification sheet
+- Analysis document
+- Training recommendations`,
+        scenario: 'Your company is conducting security awareness training. These simulated scenarios test your ability to recognize and respond to social engineering attempts. Your performance will help improve company security policies.',
+        objectives: [
+          'Successfully identify red flags in all 6 scenarios',
+          'Choose appropriate responses that prioritize security',
+          'Demonstrate understanding of verification procedures',
+          'Document at least 3 red flags per scenario',
+          'Provide practical recommendations for policy improvements'
+        ],
+        resources: 'Social Engineering Simulation Portal: Access via lab link\nCompany Security Policy: Included\nIncident Reporting Procedures: Included\nPsychological Tactics Guide: Course materials\nVerification Checklist: Provided',
+        hints: 'Remember: it\'s okay to seem rude if security is at stake. Legitimate requests can wait for verification. Trust your instincts - if something feels off, it probably is. Always use official channels to verify.',
+        difficulty: 'Intermediate',
+        estimatedTime: 40,
+        order: 1,
+        courseId: courses[2].id,
+        isPublished: true
+      }
+    ]
+  });
+
+  // Labs for Course 4: Secure Web Browsing
+  await prisma.lab.createMany({
+    data: [
+      {
+        title: 'Malicious Website Identification Lab',
+        description: 'Analyze various websites to identify security risks, spoofed pages, and malicious indicators.',
+        instructions: `# Lab Overview
+Practice identifying malicious and spoofed websites using safe examples in an isolated environment.
+
+## Setup Instructions
+1. Access the isolated browser environment
+2. Review the website analysis checklist
+3. Familiarize yourself with browser security tools
+
+## Tasks
+### Task 1: URL Analysis (10 websites)
+For each URL provided, analyze:
+- Domain legitimacy
+- TLD (top-level domain) red flags
+- Typosquatting indicators
+- Subdomain tricks
+- HTTPS presence and certificate validity
+
+### Task 2: Certificate Inspection
+Examine SSL/TLS certificates for:
+- Valid certificate authority
+- Domain match
+- Expiration date
+- Certificate warnings
+- Self-signed certificates
+
+### Task 3: Content Analysis
+Review website content for:
+- Poor design quality
+- Grammar and spelling errors
+- Mismatched branding
+- Missing contact information
+- Unrealistic offers
+- Suspicious payment methods
+
+### Task 4: Technical Indicators
+Use browser tools to check:
+- Page source for hidden redirects
+- JavaScript behavior
+- Cookie policies
+- External resources loaded
+- Pop-up behavior
+
+### Task 5: Comparison Testing
+Compare legitimate vs. spoofed sites:
+- amazon.com vs. amaz0n.com
+- paypal.com vs. paypa1.com
+- Your bank vs. a spoofed version
+- Document differences found
+
+## Website Categories to Analyze
+1. E-commerce sites (3 examples)
+2. Banking/Financial (2 examples)
+3. Social media login pages (2 examples)
+4. Software download sites (2 examples)
+5. Tech support pages (1 example)
+
+## Documentation Requirements
+For each website:
+✅ Screenshot
+✅ URL analysis
+✅ Certificate status
+✅ Red flags identified
+✅ Legitimacy rating (1-5 scale)
+✅ Risk assessment
+✅ Safe browsing recommendation
+
+## Deliverables
+- Complete analysis for 10 websites
+- Comparison document (legitimate vs. fake)
+- Red flag summary sheet
+- Best practices guide you would give to family members`,
+        scenario: 'You are creating a training module for non-technical users. Use this lab to document real examples of malicious websites and create a simple guide that anyone can understand.',
+        objectives: [
+          'Successfully analyze at least 10 different websites',
+          'Correctly identify all spoofed/malicious sites provided',
+          'Document minimum 3 red flags per suspicious site',
+          'Demonstrate proper certificate inspection techniques',
+          'Create a practical guide for identifying malicious websites'
+        ],
+        resources: 'Isolated Browser Environment: Provided\nWebsite Analysis Checklist: Included\nSSL Checker: SSL Labs, Why No Padlock\nURL Scanner: VirusTotal, URLScan.io\nPhishing Examples Database: Included\nLegitimate Site References: Provided',
+        hints: 'Always check the full URL, not just what you see. Look for HTTPS, but remember HTTPS doesn\'t guarantee legitimacy. Check certificate details, not just the padlock icon. Compare suspicious sites side-by-side with legitimate ones.',
+        difficulty: 'Beginner',
+        estimatedTime: 55,
+        order: 1,
+        courseId: courses[3].id,
+        isPublished: true
+      }
+    ]
+  });
+
+  // Labs for Course 5: Personal Data Protection
+  await prisma.lab.createMany({
+    data: [
+      {
+        title: 'Data Classification & Protection Exercise',
+        description: 'Practice classifying different types of data and implementing appropriate protection measures.',
+        instructions: `# Lab Overview
+Learn to properly classify data and apply appropriate security controls for each classification level.
+
+## Setup Instructions
+1. Review the data classification framework
+2. Access the sample data repository
+3. Review available protection tools
+
+## Tasks
+### Task 1: Data Classification
+Classify the following data types according to the framework (Public, Internal, Confidential, Restricted):
+
+**Personal Information:**
+- Your name
+- Social Security Number
+- Home address
+- Email address
+- Date of birth
+- Medical records
+- Phone number
+- Employment history
+
+**Business Information:**
+- Company marketing materials
+- Internal memos
+- Customer database
+- Financial reports
+- Trade secrets
+- Employee handbook
+- Salary information
+- Strategic plans
+
+Document your classification decisions and reasoning.
+
+### Task 2: Risk Assessment
+For each data type classified as Confidential or Restricted:
+- Identify potential risks if exposed
+- Estimate impact severity (Low/Medium/High/Critical)
+- List threat actors who might target it
+- Document regulatory implications
+
+### Task 3: Protection Implementation
+Implement appropriate controls for sample files:
+
+**File 1: Personal Tax Returns (Restricted)**
+- Encrypt the file
+- Set up password protection
+- Configure secure storage location
+- Document access procedures
+
+**File 2: Medical Records (Restricted)**
+- Apply encryption
+- Set up access logging
+- Configure backup procedures
+- Document retention policy
+
+**File 3: Financial Statements (Confidential)**
+- Apply appropriate encryption
+- Set sharing restrictions
+- Configure audit trail
+- Document handling procedures
+
+**File 4: Internal Project Notes (Internal)**
+- Basic access control
+- Storage location
+- Sharing guidelines
+
+### Task 4: Secure Sharing
+Practice secure file sharing:
+- Share File 1 securely with authorized party
+- Set expiration date
+- Require authentication
+- Enable download tracking
+- Document the process
+
+### Task 5: Data Lifecycle
+Create a data lifecycle plan for:
+- Creation/Collection controls
+- Storage requirements
+- Access management
+- Retention period
+- Secure deletion procedures
+
+## Documentation Checklist
+✅ All data types classified with justification
+✅ Risk assessments completed
+✅ Encryption applied to restricted data
+✅ Secure sharing tested and documented
+✅ Access logs configured
+✅ Backup procedures documented
+✅ Retention policies defined
+✅ Secure deletion procedures tested
+
+## Analysis Questions
+1. What happens if data is misclassified?
+2. How does classification affect business operations?
+3. What are the costs of over-classifying data?
+4. How often should classifications be reviewed?
+5. Who should be responsible for classification decisions?
+
+## Deliverables
+- Completed data classification matrix
+- Risk assessment report
+- Protection implementation guide
+- Secure sharing procedure document
+- Data lifecycle management plan`,
+        scenario: 'You are implementing a data protection program at your organization. This lab helps you understand how to classify different types of data and apply appropriate security controls based on sensitivity levels.',
+        objectives: [
+          'Correctly classify at least 16 different data types',
+          'Implement encryption for all Restricted data',
+          'Configure secure sharing with expiration and tracking',
+          'Document complete data lifecycle procedures',
+          'Create practical protection guidelines for each classification level'
+        ],
+        resources: 'Data Classification Framework: NIST guidelines included\nEncryption Tools: VeraCrypt, 7-Zip, GPG\nSecure Sharing: Dropbox, Google Drive with security settings\nAccess Control Guide: Included\nRetention Policy Templates: Provided\nSecure Deletion Tools: Eraser, BleachBit',
+        hints: 'When in doubt, classify higher rather than lower. Consider cumulative risk - multiple low-sensitivity items can become high-sensitivity together. Encryption is cheap, data breaches are expensive. Document everything - you\'ll need to prove compliance.',
+        difficulty: 'Intermediate',
+        estimatedTime: 65,
+        order: 1,
+        courseId: courses[4].id,
+        isPublished: true
+      }
+    ]
+  });
+
+  // Labs for Course 6: Advanced Threat Analysis & Incident Response
+  await prisma.lab.createMany({
+    data: [
+      {
+        title: 'Incident Response Tabletop Exercise',
+        description: 'Participate in a simulated ransomware incident response scenario following the NIST framework.',
+        instructions: `# Lab Overview
+Experience a realistic incident response scenario as part of the incident response team responding to a ransomware attack.
+
+## Setup Instructions
+1. Review your role assignment (Security Analyst)
+2. Read the company background and infrastructure
+3. Familiarize yourself with IR tools and playbooks
+4. Review NIST Incident Response framework
+
+## Scenario Timeline
+You will work through a ransomware incident from detection to resolution.
+
+### Hour 0 - Detection (08:00 AM)
+**Situation:** Multiple users report they cannot access files. Desktop backgrounds changed to ransom notes.
+
+**Your Tasks:**
+- Assess initial indicators
+- Determine incident severity
+- Activate incident response team
+- Begin documentation
+- Establish communication channels
+
+### Hour 1 - Analysis (09:00 AM)
+**New Information:**
+- 50+ workstations affected
+- Ransomware identified as REvil variant
+- Network shares encrypted
+- Ransom demand: 50 Bitcoin
+
+**Your Tasks:**
+- Map affected systems
+- Identify patient zero
+- Determine ransomware variant
+- Check backup status
+- Preserve evidence
+- Update stakeholders
+
+### Hour 2 - Containment (10:00 AM)
+**Actions Required:**
+- Isolate affected systems
+- Block C2 communication
+- Prevent lateral movement
+- Secure backups
+- Document all actions
+
+**Your Tasks:**
+- Create isolation plan
+- Identify IOCs for blocking
+- Check for persistence mechanisms
+- Verify backup integrity
+- Update containment status
+
+### Hour 4 - Eradication (12:00 PM)
+**Status:** Threat contained, moving to eradication
+
+**Your Tasks:**
+- Remove ransomware from all systems
+- Patch vulnerabilities exploited
+- Reset compromised credentials
+- Rebuild infected systems
+- Verify complete removal
+- Document all changes
+
+### Hour 8 - Recovery (04:00 PM)
+**Status:** Clean systems ready for restoration
+
+**Your Tasks:**
+- Restore from backups
+- Verify data integrity
+- Test critical systems
+- Bring systems online progressively
+- Monitor for re-infection
+- Document recovery steps
+
+### Day 3 - Post-Incident
+**Status:** Operations restored, lessons learned phase
+
+**Your Tasks:**
+- Complete incident report
+- Timeline reconstruction
+- Root cause analysis
+- Identify security gaps
+- Recommend improvements
+- Update playbooks
+
+## Documentation Requirements
+
+### Incident Report Sections:
+1. **Executive Summary**
+   - Incident overview
+   - Impact assessment
+   - Response summary
+   - Recommendations
+
+2. **Timeline**
+   - Chronological event log
+   - All actions taken
+   - Decisions made
+   - Key findings
+
+3. **Technical Analysis**
+   - Attack vector identification
+   - Ransomware variant analysis
+   - Affected systems inventory
+   - IOCs documented
+
+4. **Response Actions**
+   - Containment measures
+   - Eradication procedures
+   - Recovery steps
+   - Verification activities
+
+5. **Lessons Learned**
+   - What worked well
+   - What needs improvement
+   - Security gaps identified
+   - Recommended changes
+
+6. **Appendices**
+   - IOC list
+   - Communications log
+   - Evidence inventory
+   - Tool outputs
+
+## Decision Points
+You will face critical decisions:
+- Pay ransom or restore from backups?
+- Notify law enforcement?
+- Public disclosure timing?
+- Business continuity priorities?
+
+Document your decisions and rationale.
+
+## Metrics to Track
+- Time to detect
+- Time to contain
+- Systems affected
+- Data lost/recovered
+- Downtime duration
+- Response costs
+
+## Deliverables
+- Complete incident report (all sections)
+- Detailed timeline of events
+- IOC list with blocking rules
+- Lessons learned document
+- Updated incident response playbook
+- Executive presentation (5 slides)`,
+        scenario: 'It\'s Monday morning at FinTech Corp, a financial services company with 500 employees. You are the security analyst on duty when the help desk starts receiving unusual calls about encrypted files. This is your first major incident.',
+        objectives: [
+          'Follow NIST IR framework through all phases',
+          'Complete comprehensive incident documentation',
+          'Make and justify critical incident response decisions',
+          'Identify and document at least 10 IOCs',
+          'Provide actionable recommendations for prevention'
+        ],
+        resources: 'NIST IR Guide: SP 800-61 Rev 2\nRansomware Playbook: Included\nIR Tools: Volatility, FTK Imager, Wireshark\nIOC Databases: AlienVault OTX, MISP\nForensic Analysis VMs: Provided\nCommunication Templates: Included\nDecision Trees: Included',
+        hints: 'Act quickly but document everything. Don\'t make unilateral decisions on critical issues. Communication is as important as technical response. Focus on containment before eradication. Verify backups before you need them. Every incident teaches something.',
+        difficulty: 'Advanced',
+        estimatedTime: 120,
+        order: 1,
+        courseId: courses[5].id,
+        isPublished: true
+      },
+      {
+        title: 'Threat Hunting with MITRE ATT&CK',
+        description: 'Conduct proactive threat hunting using the MITRE ATT&CK framework to discover hidden threats in a simulated environment.',
+        instructions: `# Lab Overview
+Use threat intelligence and the MITRE ATT&CK framework to hunt for sophisticated threats in a corporate network.
+
+## Setup Instructions
+1. Access the threat hunting VM environment
+2. Review the ATT&CK Navigator
+3. Familiarize yourself with hunting tools (Splunk, Sysmon, Wireshark)
+4. Review the network baseline documentation
+
+## Threat Hunting Missions
+
+### Mission 1: Credential Access Hunt
+**Hypothesis:** Attackers may be dumping credentials using LSASS memory access.
+
+**ATT&CK Techniques:** T1003.001 (LSASS Memory)
+
+**Hunt Steps:**
+1. Review Sysmon logs for process access to LSASS
+2. Identify unusual tools (Mimikatz, ProcDump)
+3. Check for credential dumping indicators
+4. Analyze memory dumps if found
+5. Document findings
+
+**Data Sources:**
+- Sysmon Event ID 10 (Process Access)
+- Security Event ID 4656 (Handle to Object)
+- PowerShell logs
+
+**Queries to Run:**
+
+Sysmon: EventID=10 TargetImage="*lsass.exe"
+Security: EventID=4656 ObjectName="*lsass.exe"
+PowerShell: Look for Invoke-Mimikatz
+
+### Mission 2: Persistence Mechanism Hunt
+**Hypothesis:** APT may have established persistence through scheduled tasks or registry run keys.
+
+**ATT&CK Techniques:** T1053.005 (Scheduled Task), T1547.001 (Registry Run Keys)
+
+**Hunt Steps:**
+1. Enumerate all scheduled tasks
+2. Check registry run key locations
+3. Identify suspicious entries
+4. Validate task/binary legitimacy
+5. Check creation timestamps
+
+**Registry Locations:**
+- HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
+- HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
+- Startup folders
+
+**PowerShell Commands:**
+
+Get-ScheduledTask | Where Author -notlike "*Microsoft*"
+Get-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+
+### Mission 3: Lateral Movement Hunt
+**Hypothesis:** Attackers using RDP or WMI for lateral movement.
+
+**ATT&CK Techniques:** T1021.001 (RDP), T1047 (WMI)
+
+**Hunt Steps:**
+1. Analyze RDP connections
+2. Check for unusual WMI activity
+3. Look for admin share access
+4. Identify service creation events
+5. Map movement timeline
+
+**Data Sources:**
+- Security Event ID 4624 (Logon) Type 10
+- Security Event ID 4672 (Special Logon)
+- Security Event ID 4697 (Service Creation)
+- WMI Event Logs
+
+### Mission 4: Command & Control Hunt
+**Hypothesis:** Malware communicating with C2 servers using encoded or encrypted channels.
+
+**ATT&CK Techniques:** T1071 (Application Layer Protocol), T1573 (Encrypted Channel)
+
+**Hunt Steps:**
+1. Analyze network traffic patterns
+2. Identify beaconing behavior
+3. Check for unusual DNS requests
+4. Look for data encoding
+5. Investigate suspicious connections
+
+**Analysis:**
+- Long connection duration analysis
+- Periodic/beaconing traffic patterns
+- Unusual ports or protocols
+- High-entropy data transfers
+- Domain generation algorithms (DGA)
+
+### Mission 5: Data Exfiltration Hunt
+**Hypothesis:** Large data transfers to external locations.
+
+**ATT&CK Techniques:** T1041 (Exfiltration Over C2), T1048 (Exfiltration Over Alternative Protocol)
+
+**Hunt Steps:**
+1. Analyze outbound data volumes
+2. Identify unusual destinations
+3. Check for data compression
+4. Look for unusual protocols
+5. Correlate with user activity
+
+**Metrics:**
+- Baseline outbound traffic per user
+- Anomalous upload volumes
+- Off-hours transfers
+- Unusual destinations
+
+## For Each Mission Document:
+
+### Hunt Log:
+- Hypothesis tested
+- Data sources used
+- Queries executed
+- Findings discovered
+- False positives noted
+- True positives confirmed
+
+### Technical Analysis:
+- IOCs identified
+- Attack timeline
+- Affected systems
+- Techniques observed
+- Recommendations
+
+### ATT&CK Mapping:
+- Tactics identified
+- Techniques used
+- Sub-techniques observed
+- Coverage gaps
+
+## Advanced Analysis
+
+### Correlation Analysis:
+- Look for relationships between hunts
+- Build attack chain timeline
+- Identify campaign indicators
+- Group IOCs by threat actor
+
+### Detection Engineering:
+For each finding:
+- Create detection rule
+- Test for false positives
+- Document trigger criteria
+- Implement in SIEM
+
+## Deliverables
+- Hunt log for all 5 missions
+- IOC list (minimum 15 IOCs)
+- ATT&CK Navigator heat map
+- Detection rules created (min 5)
+- Threat hunting report
+- Recommendations for security improvements
+- Hunting playbook updates`,
+        scenario: 'Your organization suspects an Advanced Persistent Threat (APT) may have gained access to the network. No alerts have fired, but threat intelligence suggests your industry is being targeted. Conduct proactive hunting to find evidence of compromise.',
+        objectives: [
+          'Complete all 5 threat hunting missions',
+          'Identify at least 15 unique IOCs',
+          'Map findings to MITRE ATT&CK framework',
+          'Create at least 5 detection rules',
+          'Document a complete attack chain if found'
+        ],
+        resources: 'Threat Hunting VM: Windows Server with Sysmon\nSIEM: Splunk with sample logs\nATT&CK Navigator: https://mitre-attack.github.io/attack-navigator\nNetwork Baseline: Provided\nThreat Intel Feeds: Included\nHunting Queries Library: Included\nWireshark: For network analysis',
+        hints: 'Start with high-confidence hypotheses based on threat intel. Look for anomalies compared to baseline. Not every hunt finds threats - that\'s okay. Document everything including dead ends. Correlation is key - isolated events may be part of larger campaign.',
+        difficulty: 'Advanced',
+        estimatedTime: 150,
+        order: 2,
+        courseId: courses[5].id,
+        isPublished: true
+      }
+    ]
+  });
+
+  console.log('✅ Created 11 hands-on labs across all courses');
 
   // ============================================
   // ADD REALISTIC STUDY DATA FOR ALL STUDENTS

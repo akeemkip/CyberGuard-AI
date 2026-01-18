@@ -14,7 +14,8 @@ import {
   getLessonById,
   createLesson,
   updateLesson,
-  deleteLesson
+  deleteLesson,
+  getCourseLabs
 } from '../controllers/course.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -36,6 +37,9 @@ router.post('/lessons/:lessonId/complete', markLessonComplete);
 // Quiz routes
 router.get('/quiz/:quizId', getQuiz);
 router.post('/quiz/:quizId/submit', submitQuizAttempt);
+
+// Lab routes
+router.get('/:courseId/labs', getCourseLabs);
 
 // Admin routes
 router.post('/', requireAdmin, createCourse);

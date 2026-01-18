@@ -130,6 +130,46 @@ export interface QuizSubmissionResponse {
   };
 }
 
+export interface Lab {
+  id: string;
+  title: string;
+  description: string;
+  instructions: string;
+  scenario: string | null;
+  objectives: string[];
+  resources: string | null;
+  hints: string | null;
+  difficulty: string;
+  estimatedTime: number | null;
+  courseId: string;
+  courseTitle?: string;
+  moduleId: string | null;
+  moduleTitle?: string | null;
+  isPublished?: boolean;
+  order?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface LabProgress {
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  timeSpent: number;
+  notes: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface LabWithProgress extends Omit<Lab, 'instructions' | 'scenario' | 'objectives' | 'resources' | 'hints'> {
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  timeSpent: number;
+  completedAt: string | null;
+}
+
+export interface LabDetails {
+  lab: Lab;
+  progress: LabProgress | null;
+}
+
 const courseService = {
   // Get all courses
   async getAllCourses(publishedOnly: boolean = false): Promise<Course[]> {
@@ -218,6 +258,44 @@ const courseService = {
   // Delete lesson (admin only)
   async deleteLesson(lessonId: string): Promise<void> {
     await api.delete(`/courses/lessons/${lessonId}`);
+  },
+
+  // ==================== LAB METHODS ====================
+
+  // Get published labs for a course with user progress
+  async getCourseLabs(courseId: string): Promise<LabWithProgress[]> {
+    const response = await api.get<{ labs: LabWithProgress[] }>(`/courses/${courseId}/labs`);
+    return response.data.labs;
+  },
+
+  // Get lab details for student
+  async getLabForStudent(labId: string): Promise<LabDetails> {
+    const response = await api.get<LabDetails>(`/labs/${labId}`);
+    return response.data;
+  },
+
+  // Start lab (mark as in progress)
+  async startLab(labId: string): Promise<{ status: string; startedAt: string }> {
+    const response = await api.post<{ progress: { status: string; startedAt: string } }>(`/labs/${labId}/start`);
+    return response.data.progress;
+  },
+
+  // Complete lab
+  async completeLab(labId: string, timeSpent: number, notes?: string): Promise<{ status: string; timeSpent: number; completedAt: string }> {
+    const response = await api.put<{ progress: { status: string; timeSpent: number; completedAt: string } }>(
+      `/labs/${labId}/complete`,
+      { timeSpent, notes }
+    );
+    return response.data.progress;
+  },
+
+  // Update lab notes
+  async updateLabNotes(labId: string, notes: string, timeSpent?: number): Promise<{ notes: string | null; timeSpent: number }> {
+    const response = await api.put<{ progress: { notes: string | null; timeSpent: number } }>(
+      `/labs/${labId}/notes`,
+      { notes, timeSpent }
+    );
+    return response.data.progress;
   }
 };
 

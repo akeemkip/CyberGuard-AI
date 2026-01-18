@@ -561,3 +561,344 @@ export const deleteLesson = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to delete lesson' });
   }
 };
+
+// ==================== LAB ENDPOINTS ====================
+
+// Get published labs for a course with user progress
+export const getCourseLabs = async (req: AuthRequest, res: Response) => {
+  try {
+    const courseId = req.params.courseId as string;
+    const userId = req.userId!;
+
+    // Verify course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Get all published labs for the course
+    const labs = await prisma.lab.findMany({
+      where: {
+        courseId,
+        isPublished: true
+      },
+      include: {
+        module: {
+          select: {
+            id: true,
+            title: true
+          }
+        },
+        progress: {
+          where: { userId },
+          select: {
+            status: true,
+            timeSpent: true,
+            completedAt: true
+          }
+        }
+      },
+      orderBy: { order: 'asc' }
+    });
+
+    // Transform to include user progress
+    const labsWithProgress = labs.map(lab => ({
+      id: lab.id,
+      title: lab.title,
+      description: lab.description,
+      difficulty: lab.difficulty,
+      estimatedTime: lab.estimatedTime,
+      order: lab.order,
+      moduleId: lab.moduleId,
+      moduleTitle: lab.module?.title || null,
+      status: lab.progress[0]?.status || 'NOT_STARTED',
+      timeSpent: lab.progress[0]?.timeSpent || 0,
+      completedAt: lab.progress[0]?.completedAt || null
+    }));
+
+    res.json({ labs: labsWithProgress });
+  } catch (error) {
+    console.error('GetCourseLabs error:', error);
+    res.status(500).json({ error: 'Failed to fetch course labs' });
+  }
+};
+
+// Get lab details for student
+export const getLabForStudent = async (req: AuthRequest, res: Response) => {
+  try {
+    const labId = req.params.id as string;
+    const userId = req.userId!;
+
+    const lab = await prisma.lab.findUnique({
+      where: { id: labId },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true
+          }
+        },
+        module: {
+          select: {
+            id: true,
+            title: true
+          }
+        },
+        progress: {
+          where: { userId }
+        }
+      }
+    });
+
+    if (!lab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    // Check if user is enrolled in the course
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: lab.courseId }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    const userProgress = lab.progress[0] || null;
+
+    res.json({
+      lab: {
+        id: lab.id,
+        title: lab.title,
+        description: lab.description,
+        instructions: lab.instructions,
+        scenario: lab.scenario,
+        objectives: lab.objectives,
+        resources: lab.resources,
+        hints: lab.hints,
+        difficulty: lab.difficulty,
+        estimatedTime: lab.estimatedTime,
+        courseId: lab.courseId,
+        courseTitle: lab.course.title,
+        moduleId: lab.moduleId,
+        moduleTitle: lab.module?.title || null
+      },
+      progress: userProgress ? {
+        status: userProgress.status,
+        timeSpent: userProgress.timeSpent,
+        notes: userProgress.notes,
+        startedAt: userProgress.startedAt,
+        completedAt: userProgress.completedAt
+      } : null
+    });
+  } catch (error) {
+    console.error('GetLabForStudent error:', error);
+    res.status(500).json({ error: 'Failed to fetch lab' });
+  }
+};
+
+// Start lab (mark as in progress)
+export const startLab = async (req: AuthRequest, res: Response) => {
+  try {
+    const labId = req.params.id as string;
+    const userId = req.userId!;
+
+    // Verify lab exists
+    const lab = await prisma.lab.findUnique({
+      where: { id: labId }
+    });
+
+    if (!lab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    // Check enrollment
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: lab.courseId }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    // Create or update progress
+    const progress = await prisma.labProgress.upsert({
+      where: {
+        userId_labId: { userId, labId }
+      },
+      update: {
+        status: 'IN_PROGRESS',
+        startedAt: new Date()
+      },
+      create: {
+        userId,
+        labId,
+        status: 'IN_PROGRESS',
+        startedAt: new Date()
+      }
+    });
+
+    res.json({
+      message: 'Lab started successfully',
+      progress: {
+        status: progress.status,
+        startedAt: progress.startedAt
+      }
+    });
+  } catch (error) {
+    console.error('StartLab error:', error);
+    res.status(500).json({ error: 'Failed to start lab' });
+  }
+};
+
+// Complete lab
+export const completeLab = async (req: AuthRequest, res: Response) => {
+  try {
+    const labId = req.params.id as string;
+    const userId = req.userId!;
+    const { timeSpent, notes } = req.body;
+
+    // Validate inputs
+    if (typeof timeSpent !== 'number' || timeSpent < 0) {
+      return res.status(400).json({ error: 'Valid time spent is required' });
+    }
+
+    // Verify lab exists
+    const lab = await prisma.lab.findUnique({
+      where: { id: labId }
+    });
+
+    if (!lab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    // Check enrollment
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: lab.courseId }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    // Update progress
+    const progress = await prisma.labProgress.upsert({
+      where: {
+        userId_labId: { userId, labId }
+      },
+      update: {
+        status: 'COMPLETED',
+        timeSpent,
+        notes: notes || null,
+        completedAt: new Date()
+      },
+      create: {
+        userId,
+        labId,
+        status: 'COMPLETED',
+        timeSpent,
+        notes: notes || null,
+        startedAt: new Date(),
+        completedAt: new Date()
+      }
+    });
+
+    res.json({
+      message: 'Lab marked as complete',
+      progress: {
+        status: progress.status,
+        timeSpent: progress.timeSpent,
+        completedAt: progress.completedAt
+      }
+    });
+  } catch (error) {
+    console.error('CompleteLab error:', error);
+    res.status(500).json({ error: 'Failed to complete lab' });
+  }
+};
+
+// Update lab notes
+export const updateLabNotes = async (req: AuthRequest, res: Response) => {
+  try {
+    const labId = req.params.id as string;
+    const userId = req.userId!;
+    const { notes, timeSpent } = req.body;
+
+    // Validate notes
+    if (notes && typeof notes !== 'string') {
+      return res.status(400).json({ error: 'Notes must be a string' });
+    }
+
+    if (notes && notes.length > 5000) {
+      return res.status(400).json({ error: 'Notes must be less than 5000 characters' });
+    }
+
+    // Validate timeSpent if provided
+    if (timeSpent !== undefined && (typeof timeSpent !== 'number' || timeSpent < 0)) {
+      return res.status(400).json({ error: 'Time spent must be a positive number' });
+    }
+
+    // Verify lab exists
+    const lab = await prisma.lab.findUnique({
+      where: { id: labId }
+    });
+
+    if (!lab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    // Check enrollment
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: lab.courseId }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    // Check if progress exists
+    const existingProgress = await prisma.labProgress.findUnique({
+      where: {
+        userId_labId: { userId, labId }
+      }
+    });
+
+    if (!existingProgress) {
+      return res.status(404).json({ error: 'Lab not started yet' });
+    }
+
+    // Update notes and optionally timeSpent
+    const updateData: any = { notes: notes || null };
+    if (timeSpent !== undefined) {
+      updateData.timeSpent = timeSpent;
+    }
+
+    const progress = await prisma.labProgress.update({
+      where: {
+        userId_labId: { userId, labId }
+      },
+      data: updateData
+    });
+
+    res.json({
+      message: 'Lab notes updated successfully',
+      progress: {
+        notes: progress.notes,
+        timeSpent: progress.timeSpent
+      }
+    });
+  } catch (error) {
+    console.error('UpdateLabNotes error:', error);
+    res.status(500).json({ error: 'Failed to update lab notes' });
+  }
+};

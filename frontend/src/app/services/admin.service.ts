@@ -221,6 +221,90 @@ export interface AssignLessonToModuleRequest {
   order: number;
 }
 
+// ============================================
+// LAB MANAGEMENT TYPES
+// ============================================
+
+export interface LabWithStats {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: string;
+  estimatedTime: number | null;
+  order: number;
+  courseId: string;
+  courseTitle: string;
+  moduleId: string | null;
+  moduleTitle: string | null;
+  isPublished: boolean;
+  totalAttempts: number;
+  completionRate: number;
+  avgTimeSpent: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LabFull {
+  id: string;
+  title: string;
+  description: string;
+  instructions: string;
+  scenario: string | null;
+  objectives: string[];
+  resources: string | null;
+  hints: string | null;
+  difficulty: string;
+  estimatedTime: number | null;
+  order: number;
+  courseId: string;
+  courseTitle: string;
+  moduleId: string | null;
+  moduleTitle: string | null;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  stats: {
+    totalAttempts: number;
+    completionRate: number;
+    avgTimeSpent: number;
+  };
+}
+
+export interface CreateLabRequest {
+  title: string;
+  description: string;
+  instructions: string;
+  scenario?: string;
+  objectives: string[];
+  resources?: string;
+  hints?: string;
+  difficulty: string;
+  estimatedTime?: number;
+  order: number;
+  courseId: string;
+  moduleId?: string;
+  isPublished?: boolean;
+}
+
+export interface UpdateLabRequest {
+  title: string;
+  description: string;
+  instructions: string;
+  scenario?: string;
+  objectives: string[];
+  resources?: string;
+  hints?: string;
+  difficulty: string;
+  estimatedTime?: number;
+  order: number;
+  moduleId?: string;
+  isPublished?: boolean;
+}
+
+export interface ReorderLabsRequest {
+  labOrders: { id: string; order: number }[];
+}
+
 const adminService = {
   // Get admin dashboard stats
   async getDashboardStats(): Promise<AdminDashboardData> {
@@ -311,6 +395,46 @@ const adminService = {
   // Assign lesson to module (or remove from module)
   async assignLessonToModule(courseId: string, moduleId: string, lessonId: string, data: AssignLessonToModuleRequest): Promise<{ message: string; lesson: Lesson }> {
     const response = await api.put<{ message: string; lesson: Lesson }>(`/admin/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`, data);
+    return response.data;
+  },
+
+  // ============================================
+  // LAB MANAGEMENT METHODS
+  // ============================================
+
+  // Get all labs with statistics
+  async getAllLabs(): Promise<LabWithStats[]> {
+    const response = await api.get<{ labs: LabWithStats[] }>('/admin/labs');
+    return response.data.labs;
+  },
+
+  // Get lab by ID with full details
+  async getLabById(labId: string): Promise<LabFull> {
+    const response = await api.get<LabFull>(`/admin/labs/${labId}`);
+    return response.data;
+  },
+
+  // Create new lab
+  async createLab(data: CreateLabRequest): Promise<{ message: string; lab: any }> {
+    const response = await api.post<{ message: string; lab: any }>('/admin/labs', data);
+    return response.data;
+  },
+
+  // Update lab
+  async updateLab(labId: string, data: UpdateLabRequest): Promise<{ message: string; lab: any }> {
+    const response = await api.put<{ message: string; lab: any }>(`/admin/labs/${labId}`, data);
+    return response.data;
+  },
+
+  // Delete lab
+  async deleteLab(labId: string): Promise<{ message: string; deletedProgress: number }> {
+    const response = await api.delete<{ message: string; deletedProgress: number }>(`/admin/labs/${labId}`);
+    return response.data;
+  },
+
+  // Reorder labs
+  async reorderLabs(data: ReorderLabsRequest): Promise<{ message: string }> {
+    const response = await api.put<{ message: string }>('/admin/labs/reorder', data);
     return response.data;
   }
 };

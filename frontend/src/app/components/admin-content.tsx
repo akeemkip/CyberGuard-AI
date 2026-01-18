@@ -77,7 +77,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import courseService, { Course, Lesson } from "../services/course.service";
-import adminService, { QuizWithStats, Module } from "../services/admin.service";
+import adminService, { QuizWithStats, Module, LabWithStats } from "../services/admin.service";
 import { AdminSidebar } from "./admin-sidebar";
 
 // Sortable Lesson Item Component
@@ -424,6 +424,16 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null);
   const [showDeleteQuizDialog, setShowDeleteQuizDialog] = useState(false);
   const [quizToDelete, setQuizToDelete] = useState<QuizWithStats | null>(null);
+
+  // Lab management state
+  const [labs, setLabs] = useState<LabWithStats[]>([]);
+  const [isLoadingLabs, setIsLoadingLabs] = useState(false);
+  const [labSearch, setLabSearch] = useState("");
+  const [labFilterCourse, setLabFilterCourse] = useState<string>("all");
+  const [labFilterDifficulty, setLabFilterDifficulty] = useState<string>("all");
+  const [deletingLabId, setDeletingLabId] = useState<string | null>(null);
+  const [showDeleteLabDialog, setShowDeleteLabDialog] = useState(false);
+  const [labToDelete, setLabToDelete] = useState<LabWithStats | null>(null);
 
   // Module management state
   const [modules, setModules] = useState<Module[]>([]);
@@ -883,6 +893,55 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     .filter(Boolean) as { id: string; title: string }[];
 
   // ============================================
+  // LAB MANAGEMENT FUNCTIONS
+  // ============================================
+
+  const fetchLabs = async () => {
+    try {
+      setIsLoadingLabs(true);
+      const allLabs = await adminService.getAllLabs();
+      setLabs(allLabs);
+    } catch (error) {
+      console.error("Error fetching labs:", error);
+      toast.error("Failed to load labs");
+    } finally {
+      setIsLoadingLabs(false);
+    }
+  };
+
+  const handleDeleteLab = async (lab: LabWithStats) => {
+    setLabToDelete(lab);
+    setShowDeleteLabDialog(true);
+  };
+
+  const confirmDeleteLab = async () => {
+    if (!labToDelete) return;
+
+    try {
+      setDeletingLabId(labToDelete.id);
+      await adminService.deleteLab(labToDelete.id);
+      toast.success("Lab deleted successfully");
+      await fetchLabs();
+      setShowDeleteLabDialog(false);
+      setLabToDelete(null);
+    } catch (error) {
+      console.error("Error deleting lab:", error);
+      toast.error("Failed to delete lab");
+    } finally {
+      setDeletingLabId(null);
+    }
+  };
+
+  const filteredLabs = labs
+    .filter(lab => {
+      const matchesSearch = lab.title.toLowerCase().includes(labSearch.toLowerCase()) ||
+                          lab.description.toLowerCase().includes(labSearch.toLowerCase());
+      const matchesCourse = labFilterCourse === "all" || lab.courseId === labFilterCourse;
+      const matchesDifficulty = labFilterDifficulty === "all" || lab.difficulty === labFilterDifficulty;
+      return matchesSearch && matchesCourse && matchesDifficulty;
+    });
+
+  // ============================================
   // MODULE MANAGEMENT FUNCTIONS
   // ============================================
 
@@ -1038,6 +1097,13 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       fetchModulesForCourse(selectedCourseForModules);
     }
   }, [selectedCourseForModules, activeTab]);
+
+  // When labs tab is active, fetch all labs
+  useEffect(() => {
+    if (activeTab === 'labs' && labs.length === 0) {
+      fetchLabs();
+    }
+  }, [activeTab]);
 
   if (isLoading) {
     return (
@@ -2054,16 +2120,220 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
             </TabsContent>
 
             <TabsContent value="labs" className="space-y-6">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold">Labs</h2>
-                <p className="text-muted-foreground">Interactive lab exercises</p>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-semibold">Labs Management</h2>
+                  <p className="text-muted-foreground">Manage hands-on lab exercises for all courses</p>
+                </div>
+                <Button onClick={() => window.location.href = '/admin/labs/create'}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Lab
+                </Button>
               </div>
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  Lab functionality coming soon. Labs will allow students to practice
-                  cybersecurity skills in a safe, simulated environment.
-                </p>
+
+              {/* Filters */}
+              <Card className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Search Labs</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by title or description..."
+                        value={labSearch}
+                        onChange={(e) => setLabSearch(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Filter by Course</Label>
+                    <Select value={labFilterCourse} onValueChange={setLabFilterCourse}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Courses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Courses</SelectItem>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Filter by Difficulty</Label>
+                    <Select value={labFilterDifficulty} onValueChange={setLabFilterDifficulty}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Difficulties" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Difficulties</SelectItem>
+                        <SelectItem value="Beginner">Beginner</SelectItem>
+                        <SelectItem value="Intermediate">Intermediate</SelectItem>
+                        <SelectItem value="Advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </Card>
+
+              {/* Labs List */}
+              {isLoadingLabs ? (
+                <Card className="p-8">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin mr-2" />
+                    <span>Loading labs...</span>
+                  </div>
+                </Card>
+              ) : filteredLabs.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <Target className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No Labs Found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {labs.length === 0
+                      ? "Create your first lab to provide hands-on learning experiences."
+                      : "No labs match your current filters."}
+                  </p>
+                  {labs.length === 0 && (
+                    <Button onClick={() => window.location.href = '/admin/labs/create'}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create First Lab
+                    </Button>
+                  )}
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {filteredLabs.map((lab) => (
+                    <Card key={lab.id} className="p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold">{lab.title}</h3>
+                            <Badge variant={lab.isPublished ? "default" : "secondary"}>
+                              {lab.isPublished ? "Published" : "Draft"}
+                            </Badge>
+                            <Badge variant="outline">{lab.difficulty}</Badge>
+                          </div>
+
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                            {lab.description}
+                          </p>
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground">Course</p>
+                              <p className="font-medium">{lab.courseTitle}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Module</p>
+                              <p className="font-medium">{lab.moduleTitle || "No Module"}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Est. Time</p>
+                              <p className="font-medium">{lab.estimatedTime ? `${lab.estimatedTime} min` : "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Order</p>
+                              <p className="font-medium">#{lab.order}</p>
+                            </div>
+                          </div>
+
+                          {/* Statistics */}
+                          <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                Total Attempts
+                              </p>
+                              <p className="font-semibold">{lab.totalAttempts}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3" />
+                                Completion Rate
+                              </p>
+                              <p className="font-semibold">{lab.completionRate}%</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground flex items-center gap-1">
+                                <Target className="w-3 h-3" />
+                                Avg. Time Spent
+                              </p>
+                              <p className="font-semibold">{lab.avgTimeSpent} min</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.location.href = `/admin/labs/${lab.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteLab(lab)}
+                                disabled={deletingLabId === lab.id}
+                              >
+                                {deletingLabId === lab.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Delete Lab Confirmation Dialog */}
+              <AlertDialog open={showDeleteLabDialog} onOpenChange={setShowDeleteLabDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Lab</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{labToDelete?.title}"?
+                      <br /><br />
+                      This will:
+                      <ul className="list-disc list-inside mt-2">
+                        <li>Permanently delete the lab</li>
+                        <li>Remove all student progress for this lab</li>
+                        <li>Cannot be undone</li>
+                      </ul>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={confirmDeleteLab}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={!!deletingLabId}
+                    >
+                      {deletingLabId ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Delete Lab"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </TabsContent>
 
             <TabsContent value="modules" className="space-y-6">

@@ -1034,3 +1034,454 @@ export const assignLessonToModule = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to assign lesson to module' });
   }
 };
+
+// ============================================================
+// LAB MANAGEMENT ENDPOINTS (ADMIN)
+// ============================================================
+
+// Get all labs with statistics
+export const getAllLabs = async (req: Request, res: Response) => {
+  try {
+    const labs = await prisma.lab.findMany({
+      include: {
+        course: {
+          select: { id: true, title: true }
+        },
+        module: {
+          select: { id: true, title: true }
+        },
+        progress: {
+          select: { status: true, timeSpent: true }
+        }
+      },
+      orderBy: [
+        { courseId: 'asc' },
+        { order: 'asc' }
+      ]
+    });
+
+    // Format with statistics
+    const labsWithStats = labs.map(lab => {
+      const totalAttempts = lab.progress.length;
+      const completedAttempts = lab.progress.filter(p => p.status === 'COMPLETED').length;
+      const completionRate = totalAttempts > 0
+        ? Math.round((completedAttempts / totalAttempts) * 100)
+        : 0;
+      const avgTimeSpent = totalAttempts > 0
+        ? Math.round(lab.progress.reduce((sum, p) => sum + p.timeSpent, 0) / totalAttempts)
+        : 0;
+
+      return {
+        id: lab.id,
+        title: lab.title,
+        description: lab.description,
+        difficulty: lab.difficulty,
+        estimatedTime: lab.estimatedTime,
+        order: lab.order,
+        courseId: lab.courseId,
+        courseTitle: lab.course.title,
+        moduleId: lab.moduleId,
+        moduleTitle: lab.module?.title || null,
+        isPublished: lab.isPublished,
+        totalAttempts,
+        completionRate,
+        avgTimeSpent,
+        createdAt: lab.createdAt,
+        updatedAt: lab.updatedAt
+      };
+    });
+
+    res.json({ labs: labsWithStats });
+  } catch (error) {
+    console.error('GetAllLabs error:', error);
+    res.status(500).json({ error: 'Failed to fetch labs' });
+  }
+};
+
+// Get lab by ID with full details
+export const getLabById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    const lab = await prisma.lab.findUnique({
+      where: { id },
+      include: {
+        course: {
+          select: { id: true, title: true }
+        },
+        module: {
+          select: { id: true, title: true }
+        },
+        progress: {
+          select: { status: true, timeSpent: true }
+        }
+      }
+    });
+
+    if (!lab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    // Calculate statistics
+    const totalAttempts = lab.progress.length;
+    const completedAttempts = lab.progress.filter(p => p.status === 'COMPLETED').length;
+    const completionRate = totalAttempts > 0
+      ? Math.round((completedAttempts / totalAttempts) * 100)
+      : 0;
+    const avgTimeSpent = totalAttempts > 0
+      ? Math.round(lab.progress.reduce((sum, p) => sum + p.timeSpent, 0) / totalAttempts)
+      : 0;
+
+    res.json({
+      id: lab.id,
+      title: lab.title,
+      description: lab.description,
+      instructions: lab.instructions,
+      scenario: lab.scenario,
+      objectives: lab.objectives,
+      resources: lab.resources,
+      hints: lab.hints,
+      difficulty: lab.difficulty,
+      estimatedTime: lab.estimatedTime,
+      order: lab.order,
+      courseId: lab.courseId,
+      moduleId: lab.moduleId,
+      isPublished: lab.isPublished,
+      course: {
+        id: lab.course.id,
+        title: lab.course.title
+      },
+      module: lab.module ? {
+        id: lab.module.id,
+        title: lab.module.title
+      } : null,
+      stats: {
+        totalAttempts,
+        completionRate,
+        avgTimeSpent
+      }
+    });
+  } catch (error) {
+    console.error('GetLabById error:', error);
+    res.status(500).json({ error: 'Failed to fetch lab' });
+  }
+};
+
+// Create new lab
+export const createLab = async (req: Request, res: Response) => {
+  try {
+    const {
+      title,
+      description,
+      instructions,
+      scenario,
+      objectives,
+      resources,
+      hints,
+      difficulty,
+      estimatedTime,
+      order,
+      courseId,
+      moduleId,
+      isPublished
+    } = req.body;
+
+    // Validation
+    if (!title || title.trim().length < 3 || title.trim().length > 200) {
+      return res.status(400).json({ error: 'Title must be 3-200 characters' });
+    }
+
+    if (!description || description.trim().length < 10 || description.trim().length > 500) {
+      return res.status(400).json({ error: 'Description must be 10-500 characters' });
+    }
+
+    if (!instructions || instructions.trim().length < 50) {
+      return res.status(400).json({ error: 'Instructions must be at least 50 characters' });
+    }
+
+    if (scenario && scenario.length > 1000) {
+      return res.status(400).json({ error: 'Scenario must not exceed 1000 characters' });
+    }
+
+    if (!objectives || !Array.isArray(objectives) || objectives.length < 1) {
+      return res.status(400).json({ error: 'At least 1 objective is required' });
+    }
+
+    for (const obj of objectives) {
+      if (!obj || obj.length < 5 || obj.length > 200) {
+        return res.status(400).json({ error: 'Each objective must be 5-200 characters' });
+      }
+    }
+
+    if (resources && resources.length > 1000) {
+      return res.status(400).json({ error: 'Resources must not exceed 1000 characters' });
+    }
+
+    if (hints && hints.length > 500) {
+      return res.status(400).json({ error: 'Hints must not exceed 500 characters' });
+    }
+
+    if (!['Beginner', 'Intermediate', 'Advanced'].includes(difficulty)) {
+      return res.status(400).json({ error: 'Invalid difficulty level' });
+    }
+
+    if (estimatedTime !== null && estimatedTime !== undefined) {
+      if (estimatedTime < 1 || estimatedTime > 300) {
+        return res.status(400).json({ error: 'Estimated time must be 1-300 minutes' });
+      }
+    }
+
+    if (order === undefined || order < 0) {
+      return res.status(400).json({ error: 'Order must be a positive integer' });
+    }
+
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // If moduleId provided, verify it exists and belongs to course
+    if (moduleId) {
+      const module = await prisma.module.findUnique({
+        where: { id: moduleId }
+      });
+
+      if (!module) {
+        return res.status(404).json({ error: 'Module not found' });
+      }
+
+      if (module.courseId !== courseId) {
+        return res.status(400).json({ error: 'Module does not belong to this course' });
+      }
+    }
+
+    // Create lab
+    const lab = await prisma.lab.create({
+      data: {
+        title: title.trim(),
+        description: description.trim(),
+        instructions: instructions.trim(),
+        scenario: scenario?.trim() || null,
+        objectives,
+        resources: resources?.trim() || null,
+        hints: hints?.trim() || null,
+        difficulty,
+        estimatedTime: estimatedTime || null,
+        order,
+        courseId,
+        moduleId: moduleId || null,
+        isPublished: isPublished || false
+      }
+    });
+
+    res.status(201).json({
+      message: 'Lab created successfully',
+      lab
+    });
+  } catch (error) {
+    console.error('CreateLab error:', error);
+    res.status(500).json({ error: 'Failed to create lab' });
+  }
+};
+
+// Update lab
+export const updateLab = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const {
+      title,
+      description,
+      instructions,
+      scenario,
+      objectives,
+      resources,
+      hints,
+      difficulty,
+      estimatedTime,
+      order,
+      courseId,
+      moduleId,
+      isPublished
+    } = req.body;
+
+    // Check if lab exists
+    const existingLab = await prisma.lab.findUnique({
+      where: { id }
+    });
+
+    if (!existingLab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    // Same validation as create
+    if (!title || title.trim().length < 3 || title.trim().length > 200) {
+      return res.status(400).json({ error: 'Title must be 3-200 characters' });
+    }
+
+    if (!description || description.trim().length < 10 || description.trim().length > 500) {
+      return res.status(400).json({ error: 'Description must be 10-500 characters' });
+    }
+
+    if (!instructions || instructions.trim().length < 50) {
+      return res.status(400).json({ error: 'Instructions must be at least 50 characters' });
+    }
+
+    if (scenario && scenario.length > 1000) {
+      return res.status(400).json({ error: 'Scenario must not exceed 1000 characters' });
+    }
+
+    if (!objectives || !Array.isArray(objectives) || objectives.length < 1) {
+      return res.status(400).json({ error: 'At least 1 objective is required' });
+    }
+
+    for (const obj of objectives) {
+      if (!obj || obj.length < 5 || obj.length > 200) {
+        return res.status(400).json({ error: 'Each objective must be 5-200 characters' });
+      }
+    }
+
+    if (resources && resources.length > 1000) {
+      return res.status(400).json({ error: 'Resources must not exceed 1000 characters' });
+    }
+
+    if (hints && hints.length > 500) {
+      return res.status(400).json({ error: 'Hints must not exceed 500 characters' });
+    }
+
+    if (!['Beginner', 'Intermediate', 'Advanced'].includes(difficulty)) {
+      return res.status(400).json({ error: 'Invalid difficulty level' });
+    }
+
+    if (estimatedTime !== null && estimatedTime !== undefined) {
+      if (estimatedTime < 1 || estimatedTime > 300) {
+        return res.status(400).json({ error: 'Estimated time must be 1-300 minutes' });
+      }
+    }
+
+    if (order === undefined || order < 0) {
+      return res.status(400).json({ error: 'Order must be a positive integer' });
+    }
+
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // If moduleId provided, verify it exists and belongs to course
+    if (moduleId) {
+      const module = await prisma.module.findUnique({
+        where: { id: moduleId }
+      });
+
+      if (!module) {
+        return res.status(404).json({ error: 'Module not found' });
+      }
+
+      if (module.courseId !== courseId) {
+        return res.status(400).json({ error: 'Module does not belong to this course' });
+      }
+    }
+
+    // Update lab
+    const lab = await prisma.lab.update({
+      where: { id },
+      data: {
+        title: title.trim(),
+        description: description.trim(),
+        instructions: instructions.trim(),
+        scenario: scenario?.trim() || null,
+        objectives,
+        resources: resources?.trim() || null,
+        hints: hints?.trim() || null,
+        difficulty,
+        estimatedTime: estimatedTime || null,
+        order,
+        courseId,
+        moduleId: moduleId || null,
+        isPublished: isPublished !== undefined ? isPublished : existingLab.isPublished
+      }
+    });
+
+    res.json({
+      message: 'Lab updated successfully',
+      lab
+    });
+  } catch (error) {
+    console.error('UpdateLab error:', error);
+    res.status(500).json({ error: 'Failed to update lab' });
+  }
+};
+
+// Delete lab
+export const deleteLab = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    // Check if lab exists
+    const lab = await prisma.lab.findUnique({
+      where: { id },
+      include: {
+        progress: true
+      }
+    });
+
+    if (!lab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    // Delete lab (cascade will delete progress)
+    await prisma.lab.delete({
+      where: { id }
+    });
+
+    res.json({
+      message: 'Lab deleted successfully',
+      deletedProgress: lab.progress.length
+    });
+  } catch (error) {
+    console.error('DeleteLab error:', error);
+    res.status(500).json({ error: 'Failed to delete lab' });
+  }
+};
+
+// Reorder labs
+export const reorderLabs = async (req: Request, res: Response) => {
+  try {
+    const { labOrders } = req.body;
+
+    // Validation
+    if (!Array.isArray(labOrders) || labOrders.length === 0) {
+      return res.status(400).json({ error: 'Lab orders must be a non-empty array' });
+    }
+
+    // Validate each lab order entry
+    for (const entry of labOrders) {
+      if (!entry.id || typeof entry.order !== 'number') {
+        return res.status(400).json({ error: 'Each entry must have id and order' });
+      }
+    }
+
+    // Update all lab orders in a transaction
+    await prisma.$transaction(
+      labOrders.map(({ id, order }) =>
+        prisma.lab.update({
+          where: { id },
+          data: { order }
+        })
+      )
+    );
+
+    res.json({ message: 'Labs reordered successfully' });
+  } catch (error) {
+    console.error('ReorderLabs error:', error);
+    res.status(500).json({ error: 'Failed to reorder labs' });
+  }
+};

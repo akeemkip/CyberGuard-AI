@@ -27,11 +27,12 @@ import { CertificatesPage } from "./components/certificates-page";
 import { AssessmentsPage } from "./components/assessments-page";
 import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
+import { LabPlayer } from "./components/lab-player";
 
-type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -55,6 +56,9 @@ function AppContent() {
   });
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(() => {
     return localStorage.getItem("selectedQuizId");
+  });
+  const [selectedLabId, setSelectedLabId] = useState<string | null>(() => {
+    return localStorage.getItem("selectedLabId");
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -112,6 +116,8 @@ function AppContent() {
             setSelectedLessonId(event.state.idParam);
           } else if (page === "admin-quiz-edit") {
             setSelectedQuizId(event.state.idParam);
+          } else if (page === "lab-player") {
+            setSelectedLabId(event.state.idParam);
           }
         }
         // Legacy support for old courseId format
@@ -128,7 +134,7 @@ function AppContent() {
 
     // Set initial history state
     if (isInitialized && !window.history.state?.page) {
-      const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId;
+      const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId || selectedLabId;
       window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
     }
 
@@ -143,6 +149,7 @@ function AppContent() {
     localStorage.removeItem("selectedUserId");
     localStorage.removeItem("selectedLessonId");
     localStorage.removeItem("selectedQuizId");
+    localStorage.removeItem("selectedLabId");
     localStorage.removeItem("adminContentTab");
     localStorage.removeItem("adminSettingsTab");
     window.history.pushState({ page: "landing" }, "", window.location.pathname);
@@ -175,6 +182,12 @@ function AppContent() {
     if (page === "admin-quiz-edit" && idParam) {
       setSelectedQuizId(idParam);
       localStorage.setItem("selectedQuizId", idParam);
+    }
+
+    // Handle lab ID for lab player
+    if (page === "lab-player" && idParam) {
+      setSelectedLabId(idParam);
+      localStorage.setItem("selectedLabId", idParam);
     }
   };
 
@@ -234,6 +247,8 @@ function AppContent() {
             courseId={selectedCourseId}
           />
         );
+      case "lab-player":
+        return <LabPlayer labId={selectedLabId} onNavigate={handleNavigate} />;
       case "ai-chat":
         return (
           <AIChat

@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   Circle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Target
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useSettings } from "../context/SettingsContext";
@@ -30,7 +31,8 @@ import courseService, {
   CourseProgress,
   Quiz,
   QuizQuestion,
-  QuizSubmissionResponse
+  QuizSubmissionResponse,
+  LabWithProgress
 } from "../services/course.service";
 
 // Interface for shuffled quiz questions
@@ -94,6 +96,10 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   // Module collapse state (track which modules are collapsed)
   const [collapsedModules, setCollapsedModules] = useState<Set<string>>(new Set());
 
+  // Labs state
+  const [labs, setLabs] = useState<LabWithProgress[]>([]);
+  const [loadingLabs, setLoadingLabs] = useState(false);
+
   const toggleModuleCollapse = (moduleId: string) => {
     setCollapsedModules(prev => {
       const newSet = new Set(prev);
@@ -132,6 +138,9 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
           const firstIncompleteIndex = progressData.lessons.findIndex(l => !l.completed);
           setCurrentLessonIndex(firstIncompleteIndex >= 0 ? firstIncompleteIndex : 0);
         }
+
+        // Load labs for this course
+        loadCourseLabs(courseId);
       } catch (err) {
         console.error("Failed to fetch course:", err);
         setError("Failed to load course. Please try again.");
@@ -142,6 +151,20 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
     fetchData();
   }, [courseId]);
+
+  // Load labs for course
+  const loadCourseLabs = async (courseId: string) => {
+    try {
+      setLoadingLabs(true);
+      const courseLabs = await courseService.getCourseLabs(courseId);
+      setLabs(courseLabs);
+    } catch (err) {
+      console.error("Error loading labs:", err);
+      // Don't show error toast, labs are optional
+    } finally {
+      setLoadingLabs(false);
+    }
+  };
 
   // Get current lesson data
   const lessons = course?.lessons || [];
@@ -764,9 +787,10 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                               )}
                             </button>
 
-                            {/* Module Lessons */}
+                            {/* Module Lessons and Labs */}
                             {!isCollapsed && (
                               <div className="p-2 space-y-1">
+                                {/* Lessons */}
                                 {moduleLessons.map((lesson) => {
                                   const index = lessons.findIndex(l => l.id === lesson.id);
                                   const lessonProgress = progress?.lessons?.find(l => l.id === lesson.id);
@@ -804,6 +828,37 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                                     </button>
                                   );
                                 })}
+
+                                {/* Module Labs */}
+                                {labs.filter(lab => lab.moduleId === module.id).map((lab) => (
+                                  <button
+                                    key={lab.id}
+                                    onClick={() => onNavigate("lab-player", lab.id)}
+                                    className="w-full text-left p-2 rounded transition-colors bg-card hover:bg-muted/50 border border-border"
+                                  >
+                                    <div className="flex items-start gap-2">
+                                      <div className="flex-shrink-0 mt-0.5">
+                                        {lab.status === 'COMPLETED' ? (
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                        ) : lab.status === 'IN_PROGRESS' ? (
+                                          <Play className="w-3.5 h-3.5 text-blue-500" />
+                                        ) : (
+                                          <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium truncate">{lab.title}</div>
+                                        <div className="flex items-center gap-2 text-xs mt-0.5 text-muted-foreground">
+                                          <span>Lab</span>
+                                          {lab.estimatedTime && <span>• {lab.estimatedTime} min</span>}
+                                          {lab.status === 'COMPLETED' && lab.completedAt && (
+                                            <span className="text-green-600">✓ Completed</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
                               </div>
                             )}
                           </div>
@@ -811,17 +866,18 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                       })}
 
                       {/* Render unorganized lessons */}
-                      {lessonsWithoutModule.length > 0 && (
+                      {(lessonsWithoutModule.length > 0 || labs.filter(lab => !lab.moduleId).length > 0) && (
                         <div className="border border-border rounded-lg overflow-hidden">
                           <div className="px-4 py-3 bg-muted">
-                            <div className="font-medium text-sm">Other Lessons</div>
+                            <div className="font-medium text-sm">Other Content</div>
                             <div className="text-xs text-muted-foreground mt-1">
                               {lessonsWithoutModule.filter(lesson =>
                                 progress?.lessons?.find(l => l.id === lesson.id)?.completed
-                              ).length}/{lessonsWithoutModule.length} completed
+                              ).length}/{lessonsWithoutModule.length + labs.filter(lab => !lab.moduleId).length} completed
                             </div>
                           </div>
                           <div className="p-2 space-y-1">
+                            {/* Unorganized Lessons */}
                             {lessonsWithoutModule.map((lesson) => {
                               const index = lessons.findIndex(l => l.id === lesson.id);
                               const lessonProgress = progress?.lessons?.find(l => l.id === lesson.id);
@@ -859,6 +915,37 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                                 </button>
                               );
                             })}
+
+                            {/* Unorganized Labs */}
+                            {labs.filter(lab => !lab.moduleId).map((lab) => (
+                              <button
+                                key={lab.id}
+                                onClick={() => onNavigate("lab-player", lab.id)}
+                                className="w-full text-left p-2 rounded transition-colors bg-card hover:bg-muted/50 border border-border"
+                              >
+                                <div className="flex items-start gap-2">
+                                  <div className="flex-shrink-0 mt-0.5">
+                                    {lab.status === 'COMPLETED' ? (
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                    ) : lab.status === 'IN_PROGRESS' ? (
+                                      <Play className="w-3.5 h-3.5 text-blue-500" />
+                                    ) : (
+                                      <Target className="w-3.5 h-3.5 text-muted-foreground" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium truncate">{lab.title}</div>
+                                    <div className="flex items-center gap-2 text-xs mt-0.5 text-muted-foreground">
+                                      <span>Lab</span>
+                                      {lab.estimatedTime && <span>• {lab.estimatedTime} min</span>}
+                                      {lab.status === 'COMPLETED' && lab.completedAt && (
+                                        <span className="text-green-600">✓ Completed</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
                           </div>
                         </div>
                       )}

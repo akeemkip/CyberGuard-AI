@@ -13,7 +13,13 @@ import {
   updateModule,
   deleteModule,
   reorderModules,
-  assignLessonToModule
+  assignLessonToModule,
+  getAllLabs,
+  getLabById,
+  createLab,
+  updateLab,
+  deleteLab,
+  reorderLabs
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -66,5 +72,24 @@ router.delete('/courses/:courseId/modules/:id', deleteModule);
 
 // PUT /api/admin/courses/:courseId/modules/:moduleId/lessons/:lessonId - Assign lesson to module
 router.put('/courses/:courseId/modules/:moduleId/lessons/:lessonId', assignLessonToModule);
+
+// Lab Management Routes
+// GET /api/admin/labs - Get all labs with statistics
+router.get('/labs', getAllLabs);
+
+// GET /api/admin/labs/:id - Get lab by ID with full details
+router.get('/labs/:id', getLabById);
+
+// POST /api/admin/labs - Create new lab
+router.post('/labs', createLab);
+
+// PUT /api/admin/labs/reorder - Reorder labs (must come before /:id)
+router.put('/labs/reorder', reorderLabs);
+
+// PUT /api/admin/labs/:id - Update lab
+router.put('/labs/:id', updateLab);
+
+// DELETE /api/admin/labs/:id - Delete lab
+router.delete('/labs/:id', deleteLab);
 
 export default router;
