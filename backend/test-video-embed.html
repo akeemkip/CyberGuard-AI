@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Embed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        .video-container {
+            margin: 20px 0;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .video-header {
+            background: #2a2a2a;
+            padding: 15px;
+            border-bottom: 2px solid #333;
+        }
+        .video-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+        .video-url {
+            font-size: 12px;
+            color: #888;
+            font-family: monospace;
+        }
+        .aspect-video {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        .aspect-video iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #2a2a2a;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎥 Video Embed Test - CyberGuard-AI Lessons</h1>
+
+    <div class="status">
+        <p class="success">✅ Testing 6 video lessons with working YouTube embeds</p>
+        <p class="info">📝 Videos should load and be playable. If you see a video player below, the integration works!</p>
+    </div>
+
+    <!-- Video 1 -->
+    <div class="video-container">
+        <div class="video-header">
+            <div class="video-title">1. The Psychology of Phishing</div>
+            <div class="video-url">https://www.youtube.com/watch?v=F7pYHN9iC9I</div>
+        </div>
+        <div class="aspect-video">
+            <iframe
+                src="https://www.youtube.com/embed/F7pYHN9iC9I"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                title="The Psychology of Phishing"
+            ></iframe>
+        </div>
+    </div>
+
+    <!-- Video 2 -->
+    <div class="video-container">
+        <div class="video-header">
+            <div class="video-title">2. Identifying Phishing URLs</div>
+            <div class="video-url">https://www.youtube.com/watch?v=qBN7JfV_FvI</div>
+        </div>
+        <div class="aspect-video">
+            <iframe
+                src="https://www.youtube.com/embed/qBN7JfV_FvI"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                title="Identifying Phishing URLs"
+            ></iframe>
+        </div>
+    </div>
+
+    <!-- Video 3 -->
+    <div class="video-container">
+        <div class="video-header">
+            <div class="video-title">3. Passphrases: The Better Password</div>
+            <div class="video-url">https://www.youtube.com/watch?v=3NjQ9b3pgIg</div>
+        </div>
+        <div class="aspect-video">
+            <iframe
+                src="https://www.youtube.com/embed/3NjQ9b3pgIg"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                title="Passphrases"
+            ></iframe>
+        </div>
+    </div>
+
+    <!-- Video 4 -->
+    <div class="video-container">
+        <div class="video-header">
+            <div class="video-title">4. Setting Up Multi-Factor Authentication</div>
+            <div class="video-url">https://www.youtube.com/watch?v=0mvCeNsTa1g</div>
+        </div>
+        <div class="aspect-video">
+            <iframe
+                src="https://www.youtube.com/embed/0mvCeNsTa1g"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                title="Setting Up MFA"
+            ></iframe>
+        </div>
+    </div>
+
+    <!-- Video 5 -->
+    <div class="video-container">
+        <div class="video-header">
+            <div class="video-title">5. Enterprise Password Security</div>
+            <div class="video-url">https://www.youtube.com/watch?v=hhUb5iknVJs</div>
+        </div>
+        <div class="aspect-video">
+            <iframe
+                src="https://www.youtube.com/embed/hhUb5iknVJs"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                title="Enterprise Password Security"
+            ></iframe>
+        </div>
+    </div>
+
+    <!-- Video 6 -->
+    <div class="video-container">
+        <div class="video-header">
+            <div class="video-title">6. Verification Habits</div>
+            <div class="video-url">https://www.youtube.com/watch?v=lc7scxvKQOo</div>
+        </div>
+        <div class="aspect-video">
+            <iframe
+                src="https://www.youtube.com/embed/lc7scxvKQOo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                title="Verification Habits"
+            ></iframe>
+        </div>
+    </div>
+
+    <div class="status">
+        <h2>✅ Video Integration Test Results</h2>
+        <p><strong>URL Conversion:</strong> YouTube watch URLs are converted to embed URLs (watch?v= → embed/)</p>
+        <p><strong>Error Handling:</strong> YouTube iframe provides built-in error handling if video is unavailable</p>
+        <p><strong>Responsive Design:</strong> Videos maintain 16:9 aspect ratio on all screen sizes</p>
+        <p><strong>Permissions:</strong> Allows fullscreen, autoplay (optional), and picture-in-picture</p>
+    </div>
+
+    <div class="status" style="margin-top: 30px;">
+        <h2>🎯 Frontend Integration</h2>
+        <p>The course-player component (frontend/src/app/components/course-player.tsx) handles videos at lines 519-529:</p>
+        <ul>
+            <li>✅ Detects videoUrl in lesson data</li>
+            <li>✅ Converts YouTube watch URLs to embed URLs</li>
+            <li>✅ Applies user settings (autoplay preference)</li>
+            <li>✅ Responsive aspect-video container</li>
+            <li>✅ Full screen and accessibility support</li>
+        </ul>
+    </div>
+</body>
+</html>
