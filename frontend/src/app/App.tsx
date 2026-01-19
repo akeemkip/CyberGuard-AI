@@ -62,6 +62,11 @@ function AppContent() {
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
+  // Log all page changes
+  useEffect(() => {
+    console.log('[App] 📄 Current page changed to:', currentPage);
+  }, [currentPage]);
+
   // Handle initial page load and auth state changes
   useEffect(() => {
     console.log('[App] Navigation useEffect triggered:', {
@@ -186,6 +191,8 @@ function AppContent() {
   };
 
   const handleNavigate = (page: string, idParam?: string) => {
+    console.log('[App] 🔄 handleNavigate called:', { from: currentPage, to: page, idParam });
+    console.trace('[App] Navigation stack trace:');
     // Push to browser history for back button support
     window.history.pushState({ page, idParam }, "", window.location.pathname);
     setCurrentPage(page as Page);
