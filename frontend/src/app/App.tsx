@@ -125,7 +125,9 @@ function AppContent() {
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
+      console.log('[App] popstate event triggered:', event.state);
       if (event.state?.page) {
+        console.log('[App] History state has page, navigating to:', event.state.page);
         setCurrentPage(event.state.page as Page);
         if (event.state.idParam) {
           const page = event.state.page as Page;
@@ -146,8 +148,14 @@ function AppContent() {
           setSelectedCourseId(event.state.courseId);
         }
       } else {
-        // No state, go to landing
-        setCurrentPage("landing");
+        // No state - only redirect to landing if not on a guest page
+        console.log('[App] ⚠️ No history state found');
+        if (!guestPages.includes(currentPage)) {
+          console.log('[App] Not on guest page, redirecting to landing');
+          setCurrentPage("landing");
+        } else {
+          console.log('[App] On guest page, staying here (popstate without state)');
+        }
       }
     };
 
@@ -156,6 +164,7 @@ function AppContent() {
     // Set initial history state
     if (isInitialized && !window.history.state?.page) {
       const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId || selectedLabId;
+      console.log('[App] Setting initial history state:', { page: currentPage, idParam });
       window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
     }
 
