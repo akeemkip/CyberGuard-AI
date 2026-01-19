@@ -21,6 +21,8 @@ export function LoginPage({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔐 Form submitted, preventing default');
+
     setLocalError("");
     clearError();
 
@@ -38,6 +40,8 @@ export function LoginPage({
     } catch (err: any) {
       console.error('❌ Login failed:', err);
       setLocalError(err.message || "Login failed");
+      console.log('🔴 Staying on login page to show error');
+      // Explicitly stay on login page - don't navigate anywhere
     }
   };
 

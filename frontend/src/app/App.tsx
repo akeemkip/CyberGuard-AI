@@ -106,6 +106,9 @@ function AppContent() {
         setCurrentPage("landing");
         localStorage.removeItem("currentPage");
         localStorage.removeItem("selectedCourseId");
+      } else if (guestPages.includes(currentPage)) {
+        // On a guest page (login, register, etc.) - stay here
+        console.log('[App] On guest page, staying here');
       }
     }
 
