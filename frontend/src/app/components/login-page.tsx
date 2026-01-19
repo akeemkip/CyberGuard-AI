@@ -24,10 +24,19 @@ export function LoginPage({
     setLocalError("");
     clearError();
 
+    console.log('🔐 Login attempt:', { email: email.trim(), passwordLength: password.length });
+
     try {
-      await login(email, password);
+      // Trim whitespace from inputs
+      const trimmedEmail = email.trim();
+      const trimmedPassword = password.trim();
+
+      console.log('📤 Calling login API...');
+      await login(trimmedEmail, trimmedPassword);
+      console.log('✅ Login successful - navigation should happen automatically');
       // Navigation is handled by App.tsx useEffect when user state changes
     } catch (err: any) {
+      console.error('❌ Login failed:', err);
       setLocalError(err.message || "Login failed");
     }
   };

@@ -31,16 +31,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('[AuthContext] Starting login...');
       setError(null);
       setIsLoading(true);
       const response = await authService.login({ email, password });
+      console.log('[AuthContext] Login API success, user:', response.user);
       setUser(response.user);
+      console.log('[AuthContext] User state updated, isAuthenticated will be:', !!response.user);
     } catch (err: any) {
       const message = err.response?.data?.error || 'Login failed. Please try again.';
+      console.error('[AuthContext] Login error:', message, err);
       setError(message);
       throw new Error(message);
     } finally {
       setIsLoading(false);
+      console.log('[AuthContext] Login complete, isLoading now false');
     }
   };
 

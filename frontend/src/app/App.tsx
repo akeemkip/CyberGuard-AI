@@ -64,27 +64,45 @@ function AppContent() {
 
   // Handle initial page load and auth state changes
   useEffect(() => {
-    if (isLoading) return; // Wait for auth to initialize
+    console.log('[App] Navigation useEffect triggered:', {
+      isLoading,
+      isAuthenticated,
+      user: user?.email,
+      currentPage
+    });
+
+    if (isLoading) {
+      console.log('[App] Waiting for auth to initialize...');
+      return; // Wait for auth to initialize
+    }
 
     const savedPage = localStorage.getItem("currentPage") as Page | null;
 
     if (isAuthenticated && user) {
       // User is logged in
+      console.log('[App] User is authenticated');
       if (guestPages.includes(currentPage)) {
         // If on a guest page (landing, login, register), redirect to appropriate dashboard
         const defaultDashboard = user.role === "ADMIN" ? "admin-dashboard" : "student-dashboard";
+        console.log('[App] On guest page, redirecting to dashboard:', defaultDashboard);
         // If they had a saved protected page, go there; otherwise go to dashboard
         if (savedPage && protectedPages.includes(savedPage)) {
+          console.log('[App] Found saved protected page:', savedPage);
           setCurrentPage(savedPage);
         } else {
+          console.log('[App] No saved page, going to default dashboard');
           setCurrentPage(defaultDashboard);
         }
+      } else {
+        console.log('[App] Already on protected page, staying here');
       }
       // If already on a protected page, stay there
     } else {
       // User is NOT logged in
+      console.log('[App] User is NOT authenticated');
       if (protectedPages.includes(currentPage)) {
         // If on a protected page, redirect to landing
+        console.log('[App] On protected page while not authenticated, redirecting to landing');
         setCurrentPage("landing");
         localStorage.removeItem("currentPage");
         localStorage.removeItem("selectedCourseId");
