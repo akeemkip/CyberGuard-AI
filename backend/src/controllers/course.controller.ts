@@ -57,6 +57,23 @@ export const getCourseById = async (req: Request, res: Response) => {
     const course = await prisma.course.findUnique({
       where: { id },
       include: {
+        modules: {
+          orderBy: { order: 'asc' },
+          include: {
+            lessons: {
+              orderBy: { order: 'asc' },
+              include: {
+                quiz: {
+                  select: {
+                    id: true,
+                    title: true,
+                    passingScore: true
+                  }
+                }
+              }
+            }
+          }
+        },
         lessons: {
           orderBy: { order: 'asc' },
           include: {
