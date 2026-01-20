@@ -174,7 +174,7 @@ function SortableModuleCard({ module, onEdit, onDelete, isDeleting }: SortableMo
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="p-6 transition-all duration-200 hover:shadow-md">
+      <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
         <div className="flex items-start gap-4">
           <div
             {...attributes}
@@ -1991,7 +1991,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredQuizzes.map(quiz => (
-                    <Card key={quiz.id} className="p-6 hover:shadow-lg transition-shadow">
+                    <Card key={quiz.id} className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
                       <div className="space-y-4">
                         {/* Quiz Title */}
                         <div>
@@ -2208,7 +2208,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
               ) : (
                 <div className="grid gap-4">
                   {filteredLabs.map((lab) => (
-                    <Card key={lab.id} className="p-6 hover:shadow-lg transition-shadow">
+                    <Card key={lab.id} className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
