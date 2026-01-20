@@ -16,36 +16,29 @@ export function LoginPage({
   const { login, isLoading, error, clearError } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [localError, setLocalError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🔐 Form submitted, preventing default');
-
-    setLocalError("");
     clearError();
 
-    console.log('🔐 Login attempt:', { email: email.trim(), passwordLength: password.length });
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
 
-    try {
-      // Trim whitespace from inputs
-      const trimmedEmail = email.trim();
-      const trimmedPassword = password.trim();
-
-      console.log('📤 Calling login API...');
-      await login(trimmedEmail, trimmedPassword);
-      console.log('✅ Login successful - navigation should happen automatically');
-      // Navigation is handled by App.tsx useEffect when user state changes
-    } catch (err: any) {
-      console.error('❌ Login failed:', err);
-      setLocalError(err.message || "Login failed");
-      console.log('🔴 Staying on login page to show error');
-      // Explicitly stay on login page - don't navigate anywhere
+    if (!trimmedEmail || !trimmedPassword) {
+      return;
     }
-  };
 
-  const displayError = localError || error;
+    // login() returns true on success, false on failure
+    // Error message is stored in context's error state
+    const success = await login(trimmedEmail, trimmedPassword);
+
+    if (success) {
+      // Navigation is handled by App.tsx useEffect when user state changes
+      console.log('✅ Login successful');
+    }
+    // If failed, error is already set in context and will display
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -75,10 +68,10 @@ export function LoginPage({
             <p className="text-muted-foreground">Sign in to continue your training</p>
           </div>
 
-          {displayError && (
+          {error && (
             <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-2 text-destructive">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm">{displayError}</span>
+              <span className="text-sm">{error}</span>
             </div>
           )}
 
@@ -91,8 +84,8 @@ export function LoginPage({
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
                 disabled={isLoading}
+                autoComplete="email"
                 className="bg-input-background"
               />
             </div>
@@ -115,8 +108,8 @@ export function LoginPage({
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   disabled={isLoading}
+                  autoComplete="current-password"
                   className="bg-input-background pr-10"
                 />
                 <button

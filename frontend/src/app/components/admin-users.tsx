@@ -593,15 +593,49 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleChangeRole(user.id, user.role === "ADMIN" ? "STUDENT" : "ADMIN")}
-                            disabled={user.role === "ADMIN"}
-                            title={user.role === "ADMIN" ? "Cannot change admin role" : "Promote to Admin"}
-                          >
-                            <UserCog className="w-4 h-4" />
-                          </Button>
+                          {user.role === "ADMIN" ? (
+                            // Demote admin - requires confirmation
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={user.email === userEmail}
+                                  title={user.email === userEmail ? "Cannot demote yourself" : "Demote to Student"}
+                                >
+                                  <UserCog className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Remove Admin Privileges?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to demote {getDisplayName(user)} from Admin to Student?
+                                    They will lose access to all admin features including user management,
+                                    content management, and analytics.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleChangeRole(user.id, "STUDENT")}
+                                  >
+                                    Demote to Student
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            // Promote student - no confirmation needed
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleChangeRole(user.id, "ADMIN")}
+                              title="Promote to Admin"
+                            >
+                              <UserCog className="w-4 h-4" />
+                            </Button>
+                          )}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button

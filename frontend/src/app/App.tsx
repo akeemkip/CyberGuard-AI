@@ -37,11 +37,20 @@ const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-p
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
 
-function AppContent() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+// Guest pages that should persist on refresh (not landing - that's the default)
+const persistableGuestPages: Page[] = ["login", "register", "reset-password"];
 
-  // Initialize page from localStorage or default based on auth state
+function AppContent() {
+  const { user, isAuthenticated, isInitializing, logout } = useAuth();
+
+  // Initialize page from history state, localStorage, or default
   const [currentPage, setCurrentPage] = useState<Page>(() => {
+    // First check browser history state (preserved on refresh)
+    const historyPage = window.history.state?.page as Page | undefined;
+    if (historyPage) {
+      return historyPage;
+    }
+    // Fall back to localStorage
     const savedPage = localStorage.getItem("currentPage") as Page | null;
     return savedPage || "landing";
   });
@@ -70,13 +79,13 @@ function AppContent() {
   // Handle initial page load and auth state changes
   useEffect(() => {
     console.log('[App] Navigation useEffect triggered:', {
-      isLoading,
+      isInitializing,
       isAuthenticated,
       user: user?.email,
       currentPage
     });
 
-    if (isLoading) {
+    if (isInitializing) {
       console.log('[App] Waiting for auth to initialize...');
       return; // Wait for auth to initialize
     }
@@ -118,11 +127,11 @@ function AppContent() {
     }
 
     setIsInitialized(true);
-  }, [isAuthenticated, user, isLoading]);
+  }, [isAuthenticated, user, isInitializing]);
 
-  // Save current page to localStorage whenever it changes (only for protected pages)
+  // Save current page to localStorage whenever it changes (protected pages + persistable guest pages)
   useEffect(() => {
-    if (isInitialized && protectedPages.includes(currentPage)) {
+    if (isInitialized && (protectedPages.includes(currentPage) || persistableGuestPages.includes(currentPage))) {
       localStorage.setItem("currentPage", currentPage);
     }
   }, [currentPage, isInitialized]);
@@ -229,7 +238,7 @@ function AppContent() {
   };
 
   // Show loading state while auth is initializing
-  if (isLoading) {
+  if (isInitializing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

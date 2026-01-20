@@ -43,7 +43,7 @@ export function RegisterPage({
     password: "",
     confirmPassword: "",
   });
-  const [localError, setLocalError] = useState("");
+  const [validationError, setValidationError] = useState("");
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -55,33 +55,36 @@ export function RegisterPage({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalError("");
+    setValidationError("");
     clearError();
 
     if (formData.password !== formData.confirmPassword) {
-      setLocalError("Passwords do not match");
+      setValidationError("Passwords do not match");
       return;
     }
 
     if (formData.password.length < 6) {
-      setLocalError("Password must be at least 6 characters");
+      setValidationError("Password must be at least 6 characters");
       return;
     }
 
-    try {
-      await register(formData.email, formData.password, formData.firstName, formData.lastName);
+    // register() returns true on success, false on failure
+    // Error message is stored in context's error state
+    const success = await register(formData.email, formData.password, formData.firstName, formData.lastName);
+
+    if (success) {
       setRegistrationSuccess(true);
       // Navigation is handled by App.tsx useEffect when user state changes
-    } catch (err: any) {
-      setLocalError(err.message || "Registration failed");
     }
+    // If failed, error is already set in context and will display
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const displayError = localError || error;
+  // Show validation errors first, then API errors
+  const displayError = validationError || error;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -149,6 +152,7 @@ export function RegisterPage({
                       onChange={handleChange}
                       required
                       disabled={isLoading}
+                      autoComplete="given-name"
                       className="bg-input-background"
                     />
                   </div>
@@ -161,6 +165,7 @@ export function RegisterPage({
                       onChange={handleChange}
                       required
                       disabled={isLoading}
+                      autoComplete="family-name"
                       className="bg-input-background"
                     />
                   </div>
@@ -177,6 +182,7 @@ export function RegisterPage({
                       onChange={handleChange}
                       required
                       disabled={isLoading}
+                      autoComplete="email"
                       className={`bg-input-background pr-10 ${emailTouched && !emailValid ? "border-red-500 focus-visible:ring-red-500" : ""} ${emailTouched && emailValid ? "border-green-500 focus-visible:ring-green-500" : ""}`}
                     />
                     {emailTouched && (
@@ -205,6 +211,7 @@ export function RegisterPage({
                       onChange={handleChange}
                       required
                       disabled={isLoading}
+                      autoComplete="new-password"
                       className="bg-input-background pr-10"
                     />
                     <button
@@ -242,6 +249,7 @@ export function RegisterPage({
                       onChange={handleChange}
                       required
                       disabled={isLoading}
+                      autoComplete="new-password"
                       className={`bg-input-background pr-10 ${formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword ? "border-red-500" : ""} ${formData.confirmPassword.length > 0 && formData.password === formData.confirmPassword ? "border-green-500" : ""}`}
                     />
                     <button
