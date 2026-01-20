@@ -88,8 +88,8 @@ A comprehensive cybersecurity training platform built with React, Node.js, Expre
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@cyberguard.com | admin123 |
-| Student | student@example.com | student123 |
+| Admin | admin@example.com | admin123 |
+| Student | akeemkippins.gy@gmail.com | C0c@1n380Z |
 
 ## Project Structure
 
@@ -112,11 +112,12 @@ Josh/
 
 ## Documentation
 
-See [PROJECT_DOCUMENTATION.md](./Docs/PROJECT_DOCUMENTATION.md) for detailed documentation including:
-- API reference
+See [CONTEXT.md](./Docs/CONTEXT.md) for comprehensive project documentation including:
+- Tech stack and architecture
 - Database schema
-- Session logs
-- Troubleshooting guide
+- API endpoints
+- Development patterns
+- Quick reference commands
 
 ## License
 
