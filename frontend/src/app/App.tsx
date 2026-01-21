@@ -41,6 +41,20 @@ const guestPages: Page[] = ["landing", "login", "register", "reset-password", "p
 // Guest pages that should persist on refresh (not landing - that's the default)
 const persistableGuestPages: Page[] = ["login", "register", "reset-password"];
 
+// "Transient" pages that require an ID parameter - these should NOT persist to localStorage
+// because refreshing them without proper context can cause navigation issues
+const transientPages: Page[] = ["lab-player", "course-player", "admin-user-profile", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit"];
+
+// Map of transient pages to their "parent" page (for back button support)
+const transientPageParents: Partial<Record<Page, Page>> = {
+  "lab-player": "student-dashboard",
+  "course-player": "course-catalog",
+  "admin-user-profile": "admin-users",
+  "admin-lesson-edit": "admin-content",
+  "admin-quiz-edit": "admin-content",
+  "admin-lab-edit": "admin-content",
+};
+
 function AppContent() {
   const { user, isAuthenticated, isInitializing, logout } = useAuth();
 
@@ -49,10 +63,22 @@ function AppContent() {
     // First check browser history state (preserved on refresh)
     const historyPage = window.history.state?.page as Page | undefined;
     if (historyPage) {
+      // For transient pages, check if we have the required ID
+      if (transientPages.includes(historyPage)) {
+        const hasRequiredId = window.history.state?.idParam;
+        if (!hasRequiredId) {
+          // No ID, go to parent page instead
+          return transientPageParents[historyPage] || "landing";
+        }
+      }
       return historyPage;
     }
-    // Fall back to localStorage
+    // Fall back to localStorage - but NOT for transient pages
     const savedPage = localStorage.getItem("currentPage") as Page | null;
+    if (savedPage && transientPages.includes(savedPage)) {
+      // Transient pages shouldn't restore from localStorage - go to parent
+      return transientPageParents[savedPage] || "landing";
+    }
     return savedPage || "landing";
   });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(() => {
@@ -76,6 +102,15 @@ function AppContent() {
   useEffect(() => {
     console.log('[App] 📄 Current page changed to:', currentPage);
   }, [currentPage]);
+
+  // On initial mount, clean up any stale transient page from localStorage
+  useEffect(() => {
+    const savedPage = localStorage.getItem("currentPage") as Page | null;
+    if (savedPage && transientPages.includes(savedPage)) {
+      console.log('[App] Cleaning up stale transient page from localStorage:', savedPage);
+      localStorage.removeItem("currentPage");
+    }
+  }, []);
 
   // Handle initial page load and auth state changes
   useEffect(() => {
@@ -131,9 +166,14 @@ function AppContent() {
   }, [isAuthenticated, user, isInitializing]);
 
   // Save current page to localStorage whenever it changes (protected pages + persistable guest pages)
+  // But NOT transient pages (lab-player, course-player, etc.) - those shouldn't persist on refresh
   useEffect(() => {
-    if (isInitialized && (protectedPages.includes(currentPage) || persistableGuestPages.includes(currentPage))) {
-      localStorage.setItem("currentPage", currentPage);
+    if (isInitialized) {
+      const shouldPersist = (protectedPages.includes(currentPage) || persistableGuestPages.includes(currentPage))
+        && !transientPages.includes(currentPage);
+      if (shouldPersist) {
+        localStorage.setItem("currentPage", currentPage);
+      }
     }
   }, [currentPage, isInitialized]);
 
@@ -180,7 +220,20 @@ function AppContent() {
     if (isInitialized && !window.history.state?.page) {
       const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId || selectedLabId;
       console.log('[App] Setting initial history state:', { page: currentPage, idParam });
-      window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
+
+      // For transient pages, first push the parent page so back button works
+      if (transientPages.includes(currentPage)) {
+        const parentPage = transientPageParents[currentPage];
+        if (parentPage) {
+          console.log('[App] Transient page detected, adding parent to history:', parentPage);
+          window.history.replaceState({ page: parentPage }, "", window.location.pathname);
+          window.history.pushState({ page: currentPage, idParam }, "", window.location.pathname);
+        } else {
+          window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
+        }
+      } else {
+        window.history.replaceState({ page: currentPage, idParam }, "", window.location.pathname);
+      }
     }
 
     return () => window.removeEventListener("popstate", handlePopState);
@@ -202,10 +255,23 @@ function AppContent() {
 
   const handleNavigate = (page: string, idParam?: string) => {
     console.log('[App] 🔄 handleNavigate called:', { from: currentPage, to: page, idParam });
-    console.trace('[App] Navigation stack trace:');
+
+    const pageAsType = page as Page;
+
+    // For transient pages, ensure we have a parent in history
+    // (only if we're not coming from the parent page itself)
+    if (transientPages.includes(pageAsType)) {
+      const parentPage = transientPageParents[pageAsType];
+      if (parentPage && currentPage !== parentPage && !transientPages.includes(currentPage)) {
+        // We're jumping directly to a transient page - add parent first for back button
+        console.log('[App] Adding parent to history before transient page:', parentPage);
+        window.history.pushState({ page: parentPage }, "", window.location.pathname);
+      }
+    }
+
     // Push to browser history for back button support
     window.history.pushState({ page, idParam }, "", window.location.pathname);
-    setCurrentPage(page as Page);
+    setCurrentPage(pageAsType);
 
     // Handle course ID for course player
     if (page === "course-player" && idParam) {

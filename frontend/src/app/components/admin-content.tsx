@@ -431,6 +431,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   const [labSearch, setLabSearch] = useState("");
   const [labFilterCourse, setLabFilterCourse] = useState<string>("all");
   const [labFilterDifficulty, setLabFilterDifficulty] = useState<string>("all");
+  const [labFilterType, setLabFilterType] = useState<string>("all");
   const [deletingLabId, setDeletingLabId] = useState<string | null>(null);
   const [showDeleteLabDialog, setShowDeleteLabDialog] = useState(false);
   const [labToDelete, setLabToDelete] = useState<LabWithStats | null>(null);
@@ -938,7 +939,8 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                           lab.description.toLowerCase().includes(labSearch.toLowerCase());
       const matchesCourse = labFilterCourse === "all" || lab.courseId === labFilterCourse;
       const matchesDifficulty = labFilterDifficulty === "all" || lab.difficulty === labFilterDifficulty;
-      return matchesSearch && matchesCourse && matchesDifficulty;
+      const matchesType = labFilterType === "all" || lab.labType === labFilterType;
+      return matchesSearch && matchesCourse && matchesDifficulty && matchesType;
     });
 
   // ============================================
@@ -2133,7 +2135,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
 
               {/* Filters */}
               <Card className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <Label>Search Labs</Label>
                     <div className="relative">
@@ -2178,6 +2180,26 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div>
+                    <Label>Filter by Lab Type</Label>
+                    <Select value={labFilterType} onValueChange={setLabFilterType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="CONTENT">Content Lab</SelectItem>
+                        <SelectItem value="PHISHING_EMAIL">Phishing Email</SelectItem>
+                        <SelectItem value="SUSPICIOUS_LINKS">Suspicious Links</SelectItem>
+                        <SelectItem value="PASSWORD_STRENGTH">Password Strength</SelectItem>
+                        <SelectItem value="SOCIAL_ENGINEERING">Social Engineering</SelectItem>
+                        <SelectItem value="SECURITY_ALERTS">Security Alerts</SelectItem>
+                        <SelectItem value="WIFI_SAFETY">WiFi Safety</SelectItem>
+                        <SelectItem value="INCIDENT_RESPONSE">Incident Response</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </Card>
 
@@ -2211,12 +2233,15 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                     <Card key={lab.id} className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
                             <h3 className="text-lg font-semibold">{lab.title}</h3>
                             <Badge variant={lab.isPublished ? "default" : "secondary"}>
                               {lab.isPublished ? "Published" : "Draft"}
                             </Badge>
                             <Badge variant="outline">{lab.difficulty}</Badge>
+                            <Badge variant={lab.labType === 'CONTENT' ? "secondary" : "default"} className={lab.labType !== 'CONTENT' ? "bg-blue-600" : ""}>
+                              {lab.labType === 'CONTENT' ? 'Content' : lab.labType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+                            </Badge>
                           </div>
 
                           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
