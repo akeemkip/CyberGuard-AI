@@ -37,9 +37,11 @@ import adminService, {
   CreateLabRequest,
   UpdateLabRequest,
   PhishingEmailConfig,
+  SuspiciousLinksConfig,
 } from "../services/admin.service";
 import courseService from "../services/course.service";
 import { PhishingEmailEditor } from "./lab-template-editors/PhishingEmailEditor";
+import { SuspiciousLinksEditor } from "./lab-template-editors/SuspiciousLinksEditor";
 
 interface AdminLabEditProps {
   labId?: string | null;
@@ -133,7 +135,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
   const [hints, setHints] = useState("");
 
   // Simulation config for interactive labs
-  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | null>(null);
+  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | SuspiciousLinksConfig | null>(null);
 
   // UI state
   const [courses, setCourses] = useState<Course[]>([]);
@@ -327,7 +329,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
     }
   };
 
-  const getDefaultConfig = (type: LabType): PhishingEmailConfig | null => {
+  const getDefaultConfig = (type: LabType): PhishingEmailConfig | SuspiciousLinksConfig | null => {
     if (type === 'PHISHING_EMAIL') {
       return {
         emailInterface: 'gmail',
@@ -335,6 +337,13 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
         instructions: 'Review each email and identify which ones are phishing attempts. Click "Report Phishing" for suspicious emails or "Mark Safe" for legitimate ones.',
         feedbackCorrect: 'Correct! You identified this email correctly.',
         feedbackIncorrect: 'Incorrect. Review the red flags and try again.',
+      };
+    }
+    if (type === 'SUSPICIOUS_LINKS') {
+      return {
+        links: [],
+        scenario: 'You received an email with several links. Before clicking any of them, analyze each URL to determine if it\'s safe or potentially malicious.',
+        instructions: 'Hover over each link to see the actual URL. Analyze the URL carefully and determine whether it\'s safe or suspicious. Look for typosquatting, unusual domains, HTTP vs HTTPS, and other red flags.',
       };
     }
     return null;
@@ -682,6 +691,12 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
               // Phishing Email Editor
               <PhishingEmailEditor
                 config={simulationConfig as PhishingEmailConfig | null}
+                onChange={setSimulationConfig}
+              />
+            ) : labType === 'SUSPICIOUS_LINKS' ? (
+              // Suspicious Links Editor
+              <SuspiciousLinksEditor
+                config={simulationConfig as SuspiciousLinksConfig | null}
                 onChange={setSimulationConfig}
               />
             ) : (

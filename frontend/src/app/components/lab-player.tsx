@@ -23,8 +23,9 @@ import {
   AlertTriangle
 } from "lucide-react";
 import courseService, { LabDetails, LabType } from "../services/course.service";
-import { PhishingEmailConfig } from "../services/admin.service";
+import { PhishingEmailConfig, SuspiciousLinksConfig } from "../services/admin.service";
 import { PhishingEmailSimulation } from "./lab-templates/PhishingEmailSimulation";
+import { SuspiciousLinksSimulation } from "./lab-templates/SuspiciousLinksSimulation";
 
 interface LabPlayerProps {
   labId?: string | null;
@@ -294,7 +295,15 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
             />
           )}
 
-          {labType !== 'PHISHING_EMAIL' && (
+          {labType === 'SUSPICIOUS_LINKS' && lab.simulationConfig && (
+            <SuspiciousLinksSimulation
+              config={lab.simulationConfig as SuspiciousLinksConfig}
+              passingScore={lab.passingScore}
+              onComplete={handleSimulationComplete}
+            />
+          )}
+
+          {labType !== 'PHISHING_EMAIL' && labType !== 'SUSPICIOUS_LINKS' && (
             <div className="container mx-auto px-4 py-8">
               <Card className="p-8 text-center">
                 <Mail className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
