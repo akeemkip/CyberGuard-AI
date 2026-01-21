@@ -212,7 +212,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
   const isInProgress = progress?.status === 'IN_PROGRESS';
   const isNotStarted = !progress || progress.status === 'NOT_STARTED';
   // Default to CONTENT for legacy labs that don't have labType set
-  const labType = labType || 'CONTENT';
+  const labType = lab.labType || 'CONTENT';
   const isInteractiveLab = labType !== 'CONTENT';
 
   // For interactive labs, render the appropriate simulation
