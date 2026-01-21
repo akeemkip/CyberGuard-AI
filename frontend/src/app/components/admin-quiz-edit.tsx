@@ -61,12 +61,21 @@ import {
   TrendingUp,
   Moon,
   Sun,
-  X
+  X,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
 import { RichTextEditor } from "./RichTextEditor";
-import adminService, { QuizQuestion, QuizFull } from "../services/admin.service";
+import adminService, { QuizQuestion, QuizFull, QuizAttempt } from "../services/admin.service";
 import courseService, { Course } from "../services/course.service";
 
 interface AdminQuizEditProps {
@@ -171,6 +180,8 @@ export function AdminQuizEdit({ quizId, userEmail, onNavigate, onLogout }: Admin
   const [passingScore, setPassingScore] = useState(70);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [stats, setStats] = useState<{ totalAttempts: number; passRate: number; averageScore: number } | null>(null);
+  const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
+  const [attemptsOpen, setAttemptsOpen] = useState(false);
 
   // Lessons data for dropdown
   const [courses, setCourses] = useState<Course[]>([]);
@@ -226,6 +237,7 @@ export function AdminQuizEdit({ quizId, userEmail, onNavigate, onLogout }: Admin
         setPassingScore(quiz.passingScore);
         setQuestions(quiz.questions);
         setStats(quiz.stats);
+        setAttempts(quiz.attempts || []);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -577,7 +589,7 @@ export function AdminQuizEdit({ quizId, userEmail, onNavigate, onLogout }: Admin
             {stats && stats.totalAttempts > 0 && (
               <Card className="p-6">
                 <h2 className="text-lg font-semibold mb-4">Quiz Statistics</h2>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="flex items-center gap-3">
                     <Users className="w-8 h-8 text-purple-500" />
                     <div>
@@ -600,6 +612,82 @@ export function AdminQuizEdit({ quizId, userEmail, onNavigate, onLogout }: Admin
                     </div>
                   </div>
                 </div>
+
+                {/* Student Attempts Collapsible */}
+                {attempts.length > 0 && (
+                  <Collapsible open={attemptsOpen} onOpenChange={setAttemptsOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        <span className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Student Attempts ({attempts.length})
+                        </span>
+                        {attemptsOpen ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4">
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted/50">
+                            <tr>
+                              <th className="text-left p-3 text-sm font-medium">Student</th>
+                              <th className="text-left p-3 text-sm font-medium">Score</th>
+                              <th className="text-left p-3 text-sm font-medium">Status</th>
+                              <th className="text-left p-3 text-sm font-medium">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {attempts.map((attempt) => (
+                              <tr key={attempt.id} className="border-t border-border">
+                                <td className="p-3">
+                                  <div>
+                                    <p className="font-medium">
+                                      {attempt.student.firstName && attempt.student.lastName
+                                        ? `${attempt.student.firstName} ${attempt.student.lastName}`
+                                        : attempt.student.email}
+                                    </p>
+                                    {attempt.student.firstName && (
+                                      <p className="text-xs text-muted-foreground">{attempt.student.email}</p>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-3">
+                                  <span className="font-semibold">{attempt.score}%</span>
+                                </td>
+                                <td className="p-3">
+                                  {attempt.passed ? (
+                                    <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                                      <CheckCircle className="w-4 h-4" />
+                                      Passed
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400">
+                                      <XCircle className="w-4 h-4" />
+                                      Failed
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-3 text-sm text-muted-foreground">
+                                  {new Date(attempt.attemptedAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </Card>
             )}
 

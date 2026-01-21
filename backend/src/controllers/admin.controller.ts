@@ -478,9 +478,20 @@ export const getQuizById = async (req: Request, res: Response) => {
         },
         attempts: {
           select: {
+            id: true,
             score: true,
-            passed: true
-          }
+            passed: true,
+            attemptedAt: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          },
+          orderBy: { attemptedAt: 'desc' }
         }
       }
     });
@@ -516,7 +527,19 @@ export const getQuizById = async (req: Request, res: Response) => {
         totalAttempts,
         passRate,
         averageScore
-      }
+      },
+      attempts: quiz.attempts.map(attempt => ({
+        id: attempt.id,
+        score: attempt.score,
+        passed: attempt.passed,
+        attemptedAt: attempt.attemptedAt,
+        student: {
+          id: attempt.user.id,
+          email: attempt.user.email,
+          firstName: attempt.user.firstName,
+          lastName: attempt.user.lastName
+        }
+      }))
     });
   } catch (error) {
     console.error('GetQuizById error:', error);
@@ -1051,7 +1074,7 @@ export const getAllLabs = async (req: Request, res: Response) => {
           select: { id: true, title: true }
         },
         progress: {
-          select: { status: true, timeSpent: true }
+          select: { status: true, timeSpent: true, score: true, passed: true }
         }
       },
       orderBy: [
@@ -1071,6 +1094,16 @@ export const getAllLabs = async (req: Request, res: Response) => {
         ? Math.round(lab.progress.reduce((sum, p) => sum + p.timeSpent, 0) / totalAttempts)
         : 0;
 
+      // Calculate pass rate for interactive labs
+      const scoredAttempts = lab.progress.filter(p => p.score !== null);
+      const passedAttempts = lab.progress.filter(p => p.passed === true).length;
+      const passRate = scoredAttempts.length > 0
+        ? Math.round((passedAttempts / scoredAttempts.length) * 100)
+        : null;
+      const avgScore = scoredAttempts.length > 0
+        ? Math.round(scoredAttempts.reduce((sum, p) => sum + (p.score || 0), 0) / scoredAttempts.length)
+        : null;
+
       return {
         id: lab.id,
         title: lab.title,
@@ -1083,9 +1116,13 @@ export const getAllLabs = async (req: Request, res: Response) => {
         moduleId: lab.moduleId,
         moduleTitle: lab.module?.title || null,
         isPublished: lab.isPublished,
+        labType: lab.labType,
+        passingScore: lab.passingScore,
         totalAttempts,
         completionRate,
         avgTimeSpent,
+        passRate,
+        avgScore,
         createdAt: lab.createdAt,
         updatedAt: lab.updatedAt
       };
@@ -1113,7 +1150,7 @@ export const getLabById = async (req: Request, res: Response) => {
           select: { id: true, title: true }
         },
         progress: {
-          select: { status: true, timeSpent: true }
+          select: { status: true, timeSpent: true, score: true, passed: true }
         }
       }
     });
@@ -1132,6 +1169,16 @@ export const getLabById = async (req: Request, res: Response) => {
       ? Math.round(lab.progress.reduce((sum, p) => sum + p.timeSpent, 0) / totalAttempts)
       : 0;
 
+    // Calculate pass rate for interactive labs
+    const scoredAttempts = lab.progress.filter(p => p.score !== null);
+    const passedAttempts = lab.progress.filter(p => p.passed === true).length;
+    const passRate = scoredAttempts.length > 0
+      ? Math.round((passedAttempts / scoredAttempts.length) * 100)
+      : null;
+    const avgScore = scoredAttempts.length > 0
+      ? Math.round(scoredAttempts.reduce((sum, p) => sum + (p.score || 0), 0) / scoredAttempts.length)
+      : null;
+
     res.json({
       id: lab.id,
       title: lab.title,
@@ -1147,6 +1194,9 @@ export const getLabById = async (req: Request, res: Response) => {
       courseId: lab.courseId,
       moduleId: lab.moduleId,
       isPublished: lab.isPublished,
+      labType: lab.labType,
+      simulationConfig: lab.simulationConfig,
+      passingScore: lab.passingScore,
       course: {
         id: lab.course.id,
         title: lab.course.title
@@ -1158,7 +1208,9 @@ export const getLabById = async (req: Request, res: Response) => {
       stats: {
         totalAttempts,
         completionRate,
-        avgTimeSpent
+        avgTimeSpent,
+        passRate,
+        avgScore
       }
     });
   } catch (error) {
@@ -1166,6 +1218,9 @@ export const getLabById = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch lab' });
   }
 };
+
+// Valid lab types
+const VALID_LAB_TYPES = ['CONTENT', 'PHISHING_EMAIL', 'SUSPICIOUS_LINKS', 'PASSWORD_STRENGTH', 'SOCIAL_ENGINEERING', 'SECURITY_ALERTS', 'WIFI_SAFETY', 'INCIDENT_RESPONSE'];
 
 // Create new lab
 export const createLab = async (req: Request, res: Response) => {
@@ -1183,7 +1238,10 @@ export const createLab = async (req: Request, res: Response) => {
       order,
       courseId,
       moduleId,
-      isPublished
+      isPublished,
+      labType,
+      simulationConfig,
+      passingScore
     } = req.body;
 
     // Validation
@@ -1195,22 +1253,38 @@ export const createLab = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Description must be 10-500 characters' });
     }
 
-    if (!instructions || instructions.trim().length < 50) {
-      return res.status(400).json({ error: 'Instructions must be at least 50 characters' });
+    // Validate lab type
+    const effectiveLabType = labType || 'CONTENT';
+    if (!VALID_LAB_TYPES.includes(effectiveLabType)) {
+      return res.status(400).json({ error: 'Invalid lab type' });
+    }
+
+    // For CONTENT labs, require instructions and objectives
+    if (effectiveLabType === 'CONTENT') {
+      if (!instructions || instructions.trim().length < 50) {
+        return res.status(400).json({ error: 'Instructions must be at least 50 characters for content labs' });
+      }
+
+      if (!objectives || !Array.isArray(objectives) || objectives.length < 1) {
+        return res.status(400).json({ error: 'At least 1 objective is required for content labs' });
+      }
+
+      for (const obj of objectives) {
+        if (!obj || obj.length < 5 || obj.length > 200) {
+          return res.status(400).json({ error: 'Each objective must be 5-200 characters' });
+        }
+      }
+    }
+
+    // For simulation labs, require simulationConfig
+    if (effectiveLabType !== 'CONTENT') {
+      if (!simulationConfig) {
+        return res.status(400).json({ error: 'Simulation configuration is required for interactive labs' });
+      }
     }
 
     if (scenario && scenario.length > 1000) {
       return res.status(400).json({ error: 'Scenario must not exceed 1000 characters' });
-    }
-
-    if (!objectives || !Array.isArray(objectives) || objectives.length < 1) {
-      return res.status(400).json({ error: 'At least 1 objective is required' });
-    }
-
-    for (const obj of objectives) {
-      if (!obj || obj.length < 5 || obj.length > 200) {
-        return res.status(400).json({ error: 'Each objective must be 5-200 characters' });
-      }
     }
 
     if (resources && resources.length > 1000) {
@@ -1233,6 +1307,12 @@ export const createLab = async (req: Request, res: Response) => {
 
     if (order === undefined || order < 0) {
       return res.status(400).json({ error: 'Order must be a positive integer' });
+    }
+
+    // Validate passing score
+    const effectivePassingScore = passingScore !== undefined ? passingScore : 70;
+    if (effectivePassingScore < 0 || effectivePassingScore > 100) {
+      return res.status(400).json({ error: 'Passing score must be between 0 and 100' });
     }
 
     // Check if course exists
@@ -1264,9 +1344,9 @@ export const createLab = async (req: Request, res: Response) => {
       data: {
         title: title.trim(),
         description: description.trim(),
-        instructions: instructions.trim(),
+        instructions: instructions?.trim() || null,
         scenario: scenario?.trim() || null,
-        objectives,
+        objectives: objectives || [],
         resources: resources?.trim() || null,
         hints: hints?.trim() || null,
         difficulty,
@@ -1274,7 +1354,10 @@ export const createLab = async (req: Request, res: Response) => {
         order,
         courseId,
         moduleId: moduleId || null,
-        isPublished: isPublished || false
+        isPublished: isPublished || false,
+        labType: effectiveLabType,
+        simulationConfig: simulationConfig || null,
+        passingScore: effectivePassingScore
       }
     });
 
@@ -1305,7 +1388,10 @@ export const updateLab = async (req: Request, res: Response) => {
       order,
       courseId,
       moduleId,
-      isPublished
+      isPublished,
+      labType,
+      simulationConfig,
+      passingScore
     } = req.body;
 
     // Check if lab exists
@@ -1326,22 +1412,38 @@ export const updateLab = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Description must be 10-500 characters' });
     }
 
-    if (!instructions || instructions.trim().length < 50) {
-      return res.status(400).json({ error: 'Instructions must be at least 50 characters' });
+    // Validate lab type
+    const effectiveLabType = labType || existingLab.labType || 'CONTENT';
+    if (!VALID_LAB_TYPES.includes(effectiveLabType)) {
+      return res.status(400).json({ error: 'Invalid lab type' });
+    }
+
+    // For CONTENT labs, require instructions and objectives
+    if (effectiveLabType === 'CONTENT') {
+      if (!instructions || instructions.trim().length < 50) {
+        return res.status(400).json({ error: 'Instructions must be at least 50 characters for content labs' });
+      }
+
+      if (!objectives || !Array.isArray(objectives) || objectives.length < 1) {
+        return res.status(400).json({ error: 'At least 1 objective is required for content labs' });
+      }
+
+      for (const obj of objectives) {
+        if (!obj || obj.length < 5 || obj.length > 200) {
+          return res.status(400).json({ error: 'Each objective must be 5-200 characters' });
+        }
+      }
+    }
+
+    // For simulation labs, require simulationConfig
+    if (effectiveLabType !== 'CONTENT') {
+      if (!simulationConfig) {
+        return res.status(400).json({ error: 'Simulation configuration is required for interactive labs' });
+      }
     }
 
     if (scenario && scenario.length > 1000) {
       return res.status(400).json({ error: 'Scenario must not exceed 1000 characters' });
-    }
-
-    if (!objectives || !Array.isArray(objectives) || objectives.length < 1) {
-      return res.status(400).json({ error: 'At least 1 objective is required' });
-    }
-
-    for (const obj of objectives) {
-      if (!obj || obj.length < 5 || obj.length > 200) {
-        return res.status(400).json({ error: 'Each objective must be 5-200 characters' });
-      }
     }
 
     if (resources && resources.length > 1000) {
@@ -1364,6 +1466,12 @@ export const updateLab = async (req: Request, res: Response) => {
 
     if (order === undefined || order < 0) {
       return res.status(400).json({ error: 'Order must be a positive integer' });
+    }
+
+    // Validate passing score
+    const effectivePassingScore = passingScore !== undefined ? passingScore : existingLab.passingScore;
+    if (effectivePassingScore < 0 || effectivePassingScore > 100) {
+      return res.status(400).json({ error: 'Passing score must be between 0 and 100' });
     }
 
     // Check if course exists
@@ -1396,9 +1504,9 @@ export const updateLab = async (req: Request, res: Response) => {
       data: {
         title: title.trim(),
         description: description.trim(),
-        instructions: instructions.trim(),
+        instructions: instructions?.trim() || null,
         scenario: scenario?.trim() || null,
-        objectives,
+        objectives: objectives || [],
         resources: resources?.trim() || null,
         hints: hints?.trim() || null,
         difficulty,
@@ -1406,7 +1514,10 @@ export const updateLab = async (req: Request, res: Response) => {
         order,
         courseId,
         moduleId: moduleId || null,
-        isPublished: isPublished !== undefined ? isPublished : existingLab.isPublished
+        isPublished: isPublished !== undefined ? isPublished : existingLab.isPublished,
+        labType: effectiveLabType,
+        simulationConfig: simulationConfig || null,
+        passingScore: effectivePassingScore
       }
     });
 

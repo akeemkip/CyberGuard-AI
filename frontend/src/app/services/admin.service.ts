@@ -138,6 +138,19 @@ export interface QuizQuestion {
   order: number;
 }
 
+export interface QuizAttempt {
+  id: string;
+  score: number;
+  passed: boolean;
+  attemptedAt: string;
+  student: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
+}
+
 export interface QuizFull {
   id: string;
   title: string;
@@ -156,6 +169,7 @@ export interface QuizFull {
     passRate: number;
     averageScore: number;
   };
+  attempts: QuizAttempt[];
 }
 
 export interface CreateQuizRequest {
@@ -225,6 +239,81 @@ export interface AssignLessonToModuleRequest {
 // LAB MANAGEMENT TYPES
 // ============================================
 
+export type LabType =
+  | 'CONTENT'
+  | 'PHISHING_EMAIL'
+  | 'SUSPICIOUS_LINKS'
+  | 'PASSWORD_STRENGTH'
+  | 'SOCIAL_ENGINEERING'
+  | 'SECURITY_ALERTS'
+  | 'WIFI_SAFETY'
+  | 'INCIDENT_RESPONSE';
+
+// Phishing Email Simulation Config
+export interface PhishingEmailConfig {
+  emailInterface: 'gmail' | 'outlook' | 'generic';
+  emails: Array<{
+    id: string;
+    from: { name: string; email: string };
+    subject: string;
+    body: string;
+    isPhishing: boolean;
+    redFlags: string[];
+    attachments?: string[];
+  }>;
+  instructions: string;
+  feedbackCorrect: string;
+  feedbackIncorrect: string;
+}
+
+// Suspicious Links Simulation Config
+export interface SuspiciousLinksConfig {
+  links: Array<{
+    displayText: string;
+    actualUrl: string;
+    isMalicious: boolean;
+    explanation: string;
+  }>;
+  scenario: string;
+  instructions: string;
+}
+
+// Password Strength Simulation Config
+export interface PasswordStrengthConfig {
+  scenario: string;
+  requirements: {
+    minLength: number;
+    requireUppercase: boolean;
+    requireNumbers: boolean;
+    requireSpecial: boolean;
+  };
+  bannedPasswords: string[];
+  hints: string[];
+}
+
+// Incident Response Simulation Config
+export interface IncidentResponseConfig {
+  scenario: string;
+  steps: Array<{
+    id: string;
+    situation: string;
+    options: Array<{
+      text: string;
+      isCorrect: boolean;
+      feedback: string;
+      nextStep?: string;
+    }>;
+  }>;
+}
+
+// Union type for all simulation configs
+export type SimulationConfig =
+  | PhishingEmailConfig
+  | SuspiciousLinksConfig
+  | PasswordStrengthConfig
+  | IncidentResponseConfig
+  | Record<string, unknown>;
+
 export interface LabWithStats {
   id: string;
   title: string;
@@ -237,9 +326,13 @@ export interface LabWithStats {
   moduleId: string | null;
   moduleTitle: string | null;
   isPublished: boolean;
+  labType: LabType;
+  passingScore: number;
   totalAttempts: number;
   completionRate: number;
   avgTimeSpent: number;
+  passRate: number | null;
+  avgScore: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -248,7 +341,7 @@ export interface LabFull {
   id: string;
   title: string;
   description: string;
-  instructions: string;
+  instructions: string | null;
   scenario: string | null;
   objectives: string[];
   resources: string | null;
@@ -257,48 +350,66 @@ export interface LabFull {
   estimatedTime: number | null;
   order: number;
   courseId: string;
-  courseTitle: string;
   moduleId: string | null;
-  moduleTitle: string | null;
   isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
+  labType: LabType;
+  simulationConfig: SimulationConfig | null;
+  passingScore: number;
+  course: {
+    id: string;
+    title: string;
+  };
+  module: {
+    id: string;
+    title: string;
+  } | null;
   stats: {
     totalAttempts: number;
     completionRate: number;
     avgTimeSpent: number;
+    passRate: number | null;
+    avgScore: number | null;
   };
 }
 
 export interface CreateLabRequest {
   title: string;
   description: string;
-  instructions: string;
-  scenario?: string;
-  objectives: string[];
-  resources?: string;
-  hints?: string;
   difficulty: string;
   estimatedTime?: number;
   order: number;
   courseId: string;
   moduleId?: string;
   isPublished?: boolean;
+  labType: LabType;
+  simulationConfig?: SimulationConfig;
+  passingScore?: number;
+  // Legacy fields for CONTENT type
+  instructions?: string;
+  scenario?: string;
+  objectives?: string[];
+  resources?: string;
+  hints?: string;
 }
 
 export interface UpdateLabRequest {
   title: string;
   description: string;
-  instructions: string;
-  scenario?: string;
-  objectives: string[];
-  resources?: string;
-  hints?: string;
   difficulty: string;
   estimatedTime?: number;
   order: number;
+  courseId: string;
   moduleId?: string;
   isPublished?: boolean;
+  labType: LabType;
+  simulationConfig?: SimulationConfig;
+  passingScore?: number;
+  // Legacy fields for CONTENT type
+  instructions?: string;
+  scenario?: string;
+  objectives?: string[];
+  resources?: string;
+  hints?: string;
 }
 
 export interface ReorderLabsRequest {

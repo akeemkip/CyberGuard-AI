@@ -130,15 +130,20 @@ export interface QuizSubmissionResponse {
   };
 }
 
+export type LabType =
+  | 'CONTENT'
+  | 'PHISHING_EMAIL'
+  | 'SUSPICIOUS_LINKS'
+  | 'PASSWORD_STRENGTH'
+  | 'SOCIAL_ENGINEERING'
+  | 'SECURITY_ALERTS'
+  | 'WIFI_SAFETY'
+  | 'INCIDENT_RESPONSE';
+
 export interface Lab {
   id: string;
   title: string;
   description: string;
-  instructions: string;
-  scenario: string | null;
-  objectives: string[];
-  resources: string | null;
-  hints: string | null;
   difficulty: string;
   estimatedTime: number | null;
   courseId: string;
@@ -149,6 +154,16 @@ export interface Lab {
   order?: number;
   createdAt?: string;
   updatedAt?: string;
+  // Template-based fields
+  labType: LabType;
+  simulationConfig: Record<string, unknown> | null;
+  passingScore: number;
+  // Legacy fields for CONTENT type
+  instructions: string | null;
+  scenario: string | null;
+  objectives: string[];
+  resources: string | null;
+  hints: string | null;
 }
 
 export interface LabProgress {
@@ -157,12 +172,19 @@ export interface LabProgress {
   notes: string | null;
   startedAt: string | null;
   completedAt: string | null;
+  // Scoring fields for interactive labs
+  score: number | null;
+  passed: boolean | null;
+  attempts: number;
+  answers: Record<string, unknown> | null;
 }
 
-export interface LabWithProgress extends Omit<Lab, 'instructions' | 'scenario' | 'objectives' | 'resources' | 'hints'> {
+export interface LabWithProgress extends Omit<Lab, 'instructions' | 'scenario' | 'objectives' | 'resources' | 'hints' | 'simulationConfig'> {
   status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
   timeSpent: number;
   completedAt: string | null;
+  score: number | null;
+  passed: boolean | null;
 }
 
 export interface LabDetails {
@@ -295,6 +317,32 @@ const courseService = {
       `/labs/${labId}/notes`,
       { notes, timeSpent }
     );
+    return response.data.progress;
+  },
+
+  // Submit lab simulation results (for interactive labs)
+  async submitLabSimulation(
+    labId: string,
+    score: number,
+    passed: boolean,
+    answers: Record<string, unknown>,
+    timeSpent: number
+  ): Promise<{
+    status: string;
+    score: number;
+    passed: boolean;
+    attempts: number;
+    completedAt: string | null;
+  }> {
+    const response = await api.post<{
+      progress: {
+        status: string;
+        score: number;
+        passed: boolean;
+        attempts: number;
+        completedAt: string | null;
+      };
+    }>(`/labs/${labId}/submit`, { score, passed, answers, timeSpent });
     return response.data.progress;
   }
 };

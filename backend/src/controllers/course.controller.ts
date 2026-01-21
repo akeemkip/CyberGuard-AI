@@ -692,24 +692,34 @@ export const getLabForStudent = async (req: AuthRequest, res: Response) => {
         id: lab.id,
         title: lab.title,
         description: lab.description,
-        instructions: lab.instructions,
-        scenario: lab.scenario,
-        objectives: lab.objectives,
-        resources: lab.resources,
-        hints: lab.hints,
         difficulty: lab.difficulty,
         estimatedTime: lab.estimatedTime,
         courseId: lab.courseId,
         courseTitle: lab.course.title,
         moduleId: lab.moduleId,
-        moduleTitle: lab.module?.title || null
+        moduleTitle: lab.module?.title || null,
+        // Template-based fields
+        labType: lab.labType,
+        simulationConfig: lab.simulationConfig,
+        passingScore: lab.passingScore,
+        // Legacy fields
+        instructions: lab.instructions,
+        scenario: lab.scenario,
+        objectives: lab.objectives,
+        resources: lab.resources,
+        hints: lab.hints
       },
       progress: userProgress ? {
         status: userProgress.status,
         timeSpent: userProgress.timeSpent,
         notes: userProgress.notes,
         startedAt: userProgress.startedAt,
-        completedAt: userProgress.completedAt
+        completedAt: userProgress.completedAt,
+        // Scoring fields
+        score: userProgress.score,
+        passed: userProgress.passed,
+        attempts: userProgress.attempts,
+        answers: userProgress.answers
       } : null
     });
   } catch (error) {
@@ -917,5 +927,102 @@ export const updateLabNotes = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('UpdateLabNotes error:', error);
     res.status(500).json({ error: 'Failed to update lab notes' });
+  }
+};
+
+// Submit lab simulation results (for interactive labs)
+export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
+  try {
+    const labId = req.params.id as string;
+    const userId = req.userId!;
+    const { score, passed, answers, timeSpent } = req.body;
+
+    // Validate inputs
+    if (typeof score !== 'number' || score < 0 || score > 100) {
+      return res.status(400).json({ error: 'Score must be a number between 0 and 100' });
+    }
+
+    if (typeof passed !== 'boolean') {
+      return res.status(400).json({ error: 'Passed must be a boolean' });
+    }
+
+    if (typeof timeSpent !== 'number' || timeSpent < 0) {
+      return res.status(400).json({ error: 'Time spent must be a positive number' });
+    }
+
+    // Verify lab exists and is an interactive type
+    const lab = await prisma.lab.findUnique({
+      where: { id: labId }
+    });
+
+    if (!lab) {
+      return res.status(404).json({ error: 'Lab not found' });
+    }
+
+    if (lab.labType === 'CONTENT') {
+      return res.status(400).json({ error: 'This lab does not support simulation submission' });
+    }
+
+    // Check enrollment
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: lab.courseId }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    // Get existing progress to track attempts
+    const existingProgress = await prisma.labProgress.findUnique({
+      where: {
+        userId_labId: { userId, labId }
+      }
+    });
+
+    const currentAttempts = existingProgress?.attempts || 0;
+
+    // Update or create progress with simulation results
+    const progress = await prisma.labProgress.upsert({
+      where: {
+        userId_labId: { userId, labId }
+      },
+      update: {
+        status: passed ? 'COMPLETED' : 'IN_PROGRESS',
+        score,
+        passed,
+        answers: answers || {},
+        attempts: currentAttempts + 1,
+        timeSpent,
+        completedAt: passed ? new Date() : null
+      },
+      create: {
+        userId,
+        labId,
+        status: passed ? 'COMPLETED' : 'IN_PROGRESS',
+        score,
+        passed,
+        answers: answers || {},
+        attempts: 1,
+        timeSpent,
+        startedAt: new Date(),
+        completedAt: passed ? new Date() : null
+      }
+    });
+
+    res.json({
+      message: passed ? 'Lab completed successfully!' : 'Lab submitted. Keep practicing to improve your score.',
+      progress: {
+        status: progress.status,
+        score: progress.score,
+        passed: progress.passed,
+        attempts: progress.attempts,
+        completedAt: progress.completedAt
+      }
+    });
+  } catch (error) {
+    console.error('SubmitLabSimulation error:', error);
+    res.status(500).json({ error: 'Failed to submit lab simulation' });
   }
 };

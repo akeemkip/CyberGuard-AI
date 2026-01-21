@@ -170,11 +170,6 @@ model Lab {
   id              String        @id @default(uuid())
   title           String
   description     String
-  instructions    String
-  scenario        String?
-  objectives      String[]
-  resources       String?
-  hints           String?
   difficulty      String        @default("Beginner")
   estimatedTime   Int?
   order           Int
@@ -183,6 +178,19 @@ model Lab {
   isPublished     Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  // Template-based fields
+  labType         LabType       @default(CONTENT)
+  simulationConfig Json?        // Template-specific configuration
+  passingScore    Int           @default(70)
+
+  // Legacy fields (kept for existing content labs)
+  instructions    String?
+  scenario        String?
+  objectives      String[]
+  resources       String?
+  hints           String?
+
   course          Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   module          Module?       @relation(fields: [moduleId], references: [id], onDelete: SetNull)
   progress        LabProgress[]
@@ -201,6 +209,13 @@ model LabProgress {
   completedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  // Scoring fields for interactive labs
+  score       Int?      // Percentage score (0-100)
+  passed      Boolean?  // Did they meet passing score?
+  attempts    Int       @default(0)  // Number of attempts
+  answers     Json?     // Store their answers for review
+
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   lab         Lab       @relation(fields: [labId], references: [id], onDelete: Cascade)
 
@@ -212,4 +227,15 @@ enum LabStatus {
   NOT_STARTED
   IN_PROGRESS
   COMPLETED
+}
+
+enum LabType {
+  CONTENT           // Legacy content-based labs
+  PHISHING_EMAIL    // Email simulation
+  SUSPICIOUS_LINKS  // URL analysis
+  PASSWORD_STRENGTH // Password creation exercise
+  SOCIAL_ENGINEERING // Chat/message simulation
+  SECURITY_ALERTS   // Fake popup identification
+  WIFI_SAFETY       // Network selection
+  INCIDENT_RESPONSE // Decision tree scenario
 }

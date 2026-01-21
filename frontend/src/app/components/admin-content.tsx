@@ -2125,7 +2125,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                   <h2 className="text-2xl font-semibold">Labs Management</h2>
                   <p className="text-muted-foreground">Manage hands-on lab exercises for all courses</p>
                 </div>
-                <Button onClick={() => window.location.href = '/admin/labs/create'}>
+                <Button onClick={() => onNavigate("admin-lab-edit")}>
                   <Plus className="w-4 h-4 mr-2" />
                   Create Lab
                 </Button>
@@ -2199,7 +2199,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                       : "No labs match your current filters."}
                   </p>
                   {labs.length === 0 && (
-                    <Button onClick={() => window.location.href = '/admin/labs/create'}>
+                    <Button onClick={() => onNavigate("admin-lab-edit")}>
                       <Plus className="w-4 h-4 mr-2" />
                       Create First Lab
                     </Button>
@@ -2272,7 +2272,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.location.href = `/admin/labs/${lab.id}`}
+                            onClick={() => onNavigate("admin-lab-edit", lab.id)}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>

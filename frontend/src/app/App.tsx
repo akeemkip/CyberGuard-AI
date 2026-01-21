@@ -21,6 +21,7 @@ import { AdminUserProfile } from "./components/admin-user-profile";
 import { AdminContent } from "./components/admin-content";
 import { AdminLessonEdit } from "./components/admin-lesson-edit";
 import { AdminQuizEdit } from "./components/admin-quiz-edit";
+import { AdminLabEdit } from "./components/admin-lab-edit";
 import { AdminAnalytics } from "./components/admin-analytics";
 import { AdminSettings } from "./components/admin-settings";
 import { CertificatesPage } from "./components/certificates-page";
@@ -29,10 +30,10 @@ import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
 import { LabPlayer } from "./components/lab-player";
 
-type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -153,7 +154,7 @@ function AppContent() {
             setSelectedLessonId(event.state.idParam);
           } else if (page === "admin-quiz-edit") {
             setSelectedQuizId(event.state.idParam);
-          } else if (page === "lab-player") {
+          } else if (page === "lab-player" || page === "admin-lab-edit") {
             setSelectedLabId(event.state.idParam);
           }
         }
@@ -230,10 +231,16 @@ function AppContent() {
       localStorage.setItem("selectedQuizId", idParam);
     }
 
-    // Handle lab ID for lab player
-    if (page === "lab-player" && idParam) {
+    // Handle lab ID for lab player or lab edit
+    if ((page === "lab-player" || page === "admin-lab-edit") && idParam) {
       setSelectedLabId(idParam);
       localStorage.setItem("selectedLabId", idParam);
+    }
+
+    // Clear lab ID when creating new lab
+    if (page === "admin-lab-edit" && !idParam) {
+      setSelectedLabId(null);
+      localStorage.removeItem("selectedLabId");
     }
   };
 
@@ -389,6 +396,15 @@ function AppContent() {
         return (
           <AdminQuizEdit
             quizId={selectedQuizId}
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        );
+      case "admin-lab-edit":
+        return (
+          <AdminLabEdit
+            labId={selectedLabId}
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
