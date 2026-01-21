@@ -66,7 +66,8 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
   // Auto-save notes every 30 seconds when timer is running (for CONTENT labs)
   useEffect(() => {
     let saveInterval: NodeJS.Timeout;
-    if (isTimerRunning && labData?.lab.labType === 'CONTENT' && labData?.progress && notes !== (labData.progress.notes || "")) {
+    const currentLabType = labData?.lab?.labType || 'CONTENT';
+    if (isTimerRunning && currentLabType === 'CONTENT' && labData?.progress && notes !== (labData.progress.notes || "")) {
       saveInterval = setInterval(() => {
         handleSaveNotes(false); // Silent save
       }, 30000);
@@ -210,7 +211,9 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
   const isCompleted = progress?.status === 'COMPLETED';
   const isInProgress = progress?.status === 'IN_PROGRESS';
   const isNotStarted = !progress || progress.status === 'NOT_STARTED';
-  const isInteractiveLab = lab.labType !== 'CONTENT';
+  // Default to CONTENT for legacy labs that don't have labType set
+  const labType = labType || 'CONTENT';
+  const isInteractiveLab = labType !== 'CONTENT';
 
   // For interactive labs, render the appropriate simulation
   if (isInteractiveLab && !isNotStarted) {
@@ -283,7 +286,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
 
         {/* Simulation Content */}
         <div className="relative">
-          {lab.labType === 'PHISHING_EMAIL' && lab.simulationConfig && (
+          {labType === 'PHISHING_EMAIL' && lab.simulationConfig && (
             <PhishingEmailSimulation
               config={lab.simulationConfig as PhishingEmailConfig}
               passingScore={lab.passingScore}
@@ -291,13 +294,13 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
             />
           )}
 
-          {lab.labType !== 'PHISHING_EMAIL' && (
+          {labType !== 'PHISHING_EMAIL' && (
             <div className="container mx-auto px-4 py-8">
               <Card className="p-8 text-center">
                 <Mail className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <h2 className="text-xl font-semibold mb-2">Simulation Coming Soon</h2>
                 <p className="text-muted-foreground">
-                  The {lab.labType.toLowerCase().replace('_', ' ')} simulation is under development.
+                  The {labType.toLowerCase().replace('_', ' ')} simulation is under development.
                 </p>
               </Card>
             </div>
@@ -606,7 +609,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                   <div>
                     <p className="text-muted-foreground mb-1">Type</p>
                     <Badge variant="secondary">
-                      {lab.labType.replace('_', ' ')}
+                      {labType.replace('_', ' ')}
                     </Badge>
                   </div>
 
