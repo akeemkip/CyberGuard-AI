@@ -291,6 +291,26 @@ export interface PasswordStrengthConfig {
   hints: string[];
 }
 
+// Social Engineering Simulation Config
+export interface SocialEngineeringConfig {
+  scenario: string;
+  context: string; // e.g., "You receive a phone call from someone claiming to be IT support"
+  attackerName: string;
+  attackerRole: string; // e.g., "IT Support", "Bank Representative", "CEO"
+  messages: Array<{
+    id: string;
+    attackerMessage: string;
+    tacticUsed: string; // e.g., "Authority", "Urgency", "Fear", "Trust"
+    tacticExplanation: string;
+    responses: Array<{
+      text: string;
+      isCorrect: boolean;
+      feedback: string;
+    }>;
+  }>;
+  instructions: string;
+}
+
 // Incident Response Simulation Config
 export interface IncidentResponseConfig {
   scenario: string;
@@ -311,6 +331,7 @@ export type SimulationConfig =
   | PhishingEmailConfig
   | SuspiciousLinksConfig
   | PasswordStrengthConfig
+  | SocialEngineeringConfig
   | IncidentResponseConfig
   | Record<string, unknown>;
 

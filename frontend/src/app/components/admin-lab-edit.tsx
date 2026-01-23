@@ -39,11 +39,13 @@ import adminService, {
   PhishingEmailConfig,
   SuspiciousLinksConfig,
   PasswordStrengthConfig,
+  SocialEngineeringConfig,
 } from "../services/admin.service";
 import courseService from "../services/course.service";
 import { PhishingEmailEditor } from "./lab-template-editors/PhishingEmailEditor";
 import { SuspiciousLinksEditor } from "./lab-template-editors/SuspiciousLinksEditor";
 import { PasswordStrengthEditor } from "./lab-template-editors/PasswordStrengthEditor";
+import { SocialEngineeringEditor } from "./lab-template-editors/SocialEngineeringEditor";
 
 interface AdminLabEditProps {
   labId?: string | null;
@@ -137,7 +139,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
   const [hints, setHints] = useState("");
 
   // Simulation config for interactive labs
-  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | null>(null);
+  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | SocialEngineeringConfig | null>(null);
 
   // UI state
   const [courses, setCourses] = useState<Course[]>([]);
@@ -331,7 +333,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
     }
   };
 
-  const getDefaultConfig = (type: LabType): PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | null => {
+  const getDefaultConfig = (type: LabType): PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | SocialEngineeringConfig | null => {
     if (type === 'PHISHING_EMAIL') {
       return {
         emailInterface: 'gmail',
@@ -359,6 +361,16 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
         },
         bannedPasswords: [],
         hints: [],
+      };
+    }
+    if (type === 'SOCIAL_ENGINEERING') {
+      return {
+        scenario: '',
+        context: '',
+        attackerName: '',
+        attackerRole: '',
+        messages: [],
+        instructions: 'Read each message carefully and choose the most appropriate response. Watch out for social engineering tactics.',
       };
     }
     return null;
@@ -718,6 +730,12 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
               // Password Strength Editor
               <PasswordStrengthEditor
                 config={simulationConfig as PasswordStrengthConfig | null}
+                onChange={setSimulationConfig}
+              />
+            ) : labType === 'SOCIAL_ENGINEERING' ? (
+              // Social Engineering Editor
+              <SocialEngineeringEditor
+                config={simulationConfig as SocialEngineeringConfig | null}
                 onChange={setSimulationConfig}
               />
             ) : (
