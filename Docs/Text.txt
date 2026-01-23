@@ -1,0 +1,47 @@
+joshua@joshua-Surface-Laptop-5:~/Documents/Github/CyberGuard-AI/backend$ npm run dev
+
+> cyberguard-backend@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/index.ts
+
+[INFO] 11:04:17 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+Server running on http://localhost:3000
+Health check: http://localhost:3000/api/health
+Login error: PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/auth.controller.ts:92:36
+
+  89 const validatedData = loginSchema.parse(req.body);
+  90 
+  91 // Find user
+→ 92 const user = await prisma.user.findUnique(
+Authentication failed against database server at `localhost`, the provided database credentials for `cyberuser` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `localhost`.
+    at $n.handleRequestError (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/auth.controller.ts:92:18) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+Login error: PrismaClientInitializationError: 
+Invalid `prisma.user.findUnique()` invocation in
+/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/auth.controller.ts:92:36
+
+  89 const validatedData = loginSchema.parse(req.body);
+  90 
+  91 // Find user
+→ 92 const user = await prisma.user.findUnique(
+Authentication failed against database server at `localhost`, the provided database credentials for `cyberuser` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `localhost`.
+    at $n.handleRequestError (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:7615)
+    at $n.handleAndLogRequestError (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/auth.controller.ts:92:18) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}
+            
