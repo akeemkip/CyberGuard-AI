@@ -5,25 +5,16 @@
 
 ---
 
-## What You Received
+## Prerequisites
 
-You should have these folders/files:
-
-```
-CyberGuard-AI/
-├── frontend/           <- The website users see
-├── backend/            <- The server that handles data
-├── Docs/               <- Documentation (including this guide)
-└── cyberguard-backup.sql   <- Database backup file
-```
+Before starting, make sure you have:
+- A computer running Linux Mint 23.3
+- An internet connection
+- About 30-45 minutes for the full setup
 
 ---
 
-## What You Need to Install
-
-Before the app can run, you need to install some software on your Linux computer.
-
-### Step 1: Open Terminal
+## Step 1: Open Terminal
 
 Press `Ctrl + Alt + T` or search for "Terminal" in your applications menu.
 
@@ -31,7 +22,7 @@ All commands below are typed into the Terminal and run by pressing `Enter`.
 
 ---
 
-### Step 2: Update Your System
+## Step 2: Update Your System
 
 This makes sure your computer has the latest software lists.
 
@@ -44,7 +35,42 @@ sudo apt update && sudo apt upgrade -y
 
 ---
 
-### Step 3: Install Node.js
+## Step 3: Install Git
+
+Git is used to download the project from GitHub.
+
+```bash
+sudo apt install -y git
+```
+
+---
+
+## Step 4: Clone the Project from GitHub
+
+Download the project to your computer:
+
+```bash
+cd ~/Documents
+git clone https://github.com/akeemkip/CyberGuard-AI.git
+cd CyberGuard-AI
+```
+
+> **What's happening?** This downloads all the project files to `~/Documents/CyberGuard-AI/`
+
+You should now have these folders:
+
+```
+CyberGuard-AI/
+├── frontend/           <- The website users see
+├── backend/            <- The server that handles data
+├── Docs/               <- Documentation (including this guide)
+│   └── cyberguard_backup.sql   <- Database backup file
+└── ...
+```
+
+---
+
+## Step 5: Install Node.js
 
 Node.js is what runs the backend server and builds the frontend.
 
@@ -61,7 +87,7 @@ You should see something like `v18.x.x` or higher.
 
 ---
 
-### Step 4: Install PostgreSQL (The Database)
+## Step 6: Install PostgreSQL (The Database)
 
 PostgreSQL stores all the courses, users, and progress data.
 
@@ -79,7 +105,53 @@ sudo systemctl enable postgresql
 
 ---
 
-### Step 5: Create the Database
+## Step 7: Configure PostgreSQL Authentication
+
+By default, PostgreSQL on Linux uses "peer" authentication which can cause connection issues. Let's configure it to allow password authentication.
+
+Find your PostgreSQL version:
+```bash
+ls /etc/postgresql/
+```
+This will show a number like `14` or `15`. Remember this number.
+
+Edit the authentication config file (replace `14` with your version number):
+```bash
+sudo nano /etc/postgresql/14/main/pg_hba.conf
+```
+
+Scroll down to find the lines that look like this:
+```
+# "local" is for Unix domain socket connections only
+local   all             all                                     peer
+```
+
+Change `peer` to `md5`:
+```
+# "local" is for Unix domain socket connections only
+local   all             all                                     md5
+```
+
+Also find this line:
+```
+host    all             all             127.0.0.1/32            scram-sha-256
+```
+
+Change `scram-sha-256` to `md5`:
+```
+host    all             all             127.0.0.1/32            md5
+```
+
+Save the file: Press `Ctrl + O`, then `Enter`, then `Ctrl + X` to exit.
+
+Restart PostgreSQL for changes to take effect:
+```bash
+sudo systemctl restart postgresql
+```
+
+---
+
+## Step 8: Create the Database
 
 Now we create a place to store the app's data.
 
@@ -105,26 +177,26 @@ GRANT ALL ON SCHEMA public TO cyberuser;
 
 ---
 
-### Step 6: Import the Database Backup
+## Step 9: Import the Database Backup
 
-This loads all the existing courses, lessons, and user data.
+This loads all the existing courses, lessons, and sample data.
 
 ```bash
-psql -U cyberuser -d cyberguard -h localhost -f /path/to/cyberguard-backup.sql
+cd ~/Documents/CyberGuard-AI
+psql -U cyberuser -d cyberguard -h localhost -f Docs/cyberguard_backup.sql
 ```
 
-> **Note:** Replace `/path/to/cyberguard-backup.sql` with the actual location of your backup file.
-> Example: `~/Documents/CyberGuard-AI/cyberguard-backup.sql`
+You'll be asked for the password you created in Step 8.
 
-You'll be asked for the password you created in Step 5.
+> **Note:** You may see some notices or warnings - that's usually normal. As long as you don't see "ERROR" messages, it worked.
 
 ---
 
-### Step 7: Setup the Backend
+## Step 10: Setup the Backend
 
 Navigate to the backend folder:
 ```bash
-cd /path/to/CyberGuard-AI/backend
+cd ~/Documents/CyberGuard-AI/backend
 ```
 
 Install the required packages:
@@ -149,10 +221,10 @@ GEMINI_API_KEY="your-google-api-key"
 ```
 
 > **What are these?**
-> - `DATABASE_URL` - Tells the app how to connect to your database
+> - `DATABASE_URL` - Tells the app how to connect to your database (use the password from Step 8)
 > - `JWT_SECRET` - A secret phrase used to secure user logins (can be anything, just keep it private)
 > - `PORT` - Which port the backend runs on (3000 is standard)
-> - `GEMINI_API_KEY` - For the AI tutor feature (get one from Google AI Studio if needed)
+> - `GEMINI_API_KEY` - For the AI tutor feature (get one free from [Google AI Studio](https://makersuite.google.com/app/apikey) if needed)
 
 Save the file: Press `Ctrl + O`, then `Enter`, then `Ctrl + X` to exit.
 
@@ -163,11 +235,11 @@ npx prisma generate
 
 ---
 
-### Step 8: Setup the Frontend
+## Step 11: Setup the Frontend
 
 Open a **new terminal window** (Ctrl + Alt + T) and navigate to frontend:
 ```bash
-cd /path/to/CyberGuard-AI/frontend
+cd ~/Documents/CyberGuard-AI/frontend
 ```
 
 Install the required packages:
@@ -183,7 +255,7 @@ You need **two terminal windows** open - one for backend, one for frontend.
 
 ### Terminal 1 - Start Backend:
 ```bash
-cd /path/to/CyberGuard-AI/backend
+cd ~/Documents/CyberGuard-AI/backend
 npm run dev
 ```
 
@@ -195,7 +267,7 @@ Health check: http://localhost:3000/api/health
 
 ### Terminal 2 - Start Frontend:
 ```bash
-cd /path/to/CyberGuard-AI/frontend
+cd ~/Documents/CyberGuard-AI/frontend
 npm run dev
 ```
 
@@ -217,13 +289,15 @@ That's it! The application is running.
 
 Use these to log in and test the application:
 
-**Student Account:**
-- Email: `akeemkippins.gy@gmail.com`
-- Password: `C0c@1n380Z`
-
 **Admin Account:**
-- Email: `admin@example.com`
+- Email: `admin@cyberguard.local`
 - Password: `admin123`
+
+**Student Account:**
+- Email: `student@cyberguard.local`
+- Password: `student123`
+
+> **Note:** These are test accounts included in the database backup. You can create additional accounts through the registration page or admin panel.
 
 ---
 
@@ -238,11 +312,11 @@ In each terminal window, press `Ctrl + C` to stop the server.
 Once everything is set up, this is all you need to do each time:
 
 ```bash
-# Terminal 1
-cd /path/to/CyberGuard-AI/backend && npm run dev
+# Terminal 1 - Start Backend
+cd ~/Documents/CyberGuard-AI/backend && npm run dev
 
-# Terminal 2
-cd /path/to/CyberGuard-AI/frontend && npm run dev
+# Terminal 2 - Start Frontend
+cd ~/Documents/CyberGuard-AI/frontend && npm run dev
 
 # Then open browser to http://localhost:5173
 ```
@@ -252,13 +326,22 @@ cd /path/to/CyberGuard-AI/frontend && npm run dev
 ## Troubleshooting
 
 ### "Command not found: node"
-Node.js isn't installed. Redo Step 3.
+Node.js isn't installed. Redo Step 5.
+
+### "Command not found: git"
+Git isn't installed. Run: `sudo apt install git`
 
 ### "Connection refused" or database errors
 PostgreSQL isn't running. Run:
 ```bash
 sudo systemctl start postgresql
 ```
+
+### "password authentication failed for user cyberuser"
+Either the password is wrong, or PostgreSQL authentication isn't configured correctly:
+1. Double-check your password in the `.env` file matches what you set in Step 8
+2. Make sure you completed Step 7 (configuring pg_hba.conf)
+3. Restart PostgreSQL: `sudo systemctl restart postgresql`
 
 ### "Cannot find module" errors
 Dependencies aren't installed. Run `npm install` in the folder that's giving errors.
@@ -268,6 +351,24 @@ Make sure the backend is running on port 3000. Check the `.env` file has `PORT=3
 
 ### "Permission denied" errors
 Add `sudo` before the command, or check file ownership.
+
+### Database import shows errors
+If you see "role cyberuser does not exist" or similar, make sure you completed Step 8 before Step 9.
+
+---
+
+## Updating the Project
+
+If you receive updates to the code:
+
+```bash
+cd ~/Documents/CyberGuard-AI
+git pull origin main
+cd backend && npm install
+cd ../frontend && npm install
+```
+
+Then restart both servers.
 
 ---
 

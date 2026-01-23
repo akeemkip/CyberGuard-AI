@@ -1,7 +1,7 @@
 # CyberGuard AI - Project Context
 
-> **Last Updated:** January 20, 2026
-> **Status:** Production-Ready Core Features
+> **Last Updated:** January 23, 2026
+> **Status:** Production-Ready Core Features + Interactive Labs System
 
 ---
 
@@ -77,8 +77,20 @@ CyberGuard-AI/
 │   │       │   ├── admin-content.tsx        # Course/Lesson/Quiz/Module management
 │   │       │   ├── admin-lesson-edit.tsx    # Dedicated lesson editor page
 │   │       │   ├── admin-quiz-edit.tsx      # Dedicated quiz editor page
+│   │       │   ├── admin-lab-edit.tsx       # Lab editor with template selection
 │   │       │   ├── admin-settings.tsx
 │   │       │   ├── admin-analytics.tsx
+│   │       │   ├── lab-player.tsx           # Student lab simulation player
+│   │       │   ├── lab-templates/           # Interactive simulation components
+│   │       │   │   ├── PhishingEmailSimulation.tsx
+│   │       │   │   ├── SuspiciousLinksSimulation.tsx
+│   │       │   │   ├── PasswordStrengthSimulation.tsx
+│   │       │   │   └── SocialEngineeringSimulation.tsx
+│   │       │   ├── lab-template-editors/    # Admin editors for each lab type
+│   │       │   │   ├── PhishingEmailEditor.tsx
+│   │       │   │   ├── SuspiciousLinksEditor.tsx
+│   │       │   │   ├── PasswordStrengthEditor.tsx
+│   │       │   │   └── SocialEngineeringEditor.tsx
 │   │       │   ├── RichTextEditor.tsx       # TipTap rich text editor
 │   │       │   ├── ErrorBoundary.tsx        # Global error handler
 │   │       │   └── user-profile-dropdown.tsx
@@ -121,7 +133,12 @@ CyberGuard-AI/
 │   └── package.json
 │
 └── Docs/
-    └── CONTEXT.md                           # This file
+    ├── CONTEXT.md                           # This file - project overview
+    ├── LINUX-SETUP-GUIDE.md                 # Setup guide for Linux users
+    ├── AI_CONTEXT_GUIDE.md                  # Guide for AI assistants
+    ├── ARCHITECTURAL_LESSONS.md             # Development patterns and lessons learned
+    ├── LABS_SYSTEM_PLAN.md                  # Labs implementation plan
+    └── cyberguard_backup.sql                # Database backup for quick setup
 ```
 
 ---
@@ -166,12 +183,18 @@ CyberGuard-AI/
 - id, userId, lessonId, completed, completedAt
 - Relations: user, lesson
 
-**Lab** (Hands-on exercises - planned feature)
-- id, title, description, instructions, courseId, moduleId
+**Lab** (Interactive simulation exercises)
+- id, title, description, difficulty, estimatedTime, order, courseId, moduleId, isPublished
+- labType (enum: CONTENT, PHISHING_EMAIL, SUSPICIOUS_LINKS, PASSWORD_STRENGTH, SOCIAL_ENGINEERING, SECURITY_ALERTS, WIFI_SAFETY, INCIDENT_RESPONSE)
+- simulationConfig (JSON - template-specific configuration)
+- passingScore (default 70)
+- Legacy fields: instructions, scenario, objectives[], resources, hints
 - Relations: course, module, labProgress
 
 **LabProgress**
-- id, userId, labId, status (NOT_STARTED/IN_PROGRESS/COMPLETED), timeSpent
+- id, userId, labId, status (NOT_STARTED/IN_PROGRESS/COMPLETED), timeSpent, notes
+- score (percentage 0-100), passed (boolean), attempts (count), answers (JSON)
+- startedAt, completedAt timestamps
 - Relations: user, lab
 
 ### Key Relationships
@@ -216,8 +239,28 @@ CyberGuard-AI/
   - **Modules:** Create sections within courses, drag-and-drop reordering
   - **Lessons:** Rich text editor on dedicated page, video URLs, order management
   - **Quizzes:** Full quiz builder with drag-and-drop questions, rich text support
+  - **Labs:** Template-based interactive simulations with dedicated editor
 - **Analytics:** Real-time metrics, charts, completion breakdowns
 - **Settings:** Platform configuration (6 tabs: General, Security, Courses, Users, Email, Appearance)
+
+### Interactive Labs System ✅
+Template-based hands-on exercises with scoring and feedback.
+
+**Implemented Lab Types:**
+- **PHISHING_EMAIL:** Gmail-style email interface where students identify phishing attempts
+- **SUSPICIOUS_LINKS:** URL analysis exercise - hover to reveal actual URLs, mark as safe/suspicious
+- **PASSWORD_STRENGTH:** Real-time password strength meter with requirement validation
+- **SOCIAL_ENGINEERING:** Chat-based simulation with manipulation tactic identification
+
+**Planned Lab Types (not yet implemented):**
+- SECURITY_ALERTS: Fake popup identification
+- WIFI_SAFETY: Network selection safety
+- INCIDENT_RESPONSE: Decision tree scenarios
+
+**Lab Features:**
+- Admin: Template selector, configuration editor, preview, sample data generation
+- Student: Interactive simulation, real-time feedback, scoring, retry capability
+- Progress: Score tracking, pass/fail status, attempt counting, answer storage
 
 ### UI/UX Features ✅
 - **Navigation:** Browser back/forward support, page persistence on refresh
@@ -511,21 +554,27 @@ const handleDragEnd = (event: DragEndEvent) => {
 - PUT `/api/admin/quizzes/:id` - Update quiz
 - DELETE `/api/admin/quizzes/:id` - Delete quiz
 
+### Admin - Labs
+- GET `/api/admin/labs` - All labs with stats
+- GET `/api/admin/labs/:id` - Lab by ID with full config
+- POST `/api/admin/labs` - Create lab
+- PUT `/api/admin/labs/:id` - Update lab
+- DELETE `/api/admin/labs/:id` - Delete lab
+- PUT `/api/admin/labs/reorder` - Reorder labs
+
+### Labs (Student)
+- GET `/api/courses/labs/:labId` - Get lab for student
+- POST `/api/courses/labs/:labId/start` - Start lab attempt
+- POST `/api/courses/labs/:labId/submit` - Submit lab answers
+
 ### AI
 - POST `/api/ai/chat` - Send message to AI tutor (requires auth)
 
 ---
 
-## Test Accounts
+## Demo Accounts
 
-**Student Account:**
-- Email: `akeemkippins.gy@gmail.com`
-- Password: `C0c@1n380Z`
-- Has historical data: enrollments, progress, quiz attempts
-
-**Admin Account:**
-- Email: `admin@example.com`
-- Password: `admin123`
+Demo accounts are available directly on the login page - click the "Demo Student" or "Demo Admin" buttons for quick access with pre-populated credentials.
 
 ---
 
@@ -598,7 +647,8 @@ GEMINI_API_KEY="your-google-api-key"
 ## Next Steps / Planned Features
 
 ### High Priority
-- [ ] Labs System (hands-on exercises)
+- [x] Labs System (interactive simulations) ✅ Completed
+- [ ] Remaining lab types: SECURITY_ALERTS, WIFI_SAFETY, INCIDENT_RESPONSE
 - [ ] Streaming AI responses
 - [ ] Conversation history for AI
 - [ ] Backend settings sync
