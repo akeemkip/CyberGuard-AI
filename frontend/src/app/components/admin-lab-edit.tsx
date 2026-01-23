@@ -38,10 +38,12 @@ import adminService, {
   UpdateLabRequest,
   PhishingEmailConfig,
   SuspiciousLinksConfig,
+  PasswordStrengthConfig,
 } from "../services/admin.service";
 import courseService from "../services/course.service";
 import { PhishingEmailEditor } from "./lab-template-editors/PhishingEmailEditor";
 import { SuspiciousLinksEditor } from "./lab-template-editors/SuspiciousLinksEditor";
+import { PasswordStrengthEditor } from "./lab-template-editors/PasswordStrengthEditor";
 
 interface AdminLabEditProps {
   labId?: string | null;
@@ -135,7 +137,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
   const [hints, setHints] = useState("");
 
   // Simulation config for interactive labs
-  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | SuspiciousLinksConfig | null>(null);
+  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | null>(null);
 
   // UI state
   const [courses, setCourses] = useState<Course[]>([]);
@@ -329,7 +331,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
     }
   };
 
-  const getDefaultConfig = (type: LabType): PhishingEmailConfig | SuspiciousLinksConfig | null => {
+  const getDefaultConfig = (type: LabType): PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | null => {
     if (type === 'PHISHING_EMAIL') {
       return {
         emailInterface: 'gmail',
@@ -344,6 +346,19 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
         links: [],
         scenario: 'You received an email with several links. Before clicking any of them, analyze each URL to determine if it\'s safe or potentially malicious.',
         instructions: 'Hover over each link to see the actual URL. Analyze the URL carefully and determine whether it\'s safe or suspicious. Look for typosquatting, unusual domains, HTTP vs HTTPS, and other red flags.',
+      };
+    }
+    if (type === 'PASSWORD_STRENGTH') {
+      return {
+        scenario: 'You need to create a strong password for your new corporate account. The password must meet security requirements to protect sensitive company data.',
+        requirements: {
+          minLength: 12,
+          requireUppercase: true,
+          requireNumbers: true,
+          requireSpecial: true,
+        },
+        bannedPasswords: [],
+        hints: [],
       };
     }
     return null;
@@ -697,6 +712,12 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
               // Suspicious Links Editor
               <SuspiciousLinksEditor
                 config={simulationConfig as SuspiciousLinksConfig | null}
+                onChange={setSimulationConfig}
+              />
+            ) : labType === 'PASSWORD_STRENGTH' ? (
+              // Password Strength Editor
+              <PasswordStrengthEditor
+                config={simulationConfig as PasswordStrengthConfig | null}
                 onChange={setSimulationConfig}
               />
             ) : (
