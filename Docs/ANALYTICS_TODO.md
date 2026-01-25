@@ -1,9 +1,9 @@
 # Analytics & Reports Page - TODO List
 
-**Status:** 🟡 In Progress
+**Status:** 🟡 In Progress - Ready for Testing
 **Started:** January 25, 2026
 **Last Updated:** January 25, 2026
-**Completion:** 8/47 tasks (17%)
+**Completion:** 17/47 tasks (36%)
 
 ---
 
@@ -65,44 +65,45 @@ These items show misleading information to users and must be fixed first.
 
 ### Frontend - Connect to Real Data
 
-- [ ] **Update admin.service.ts**
-  - [ ] Add `getAnalytics(dateRange, reportType)` method
-  - [ ] Define TypeScript interfaces for all analytics data
-  - [ ] Handle loading states and errors
+- [x] **Update admin.service.ts**
+  - [x] Add `getAnalytics(dateRange, reportType)` method
+  - [x] Define TypeScript interfaces for all analytics data
+  - [x] Handle loading states and errors
 
-- [ ] **Update admin-analytics.tsx**
-  - [ ] Remove all mock data variables (lines 51-95)
-  - [ ] Fetch real data from backend on mount
-  - [ ] Pass date range filter to API
-  - [ ] Pass report type filter to API
-  - [ ] Update all chart data sources to use real data
-  - [ ] Show loading states for each chart section
+- [x] **Update admin-analytics.tsx**
+  - [x] Remove all mock data variables (lines 51-95) - ALL REMOVED
+  - [x] Fetch real data from backend on mount
+  - [x] Pass date range filter to API
+  - [x] Pass report type filter to API
+  - [x] Update all chart data sources to use real data
+  - [x] Show loading states for each chart section
 
-- [ ] **User Progression Chart (lines 268-283)**
-  - [ ] Connect to real `userProgressionData` from API
-  - [ ] Update dataKey mappings if format differs
-  - [ ] Add fallback for empty data
+- [x] **User Progression Chart**
+  - [x] Connect to real `userProgressionData` from API
+  - [x] Show both enrollments and completions
+  - [x] Add empty state for no data
 
-- [ ] **Skill Proficiency Chart (lines 287-307)**
-  - [ ] Connect to real `skillProficiencyData` from API
-  - [ ] Add fallback for empty data
-  - [ ] Show "No data" message if no quizzes taken
+- [x] **Skill Proficiency Chart**
+  - [x] Connect to real `skillProficiencyData` from API
+  - [x] Add empty state message
+  - [x] Show "No quiz data available" message
 
-- [ ] **Engagement Metrics Chart (lines 351-382)**
-  - [ ] Connect to real `engagementData` from API
-  - [ ] Add time tracking to Progress model if needed
-  - [ ] Show "Coming Soon" if time tracking not implemented
+- [x] **Engagement Metrics Chart**
+  - [x] Connect to real `engagementData` from API
+  - [x] Using estimated time (30 mins per lesson)
+  - [x] Show "No engagement data" message when empty
 
-- [ ] **Knowledge Retention Chart (lines 385-407)**
-  - [ ] Connect to real `retentionData` from API
-  - [ ] Add quiz retake tracking if not exists
-  - [ ] Show "Coming Soon" if retake tracking not implemented
+- [x] **Knowledge Retention Chart**
+  - [x] Connect to real `retentionData` from API
+  - [x] Quiz retake tracking implemented
+  - [x] Show "(requires quiz retakes)" message when empty
 
-- [ ] **Top Performers Table (lines 411-456)**
-  - [ ] Replace fake data with real users from API
-  - [ ] Show "No users yet" if empty
-  - [ ] Make rows clickable to view user details
-  - [ ] Add pagination if > 10 users
+- [x] **Top Performers Table**
+  - [x] Replace fake data with real users from API
+  - [x] Show "No users" message if empty
+  - [x] Button links to admin-users page
+  - [ ] Make rows clickable to view user details (future)
+  - [ ] Add pagination if > 10 users (future)
 
 ---
 
