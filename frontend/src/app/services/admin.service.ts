@@ -437,6 +437,59 @@ export interface ReorderLabsRequest {
   labOrders: { id: string; order: number }[];
 }
 
+// ============================================
+// ANALYTICS INTERFACES
+// ============================================
+
+export interface UserProgressionPoint {
+  date: string;
+  users: number;
+  completion: number;
+}
+
+export interface SkillProficiencyData {
+  skill: string;
+  proficiency: number;
+}
+
+export interface EngagementData {
+  month: string;
+  time: number;
+  sessions: number;
+}
+
+export interface RetentionData {
+  week: string;
+  retention: number;
+}
+
+export interface TopUser {
+  id: string;
+  name: string;
+  coursesCompleted: number;
+  avgScore: string;
+  timeSpent: string;
+  lastActive: string;
+}
+
+export interface LabAnalyticsData {
+  labType: string;
+  attempts: number;
+  avgScore: number;
+  completionRate: number;
+}
+
+export interface AnalyticsResponse {
+  dateRange: string;
+  reportType: string;
+  userProgression: UserProgressionPoint[];
+  skillProficiency: SkillProficiencyData[];
+  engagement: EngagementData[];
+  retention: RetentionData[];
+  topUsers: TopUser[];
+  labAnalytics: LabAnalyticsData[];
+}
+
 const adminService = {
   // Get admin dashboard stats
   async getDashboardStats(): Promise<AdminDashboardData> {
@@ -567,6 +620,18 @@ const adminService = {
   // Reorder labs
   async reorderLabs(data: ReorderLabsRequest): Promise<{ message: string }> {
     const response = await api.put<{ message: string }>('/admin/labs/reorder', data);
+    return response.data;
+  },
+
+  // ============================================
+  // ANALYTICS METHODS
+  // ============================================
+
+  // Get comprehensive analytics data
+  async getAnalytics(dateRange: string = '30days', reportType: string = 'overview'): Promise<AnalyticsResponse> {
+    const response = await api.get<AnalyticsResponse>('/admin/analytics', {
+      params: { dateRange, reportType }
+    });
     return response.data;
   }
 };

@@ -3,6 +3,7 @@ import {
   getAdminStats,
   getAllEnrollments,
   getUserStatistics,
+  getAnalytics,
   getAllQuizzes,
   getQuizById,
   createQuiz,
@@ -31,6 +32,9 @@ router.use(requireAdmin);
 
 // GET /api/admin/stats - Get admin dashboard stats
 router.get('/stats', getAdminStats);
+
+// GET /api/admin/analytics - Get comprehensive analytics data
+router.get('/analytics', getAnalytics);
 
 // GET /api/admin/enrollments - Get all enrollments
 router.get('/enrollments', getAllEnrollments);

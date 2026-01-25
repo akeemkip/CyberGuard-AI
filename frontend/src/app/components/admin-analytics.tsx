@@ -21,7 +21,10 @@ import {
   Users
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
-import adminService, { AdminDashboardData } from "../services/admin.service";
+import adminService, {
+  AdminDashboardData,
+  AnalyticsResponse
+} from "../services/admin.service";
 import { AdminSidebar } from "./admin-sidebar";
 import {
   LineChart,
@@ -47,66 +50,25 @@ interface AdminAnalyticsProps {
   onLogout: () => void;
 }
 
-// Mock data for charts
-const progressionData = [
-  { date: "Week 1", users: 45, completion: 20 },
-  { date: "Week 2", users: 78, completion: 35 },
-  { date: "Week 3", users: 120, completion: 65 },
-  { date: "Week 4", users: 165, completion: 98 },
-  { date: "Week 5", users: 210, completion: 145 },
-  { date: "Week 6", users: 250, completion: 190 },
-  { date: "Week 7", users: 285, completion: 225 },
-  { date: "Week 8", users: 320, completion: 268 },
-];
-
-const skillProficiencyData = [
-  { skill: "Phishing Detection", proficiency: 85 },
-  { skill: "Password Security", proficiency: 92 },
-  { skill: "Social Engineering", proficiency: 78 },
-  { skill: "Network Security", proficiency: 70 },
-  { skill: "Malware Analysis", proficiency: 65 },
-  { skill: "Incident Response", proficiency: 73 },
-];
-
-const completionRatesData = [
-  { name: "Completed", value: 342, percentage: 62, color: "#10b981" },
-  { name: "In Progress", value: 156, percentage: 28, color: "#f59e0b" },
-  { name: "Not Started", value: 52, percentage: 10, color: "#6b7280" },
-];
-
-const engagementData = [
-  { month: "Jan", time: 120, sessions: 450 },
-  { month: "Feb", time: 150, sessions: 520 },
-  { month: "Mar", time: 180, sessions: 620 },
-  { month: "Apr", time: 220, sessions: 750 },
-  { month: "May", time: 260, sessions: 880 },
-  { month: "Jun", time: 295, sessions: 950 },
-];
-
-const retentionData = [
-  { week: "Week 1", retention: 100 },
-  { week: "Week 2", retention: 95 },
-  { week: "Week 3", retention: 89 },
-  { week: "Week 4", retention: 85 },
-  { week: "Week 5", retention: 82 },
-  { week: "Week 6", retention: 80 },
-  { week: "Week 7", retention: 78 },
-  { week: "Week 8", retention: 76 },
-];
-
 export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyticsProps) {
   const { theme, toggleTheme } = useTheme();
   const [dateRange, setDateRange] = useState("30days");
   const [reportType, setReportType] = useState("overview");
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const data = await adminService.getDashboardStats();
-        setDashboardData(data);
+        // Fetch both dashboard stats and analytics data
+        const [dashboard, analytics] = await Promise.all([
+          adminService.getDashboardStats(),
+          adminService.getAnalytics(dateRange, reportType)
+        ]);
+        setDashboardData(dashboard);
+        setAnalyticsData(analytics);
       } catch (error) {
         console.error("Error fetching analytics data:", error);
       } finally {
@@ -115,7 +77,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
     };
 
     fetchData();
-  }, []);
+  }, [dateRange, reportType]);
 
   const handleExportPDF = () => {
     alert("Exporting report as PDF...");
@@ -136,9 +98,17 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
     );
   }
 
+  // Dashboard stats for top cards
   const stats = dashboardData?.stats;
-  const enrollmentTrend = dashboardData?.enrollmentTrend || [];
   const completionData = dashboardData?.completionData || [];
+
+  // Analytics data for charts
+  const userProgression = analyticsData?.userProgression || [];
+  const skillProficiency = analyticsData?.skillProficiency || [];
+  const engagement = analyticsData?.engagement || [];
+  const retention = analyticsData?.retention || [];
+  const topUsers = analyticsData?.topUsers || [];
+  const labAnalytics = analyticsData?.labAnalytics || [];
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -258,52 +228,72 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
 
           {/* Charts Row 1 */}
           <div className="grid lg:grid-cols-2 gap-6 mb-8">
-            {/* Enrollment Trend */}
+            {/* User Progression (Enrollment & Completion Trend) */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Enrollment Trend (Last 6 Months)</h3>
+                <h3 className="font-semibold">User Progression</h3>
                 <Badge variant="outline">Area Chart</Badge>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={enrollmentTrend.length > 0 ? enrollmentTrend : progressionData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="students"
-                    stroke="#0066ff"
-                    fill="#0066ff"
-                    fillOpacity={0.6}
-                    name="New Enrollments"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {userProgression.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={userProgression}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="users"
+                      stroke="#0066ff"
+                      fill="#0066ff"
+                      fillOpacity={0.6}
+                      name="New Enrollments"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="completion"
+                      stroke="#10b981"
+                      fill="#10b981"
+                      fillOpacity={0.4}
+                      name="Completions"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  No enrollment data available for selected date range
+                </div>
+              )}
             </Card>
 
             {/* Skill Proficiency */}
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Skill Proficiency Across Domains</h3>
+                <h3 className="font-semibold">Skill Proficiency by Course</h3>
                 <Badge variant="outline">Bar Chart</Badge>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={skillProficiencyData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis type="number" domain={[0, 100]} />
-                  <YAxis dataKey="skill" type="category" width={120} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar 
-                    dataKey="proficiency" 
-                    fill="#06b6d4" 
-                    name="Proficiency %"
-                    radius={[0, 8, 8, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              {skillProficiency.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={skillProficiency} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis type="number" domain={[0, 100]} />
+                    <YAxis dataKey="skill" type="category" width={150} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar
+                      dataKey="proficiency"
+                      fill="#06b6d4"
+                      name="Avg Quiz Score %"
+                      radius={[0, 8, 8, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  No quiz data available for selected date range
+                </div>
+              )}
             </Card>
           </div>
 
@@ -353,32 +343,38 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 <h3 className="font-semibold">User Engagement</h3>
                 <Badge variant="outline">Mixed Chart</Badge>
               </div>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={engagementData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    yAxisId="left"
-                    type="monotone" 
-                    dataKey="time" 
-                    stroke="#8b5cf6" 
-                    strokeWidth={2}
-                    name="Time (hours)"
-                  />
-                  <Line 
-                    yAxisId="right"
-                    type="monotone" 
-                    dataKey="sessions" 
-                    stroke="#f59e0b" 
-                    strokeWidth={2}
-                    name="Sessions"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {engagement.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={engagement}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis dataKey="month" />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="time"
+                      stroke="#8b5cf6"
+                      strokeWidth={2}
+                      name="Time (hours)"
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="sessions"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      name="Sessions"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground text-sm">
+                  No engagement data
+                </div>
+              )}
             </Card>
 
             {/* Knowledge Retention */}
@@ -387,23 +383,29 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 <h3 className="font-semibold">Knowledge Retention</h3>
                 <Badge variant="outline">Line Chart</Badge>
               </div>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={retentionData}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                  <XAxis dataKey="week" />
-                  <YAxis domain={[0, 100]} />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="retention" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    name="Retention %"
-                    dot={{ fill: "#10b981", r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {retention.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={retention}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                    <XAxis dataKey="week" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="retention"
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      name="Retention %"
+                      dot={{ fill: "#10b981", r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[250px] flex items-center justify-center text-muted-foreground text-sm">
+                  No retention data (requires quiz retakes)
+                </div>
+              )}
             </Card>
           </div>
 
@@ -411,48 +413,48 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Top Performing Users</h3>
-              <Button variant="outline" size="sm">
-                View Full Report
+              <Button variant="outline" size="sm" onClick={() => onNavigate('admin-users')}>
+                View All Users
               </Button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Rank</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">User</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Courses Completed</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Avg Score</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Time Spent</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Last Active</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { rank: 1, name: "Jane Smith", completed: 8, score: 9.5, time: "42h", active: "Today" },
-                    { rank: 2, name: "John Doe", completed: 7, score: 9.2, time: "38h", active: "Yesterday" },
-                    { rank: 3, name: "Mike Johnson", completed: 6, score: 9.0, time: "35h", active: "Today" },
-                    { rank: 4, name: "Sarah Williams", completed: 6, score: 8.8, time: "32h", active: "2 days ago" },
-                    { rank: 5, name: "Tom Brown", completed: 5, score: 8.7, time: "29h", active: "Today" },
-                  ].map((user) => (
-                    <tr key={user.rank} className="border-b border-border last:border-0">
-                      <td className="py-3 px-4">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-primary">#{user.rank}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 font-medium">{user.name}</td>
-                      <td className="py-3 px-4">{user.completed}</td>
-                      <td className="py-3 px-4">
-                        <Badge className="bg-success">{user.score}/10</Badge>
-                      </td>
-                      <td className="py-3 px-4">{user.time}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">{user.active}</td>
+            {topUsers.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Rank</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">User</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Courses Completed</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Avg Score</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Time Spent</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Last Active</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {topUsers.map((user, index) => (
+                      <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary">#{index + 1}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-medium">{user.name}</td>
+                        <td className="py-3 px-4">{user.coursesCompleted}</td>
+                        <td className="py-3 px-4">
+                          <Badge className="bg-success">{user.avgScore}/10</Badge>
+                        </td>
+                        <td className="py-3 px-4">{user.timeSpent}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{user.lastActive}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                No users with completed courses in selected date range
+              </div>
+            )}
           </Card>
         </main>
       </div>

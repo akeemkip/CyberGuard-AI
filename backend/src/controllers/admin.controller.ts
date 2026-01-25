@@ -389,6 +389,319 @@ function getTimeAgo(date: Date): string {
 }
 
 // ============================================
+// ANALYTICS & REPORTS
+// ============================================
+
+// Get comprehensive analytics data for Analytics & Reports page
+export const getAnalytics = async (req: Request, res: Response) => {
+  try {
+    const { dateRange = '30days', reportType = 'overview' } = req.query as {
+      dateRange?: string;
+      reportType?: string;
+    };
+
+    // Calculate date filter based on range
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (dateRange) {
+      case '7days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case '30days':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case '90days':
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case 'year':
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 30);
+    }
+
+    // ============================================
+    // 1. USER PROGRESSION DATA (Weekly enrollment and completion trends)
+    // ============================================
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        enrolledAt: { gte: startDate }
+      },
+      select: {
+        enrolledAt: true,
+        completedAt: true
+      }
+    });
+
+    // Group by week
+    const weeklyData: { [key: string]: { users: number; completion: number } } = {};
+    const weeksToShow = dateRange === '7days' ? 1 : dateRange === '30days' ? 4 : 8;
+
+    for (let i = weeksToShow - 1; i >= 0; i--) {
+      const weekDate = new Date();
+      weekDate.setDate(weekDate.getDate() - (i * 7));
+      const weekKey = `Week ${weeksToShow - i}`;
+      weeklyData[weekKey] = { users: 0, completion: 0 };
+    }
+
+    enrollments.forEach(enrollment => {
+      const enrollDate = new Date(enrollment.enrolledAt);
+      const weeksDiff = Math.floor((now.getTime() - enrollDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
+      if (weeksDiff < weeksToShow) {
+        const weekKey = `Week ${weeksToShow - weeksDiff}`;
+        if (weeklyData[weekKey]) {
+          weeklyData[weekKey].users++;
+          if (enrollment.completedAt) {
+            weeklyData[weekKey].completion++;
+          }
+        }
+      }
+    });
+
+    const userProgression = Object.entries(weeklyData).map(([date, data]) => ({
+      date,
+      users: data.users,
+      completion: data.completion
+    }));
+
+    // ============================================
+    // 2. SKILL PROFICIENCY DATA (Average quiz scores by course/topic)
+    // ============================================
+    const quizAttempts = await prisma.quizAttempt.findMany({
+      where: {
+        attemptedAt: { gte: startDate }
+      },
+      include: {
+        quiz: {
+          include: {
+            lesson: {
+              include: {
+                course: {
+                  select: { title: true }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Group by course and calculate average
+    const courseScores: { [key: string]: number[] } = {};
+    quizAttempts.forEach(attempt => {
+      const courseName = attempt.quiz.lesson.course.title;
+      if (!courseScores[courseName]) {
+        courseScores[courseName] = [];
+      }
+      courseScores[courseName].push(attempt.score);
+    });
+
+    const skillProficiency = Object.entries(courseScores).map(([skill, scores]) => ({
+      skill: skill.replace(/^\d+\.\s*/, ''), // Remove course number prefix
+      proficiency: Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length)
+    }));
+
+    // ============================================
+    // 3. ENGAGEMENT METRICS (Time spent and sessions - MOCK for now)
+    // ============================================
+    // TODO: Implement time tracking in Progress model
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsToShow = dateRange === '7days' ? 1 : dateRange === '30days' ? 1 : 6;
+
+    const engagement = [];
+    for (let i = monthsToShow - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthName = months[date.getMonth()];
+
+      // Count sessions (lesson completions) for this month
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+      const sessionsCount = await prisma.progress.count({
+        where: {
+          completed: true,
+          completedAt: {
+            gte: monthStart,
+            lte: monthEnd
+          }
+        }
+      });
+
+      engagement.push({
+        month: monthName,
+        time: Math.round(sessionsCount * 0.5), // Estimate: 30 mins per lesson
+        sessions: sessionsCount
+      });
+    }
+
+    // ============================================
+    // 4. KNOWLEDGE RETENTION (Quiz retake performance over time)
+    // ============================================
+    // Group quiz attempts by user and quiz to track retakes
+    const userQuizAttempts = await prisma.quizAttempt.findMany({
+      where: {
+        attemptedAt: { gte: startDate }
+      },
+      orderBy: {
+        attemptedAt: 'asc'
+      },
+      select: {
+        userId: true,
+        quizId: true,
+        score: true,
+        passed: true,
+        attemptedAt: true
+      }
+    });
+
+    // Calculate retention by week
+    const retentionByWeek: { [key: string]: { passed: number; total: number } } = {};
+    for (let i = 0; i < 8; i++) {
+      retentionByWeek[`Week ${i + 1}`] = { passed: 0, total: 0 };
+    }
+
+    const userQuizMap = new Map<string, Date>();
+    userQuizAttempts.forEach(attempt => {
+      const key = `${attempt.userId}-${attempt.quizId}`;
+      const firstAttempt = userQuizMap.get(key);
+
+      if (!firstAttempt) {
+        userQuizMap.set(key, attempt.attemptedAt);
+      } else {
+        const weeksSinceFirst = Math.floor(
+          (attempt.attemptedAt.getTime() - firstAttempt.getTime()) / (1000 * 60 * 60 * 24 * 7)
+        );
+        if (weeksSinceFirst < 8) {
+          const weekKey = `Week ${weeksSinceFirst + 1}`;
+          retentionByWeek[weekKey].total++;
+          if (attempt.passed) {
+            retentionByWeek[weekKey].passed++;
+          }
+        }
+      }
+    });
+
+    const retention = Object.entries(retentionByWeek).map(([week, data]) => ({
+      week,
+      retention: data.total > 0 ? Math.round((data.passed / data.total) * 100) : 100
+    }));
+
+    // ============================================
+    // 5. TOP PERFORMING USERS
+    // ============================================
+    const users = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT'
+      },
+      include: {
+        enrollments: {
+          where: {
+            completedAt: { not: null }
+          }
+        },
+        quizAttempts: {
+          where: {
+            attemptedAt: { gte: startDate }
+          }
+        },
+        progress: {
+          where: {
+            completed: true,
+            completedAt: { not: null }
+          },
+          orderBy: {
+            completedAt: 'desc'
+          },
+          take: 1
+        }
+      }
+    });
+
+    const topUsers = users
+      .map(user => {
+        const avgScore = user.quizAttempts.length > 0
+          ? Math.round(user.quizAttempts.reduce((sum, a) => sum + a.score, 0) / user.quizAttempts.length)
+          : 0;
+
+        const lastActive = user.progress[0]?.completedAt || user.createdAt;
+        const timeAgo = getTimeAgo(lastActive);
+
+        return {
+          id: user.id,
+          name: user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : user.email.split('@')[0],
+          coursesCompleted: user.enrollments.length,
+          avgScore: (avgScore / 10).toFixed(1), // Convert to 0-10 scale
+          timeSpent: `${user.enrollments.length * 3}h`, // Estimate: 3h per course
+          lastActive: timeAgo
+        };
+      })
+      .sort((a, b) => b.coursesCompleted - a.coursesCompleted || parseFloat(b.avgScore) - parseFloat(a.avgScore))
+      .slice(0, 10);
+
+    // ============================================
+    // 6. LAB ANALYTICS
+    // ============================================
+    const labProgress = await prisma.labProgress.findMany({
+      where: {
+        completedAt: { not: null },
+        updatedAt: { gte: startDate }
+      },
+      include: {
+        lab: {
+          select: {
+            labType: true
+          }
+        }
+      }
+    });
+
+    // Group by lab type
+    const labTypeStats: { [key: string]: { attempts: number; totalScore: number; completed: number } } = {};
+
+    labProgress.forEach(progress => {
+      const labType = progress.lab.labType || 'CONTENT';
+      if (!labTypeStats[labType]) {
+        labTypeStats[labType] = { attempts: 0, totalScore: 0, completed: 0 };
+      }
+      labTypeStats[labType].attempts += progress.attempts || 1;
+      labTypeStats[labType].totalScore += progress.score || 0;
+      if (progress.status === 'COMPLETED') {
+        labTypeStats[labType].completed++;
+      }
+    });
+
+    const labAnalytics = Object.entries(labTypeStats).map(([labType, stats]) => ({
+      labType: labType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      attempts: stats.attempts,
+      avgScore: stats.totalScore > 0 ? Math.round(stats.totalScore / stats.attempts) : 0,
+      completionRate: stats.attempts > 0 ? Math.round((stats.completed / stats.attempts) * 100) : 0
+    }));
+
+    // ============================================
+    // RESPONSE
+    // ============================================
+    res.json({
+      dateRange,
+      reportType,
+      userProgression,
+      skillProficiency,
+      engagement,
+      retention,
+      topUsers,
+      labAnalytics
+    });
+
+  } catch (error) {
+    console.error('GetAnalytics error:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics data' });
+  }
+};
+
+// ============================================
 // QUIZ MANAGEMENT
 // ============================================
 
