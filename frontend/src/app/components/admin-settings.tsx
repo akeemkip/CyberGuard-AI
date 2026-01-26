@@ -383,6 +383,19 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     <p className="text-sm text-muted-foreground mt-1">
                       The name of your platform displayed throughout the application
                     </p>
+
+                    {/* Platform Name Preview */}
+                    {settings.platformName && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg border">
+                        <p className="text-sm font-medium mb-3">Preview:</p>
+                        <div className="flex items-center gap-2 p-3 bg-card rounded-md border">
+                          <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                            <Shield className="w-5 h-5 text-primary-foreground" />
+                          </div>
+                          <span className="text-lg font-semibold">{settings.platformName}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -866,6 +879,45 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         Primary brand color used throughout the platform
                       </p>
                     )}
+
+                    {/* Color Preview */}
+                    {settings.primaryColor && !validationErrors.primaryColor && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg border">
+                        <p className="text-sm font-medium mb-3">Preview:</p>
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            className="px-4 py-2 rounded-md text-white font-medium"
+                            style={{ backgroundColor: settings.primaryColor }}
+                            disabled
+                          >
+                            Primary Button
+                          </button>
+                          <button
+                            className="px-4 py-2 rounded-md font-medium border-2"
+                            style={{
+                              borderColor: settings.primaryColor,
+                              color: settings.primaryColor
+                            }}
+                            disabled
+                          >
+                            Outline Button
+                          </button>
+                          <span
+                            className="px-3 py-1 rounded-full text-xs font-semibold"
+                            style={{
+                              backgroundColor: `${settings.primaryColor}20`,
+                              color: settings.primaryColor
+                            }}
+                          >
+                            Badge
+                          </span>
+                          <div
+                            className="w-10 h-10 rounded-full"
+                            style={{ backgroundColor: settings.primaryColor }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -886,6 +938,26 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         URL to your platform logo (recommended size: 200x50px)
                       </p>
                     )}
+
+                    {/* Logo Preview */}
+                    {settings.logoUrl && !validationErrors.logoUrl && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg border">
+                        <p className="text-sm font-medium mb-3">Preview:</p>
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={settings.logoUrl}
+                            alt="Logo preview"
+                            className="max-h-12 max-w-[200px] object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const errorMsg = e.currentTarget.nextElementSibling;
+                              if (errorMsg) errorMsg.classList.remove('hidden');
+                            }}
+                          />
+                          <p className="text-sm text-destructive hidden">Failed to load image</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -905,6 +977,29 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       <p className="text-sm text-muted-foreground mt-1">
                         URL to your favicon (recommended size: 32x32px)
                       </p>
+                    )}
+
+                    {/* Favicon Preview */}
+                    {settings.favicon && !validationErrors.favicon && (
+                      <div className="mt-4 p-4 bg-muted rounded-lg border">
+                        <p className="text-sm font-medium mb-3">Preview:</p>
+                        <div className="flex items-center gap-4">
+                          <div className="w-8 h-8 flex items-center justify-center border rounded">
+                            <img
+                              src={settings.favicon}
+                              alt="Favicon preview"
+                              className="w-4 h-4 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const errorMsg = e.currentTarget.parentElement?.nextElementSibling;
+                                if (errorMsg) errorMsg.classList.remove('hidden');
+                              }}
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground">Favicon (16x16 or 32x32)</p>
+                          <p className="text-sm text-destructive hidden">Failed to load icon</p>
+                        </div>
+                      </div>
                     )}
                   </div>
 
