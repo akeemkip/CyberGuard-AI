@@ -450,17 +450,23 @@ export interface UserProgressionPoint {
 export interface SkillProficiencyData {
   skill: string;
   proficiency: number;
+  passRate: number;
+  sampleSize: number;
 }
 
 export interface EngagementData {
   month: string;
-  time: number;
-  sessions: number;
+  timeEstimated: number;
+  lessonCompletions: number;
+  isEstimated: boolean;
 }
 
 export interface RetentionData {
   week: string;
-  retention: number;
+  retention: number | null;
+  avgScore: number | null;
+  passRate: number | null;
+  sampleSize: number;
 }
 
 export interface TopUser {
@@ -469,6 +475,7 @@ export interface TopUser {
   coursesCompleted: number;
   avgScore: string;
   timeSpent: string;
+  timeSpentEstimated: boolean;
   lastActive: string;
 }
 
@@ -628,10 +635,21 @@ const adminService = {
   // ============================================
 
   // Get comprehensive analytics data
-  async getAnalytics(dateRange: string = '30days', reportType: string = 'overview'): Promise<AnalyticsResponse> {
-    const response = await api.get<AnalyticsResponse>('/admin/analytics', {
-      params: { dateRange, reportType }
-    });
+  async getAnalytics(
+    dateRange: string = '30days',
+    reportType: string = 'overview',
+    customStartDate?: string,
+    customEndDate?: string
+  ): Promise<AnalyticsResponse> {
+    const params: any = { dateRange, reportType };
+
+    // Add custom date parameters if provided
+    if (dateRange === 'custom' && customStartDate && customEndDate) {
+      params.startDate = customStartDate;
+      params.endDate = customEndDate;
+    }
+
+    const response = await api.get<AnalyticsResponse>('/admin/analytics', { params });
     return response.data;
   }
 };

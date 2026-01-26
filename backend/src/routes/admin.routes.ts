@@ -4,6 +4,8 @@ import {
   getAllEnrollments,
   getUserStatistics,
   getAnalytics,
+  exportAnalyticsCSV,
+  exportAnalyticsPDF,
   getAllQuizzes,
   getQuizById,
   createQuiz,
@@ -32,6 +34,12 @@ router.use(requireAdmin);
 
 // GET /api/admin/stats - Get admin dashboard stats
 router.get('/stats', getAdminStats);
+
+// GET /api/admin/analytics/export/csv - Export analytics as CSV
+router.get('/analytics/export/csv', exportAnalyticsCSV);
+
+// GET /api/admin/analytics/export/pdf - Export analytics as PDF
+router.get('/analytics/export/pdf', exportAnalyticsPDF);
 
 // GET /api/admin/analytics - Get comprehensive analytics data
 router.get('/analytics', getAnalytics);

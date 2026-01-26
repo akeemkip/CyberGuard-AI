@@ -141,6 +141,29 @@
     @apply bg-background text-foreground;
   }
 
+  /* Priority 5: Enhanced focus styles for keyboard navigation */
+  *:focus-visible {
+    @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
+  }
+
+  /* Smooth scrolling for better UX */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Screen reader only class */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
   * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
@@ -190,5 +213,24 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+}
+
+/* Priority 5: High Contrast Mode - Enhanced colors for better visibility */
+@media (prefers-contrast: more) {
+  :root {
+    --chart-1: #0000cc;
+    --chart-2: #006666;
+    --chart-3: #660066;
+    --chart-4: #006600;
+    --chart-5: #cc6600;
+  }
+
+  .dark {
+    --chart-1: #6666ff;
+    --chart-2: #00cccc;
+    --chart-3: #cc66cc;
+    --chart-4: #00cc00;
+    --chart-5: #ffaa00;
   }
 }

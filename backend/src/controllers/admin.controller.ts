@@ -395,30 +395,54 @@ function getTimeAgo(date: Date): string {
 // Get comprehensive analytics data for Analytics & Reports page
 export const getAnalytics = async (req: Request, res: Response) => {
   try {
-    const { dateRange = '30days', reportType = 'overview' } = req.query as {
+    const {
+      dateRange = '30days',
+      reportType = 'overview',
+      startDate: customStartDate,
+      endDate: customEndDate
+    } = req.query as {
       dateRange?: string;
       reportType?: string;
+      startDate?: string;
+      endDate?: string;
     };
 
     // Calculate date filter based on range
     const now = new Date();
     let startDate = new Date();
+    let endDate = now;
 
-    switch (dateRange) {
-      case '7days':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case '30days':
-        startDate.setDate(now.getDate() - 30);
-        break;
-      case '90days':
-        startDate.setDate(now.getDate() - 90);
-        break;
-      case 'year':
-        startDate.setFullYear(now.getFullYear() - 1);
-        break;
-      default:
-        startDate.setDate(now.getDate() - 30);
+    if (dateRange === 'custom' && customStartDate && customEndDate) {
+      // Use custom date range
+      startDate = new Date(customStartDate);
+      endDate = new Date(customEndDate);
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).json({ error: 'Invalid date format' });
+      }
+
+      if (startDate > endDate) {
+        return res.status(400).json({ error: 'Start date must be before end date' });
+      }
+    } else {
+      // Use preset date range
+      switch (dateRange) {
+        case '7days':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case '30days':
+          startDate.setDate(now.getDate() - 30);
+          break;
+        case '90days':
+          startDate.setDate(now.getDate() - 90);
+          break;
+        case 'year':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+        default:
+          startDate.setDate(now.getDate() - 30);
+      }
     }
 
     // ============================================
@@ -426,7 +450,10 @@ export const getAnalytics = async (req: Request, res: Response) => {
     // ============================================
     const enrollments = await prisma.enrollment.findMany({
       where: {
-        enrolledAt: { gte: startDate }
+        enrolledAt: {
+          gte: startDate,
+          lte: endDate
+        }
       },
       select: {
         enrolledAt: true,
@@ -434,7 +461,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
       }
     });
 
-    // Group by week
+    // Group by week - track enrollments and completions separately
     const weeklyData: { [key: string]: { users: number; completion: number } } = {};
     const weeksToShow = dateRange === '7days' ? 1 : dateRange === '30days' ? 4 : 8;
 
@@ -445,6 +472,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
       weeklyData[weekKey] = { users: 0, completion: 0 };
     }
 
+    // Track enrollments by enrollment date
     enrollments.forEach(enrollment => {
       const enrollDate = new Date(enrollment.enrolledAt);
       const weeksDiff = Math.floor((now.getTime() - enrollDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
@@ -452,8 +480,17 @@ export const getAnalytics = async (req: Request, res: Response) => {
         const weekKey = `Week ${weeksToShow - weeksDiff}`;
         if (weeklyData[weekKey]) {
           weeklyData[weekKey].users++;
-          if (enrollment.completedAt) {
-            weeklyData[weekKey].completion++;
+        }
+      }
+
+      // Track completions by ACTUAL completion date (not enrollment date)
+      if (enrollment.completedAt) {
+        const completeDate = new Date(enrollment.completedAt);
+        const completeWeeksDiff = Math.floor((now.getTime() - completeDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
+        if (completeWeeksDiff < weeksToShow) {
+          const completeWeekKey = `Week ${weeksToShow - completeWeeksDiff}`;
+          if (weeklyData[completeWeekKey]) {
+            weeklyData[completeWeekKey].completion++;
           }
         }
       }
@@ -470,7 +507,10 @@ export const getAnalytics = async (req: Request, res: Response) => {
     // ============================================
     const quizAttempts = await prisma.quizAttempt.findMany({
       where: {
-        attemptedAt: { gte: startDate }
+        attemptedAt: {
+          gte: startDate,
+          lte: endDate
+        }
       },
       include: {
         quiz: {
@@ -487,25 +527,31 @@ export const getAnalytics = async (req: Request, res: Response) => {
       }
     });
 
-    // Group by course and calculate average
-    const courseScores: { [key: string]: number[] } = {};
+    // Group by course and calculate average with additional metrics
+    const courseScores: { [key: string]: { scores: number[]; passed: number } } = {};
     quizAttempts.forEach(attempt => {
       const courseName = attempt.quiz.lesson.course.title;
       if (!courseScores[courseName]) {
-        courseScores[courseName] = [];
+        courseScores[courseName] = { scores: [], passed: 0 };
       }
-      courseScores[courseName].push(attempt.score);
+      courseScores[courseName].scores.push(attempt.score);
+      if (attempt.passed) {
+        courseScores[courseName].passed++;
+      }
     });
 
-    const skillProficiency = Object.entries(courseScores).map(([skill, scores]) => ({
+    const skillProficiency = Object.entries(courseScores).map(([skill, data]) => ({
       skill: skill.replace(/^\d+\.\s*/, ''), // Remove course number prefix
-      proficiency: Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length)
+      proficiency: Math.round(data.scores.reduce((sum, s) => sum + s, 0) / data.scores.length),
+      passRate: Math.round((data.passed / data.scores.length) * 100),
+      sampleSize: data.scores.length
     }));
 
     // ============================================
-    // 3. ENGAGEMENT METRICS (Time spent and sessions - MOCK for now)
+    // 3. ENGAGEMENT METRICS (Lesson completions and estimated time)
     // ============================================
-    // TODO: Implement time tracking in Progress model
+    // Note: Time is estimated at 30 minutes per lesson completion
+    // Future: Implement actual time tracking in Progress model
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthsToShow = dateRange === '7days' ? 1 : dateRange === '30days' ? 1 : 6;
 
@@ -515,11 +561,11 @@ export const getAnalytics = async (req: Request, res: Response) => {
       date.setMonth(date.getMonth() - i);
       const monthName = months[date.getMonth()];
 
-      // Count sessions (lesson completions) for this month
+      // Count lesson completions for this month
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-      const sessionsCount = await prisma.progress.count({
+      const lessonCompletions = await prisma.progress.count({
         where: {
           completed: true,
           completedAt: {
@@ -531,18 +577,23 @@ export const getAnalytics = async (req: Request, res: Response) => {
 
       engagement.push({
         month: monthName,
-        time: Math.round(sessionsCount * 0.5), // Estimate: 30 mins per lesson
-        sessions: sessionsCount
+        timeEstimated: Math.round(lessonCompletions * 0.5), // Estimate: 30 mins per lesson
+        lessonCompletions: lessonCompletions,
+        isEstimated: true // Flag to indicate time is estimated
       });
     }
 
     // ============================================
-    // 4. KNOWLEDGE RETENTION (Quiz retake performance over time)
+    // 4. KNOWLEDGE RETENTION (Score trends over time)
     // ============================================
-    // Group quiz attempts by user and quiz to track retakes
+    // Measures how student performance changes over time
+    // Shows average quiz scores grouped by time period
     const userQuizAttempts = await prisma.quizAttempt.findMany({
       where: {
-        attemptedAt: { gte: startDate }
+        attemptedAt: {
+          gte: startDate,
+          lte: endDate
+        }
       },
       orderBy: {
         attemptedAt: 'asc'
@@ -556,26 +607,37 @@ export const getAnalytics = async (req: Request, res: Response) => {
       }
     });
 
-    // Calculate retention by week
-    const retentionByWeek: { [key: string]: { passed: number; total: number } } = {};
+    // Calculate retention by tracking score trends over time
+    const retentionByWeek: { [key: string]: { totalScore: number; count: number; passed: number } } = {};
     for (let i = 0; i < 8; i++) {
-      retentionByWeek[`Week ${i + 1}`] = { passed: 0, total: 0 };
+      retentionByWeek[`Week ${i + 1}`] = { totalScore: 0, count: 0, passed: 0 };
     }
 
-    const userQuizMap = new Map<string, Date>();
+    // Track first attempt baseline and subsequent performance
+    const userQuizBaseline = new Map<string, { score: number; date: Date }>();
+
     userQuizAttempts.forEach(attempt => {
       const key = `${attempt.userId}-${attempt.quizId}`;
-      const firstAttempt = userQuizMap.get(key);
+      const baseline = userQuizBaseline.get(key);
 
-      if (!firstAttempt) {
-        userQuizMap.set(key, attempt.attemptedAt);
+      if (!baseline) {
+        // First attempt - establish baseline
+        userQuizBaseline.set(key, { score: attempt.score, date: attempt.attemptedAt });
+        // Add to Week 1 (initial learning)
+        retentionByWeek['Week 1'].totalScore += attempt.score;
+        retentionByWeek['Week 1'].count++;
+        if (attempt.passed) {
+          retentionByWeek['Week 1'].passed++;
+        }
       } else {
+        // Subsequent attempts - measure retention
         const weeksSinceFirst = Math.floor(
-          (attempt.attemptedAt.getTime() - firstAttempt.getTime()) / (1000 * 60 * 60 * 24 * 7)
+          (attempt.attemptedAt.getTime() - baseline.date.getTime()) / (1000 * 60 * 60 * 24 * 7)
         );
-        if (weeksSinceFirst < 8) {
+        if (weeksSinceFirst > 0 && weeksSinceFirst < 8) {
           const weekKey = `Week ${weeksSinceFirst + 1}`;
-          retentionByWeek[weekKey].total++;
+          retentionByWeek[weekKey].totalScore += attempt.score;
+          retentionByWeek[weekKey].count++;
           if (attempt.passed) {
             retentionByWeek[weekKey].passed++;
           }
@@ -583,10 +645,28 @@ export const getAnalytics = async (req: Request, res: Response) => {
       }
     });
 
-    const retention = Object.entries(retentionByWeek).map(([week, data]) => ({
-      week,
-      retention: data.total > 0 ? Math.round((data.passed / data.total) * 100) : 100
-    }));
+    const retention = Object.entries(retentionByWeek).map(([week, data]) => {
+      if (data.count === 0) {
+        return {
+          week,
+          retention: null, // No data instead of false 100%
+          avgScore: null,
+          passRate: null,
+          sampleSize: 0
+        };
+      }
+
+      const avgScore = Math.round(data.totalScore / data.count);
+      const passRate = Math.round((data.passed / data.count) * 100);
+
+      return {
+        week,
+        retention: avgScore, // Retention measured by average score
+        avgScore,
+        passRate,
+        sampleSize: data.count
+      };
+    });
 
     // ============================================
     // 5. TOP PERFORMING USERS
@@ -603,7 +683,10 @@ export const getAnalytics = async (req: Request, res: Response) => {
         },
         quizAttempts: {
           where: {
-            attemptedAt: { gte: startDate }
+            attemptedAt: {
+              gte: startDate,
+              lte: endDate
+            }
           }
         },
         progress: {
@@ -636,6 +719,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
           coursesCompleted: user.enrollments.length,
           avgScore: (avgScore / 10).toFixed(1), // Convert to 0-10 scale
           timeSpent: `${user.enrollments.length * 3}h`, // Estimate: 3h per course
+          timeSpentEstimated: true, // Flag indicating time is estimated
           lastActive: timeAgo
         };
       })
@@ -648,7 +732,10 @@ export const getAnalytics = async (req: Request, res: Response) => {
     const labProgress = await prisma.labProgress.findMany({
       where: {
         completedAt: { not: null },
-        updatedAt: { gte: startDate }
+        updatedAt: {
+          gte: startDate,
+          lte: endDate
+        }
       },
       include: {
         lab: {
@@ -698,6 +785,274 @@ export const getAnalytics = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('GetAnalytics error:', error);
     res.status(500).json({ error: 'Failed to fetch analytics data' });
+  }
+};
+
+// ============================================
+// EXPORT ANALYTICS AS CSV
+// ============================================
+export const exportAnalyticsCSV = async (req: Request, res: Response) => {
+  try {
+    const {
+      dateRange = '30days',
+      reportType = 'overview',
+      startDate: customStartDate,
+      endDate: customEndDate
+    } = req.query as {
+      dateRange?: string;
+      reportType?: string;
+      startDate?: string;
+      endDate?: string;
+    };
+
+    // Get the same analytics data
+    const analyticsReq = { ...req, query: { dateRange, reportType, startDate: customStartDate, endDate: customEndDate } };
+    const analyticsRes = {
+      json: (data: any) => data,
+      status: () => ({ json: (data: any) => data })
+    };
+
+    // Reuse getAnalytics logic to get data
+    // For simplicity, we'll fetch fresh data
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = now;
+
+    if (dateRange === 'custom' && customStartDate && customEndDate) {
+      startDate = new Date(customStartDate);
+      endDate = new Date(customEndDate);
+    } else {
+      switch (dateRange) {
+        case '7days': startDate.setDate(now.getDate() - 7); break;
+        case '30days': startDate.setDate(now.getDate() - 30); break;
+        case '90days': startDate.setDate(now.getDate() - 90); break;
+        case 'year': startDate.setFullYear(now.getFullYear() - 1); break;
+        default: startDate.setDate(now.getDate() - 30);
+      }
+    }
+
+    // Fetch top users for CSV
+    const users = await prisma.user.findMany({
+      where: { role: 'STUDENT' },
+      include: {
+        enrollments: { where: { completedAt: { not: null } } },
+        quizAttempts: {
+          where: {
+            attemptedAt: { gte: startDate, lte: endDate }
+          }
+        }
+      }
+    });
+
+    const topUsers = users
+      .map(user => {
+        const avgScore = user.quizAttempts.length > 0
+          ? Math.round(user.quizAttempts.reduce((sum, a) => sum + a.score, 0) / user.quizAttempts.length)
+          : 0;
+
+        return {
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email.split('@')[0],
+          coursesCompleted: user.enrollments.length,
+          avgScore: (avgScore / 10).toFixed(1),
+          quizAttempts: user.quizAttempts.length
+        };
+      })
+      .sort((a, b) => b.coursesCompleted - a.coursesCompleted || parseFloat(b.avgScore) - parseFloat(a.avgScore));
+
+    // Generate CSV content
+    const csvRows = [];
+
+    // Header
+    csvRows.push('CyberGuard AI - Analytics Export');
+    csvRows.push(`Report Type: ${reportType}`);
+    csvRows.push(`Date Range: ${dateRange === 'custom' ? `${customStartDate} to ${customEndDate}` : dateRange}`);
+    csvRows.push(`Generated: ${new Date().toISOString()}`);
+    csvRows.push('');
+
+    // Top Users Section
+    csvRows.push('TOP PERFORMING USERS');
+    csvRows.push('Rank,Name,Courses Completed,Average Score (/10),Quiz Attempts');
+    topUsers.forEach((user, index) => {
+      csvRows.push(`${index + 1},"${user.name}",${user.coursesCompleted},${user.avgScore},${user.quizAttempts}`);
+    });
+
+    const csv = csvRows.join('\n');
+
+    // Set headers for file download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="analytics-${dateRange}-${Date.now()}.csv"`);
+    res.send(csv);
+
+  } catch (error) {
+    console.error('ExportAnalyticsCSV error:', error);
+    res.status(500).json({ error: 'Failed to export analytics as CSV' });
+  }
+};
+
+// ============================================
+// EXPORT ANALYTICS AS PDF
+// ============================================
+export const exportAnalyticsPDF = async (req: Request, res: Response) => {
+  try {
+    const PDFDocument = require('pdfkit');
+
+    const {
+      dateRange = '30days',
+      reportType = 'overview',
+      startDate: customStartDate,
+      endDate: customEndDate
+    } = req.query as {
+      dateRange?: string;
+      reportType?: string;
+      startDate?: string;
+      endDate?: string;
+    };
+
+    // Calculate dates
+    const now = new Date();
+    let startDate = new Date();
+    let endDate = now;
+
+    if (dateRange === 'custom' && customStartDate && customEndDate) {
+      startDate = new Date(customStartDate);
+      endDate = new Date(customEndDate);
+    } else {
+      switch (dateRange) {
+        case '7days': startDate.setDate(now.getDate() - 7); break;
+        case '30days': startDate.setDate(now.getDate() - 30); break;
+        case '90days': startDate.setDate(now.getDate() - 90); break;
+        case 'year': startDate.setFullYear(now.getFullYear() - 1); break;
+        default: startDate.setDate(now.getDate() - 30);
+      }
+    }
+
+    // Fetch analytics data
+    const [users, enrollments, quizAttempts] = await Promise.all([
+      prisma.user.findMany({
+        where: { role: 'STUDENT' },
+        include: {
+          enrollments: { where: { completedAt: { not: null } } },
+          quizAttempts: {
+            where: { attemptedAt: { gte: startDate, lte: endDate } }
+          }
+        }
+      }),
+      prisma.enrollment.count({
+        where: {
+          enrolledAt: { gte: startDate, lte: endDate }
+        }
+      }),
+      prisma.quizAttempt.count({
+        where: {
+          attemptedAt: { gte: startDate, lte: endDate }
+        }
+      })
+    ]);
+
+    const topUsers = users
+      .map(user => {
+        const avgScore = user.quizAttempts.length > 0
+          ? Math.round(user.quizAttempts.reduce((sum, a) => sum + a.score, 0) / user.quizAttempts.length)
+          : 0;
+
+        return {
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email.split('@')[0],
+          coursesCompleted: user.enrollments.length,
+          avgScore: (avgScore / 10).toFixed(1),
+          quizAttempts: user.quizAttempts.length
+        };
+      })
+      .sort((a, b) => b.coursesCompleted - a.coursesCompleted || parseFloat(b.avgScore) - parseFloat(a.avgScore))
+      .slice(0, 10);
+
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50, size: 'LETTER' });
+
+    // Set response headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="analytics-report-${dateRange}-${Date.now()}.pdf"`);
+
+    // Pipe PDF to response
+    doc.pipe(res);
+
+    // Title
+    doc.fontSize(24).font('Helvetica-Bold').text('CyberGuard AI', { align: 'center' });
+    doc.fontSize(18).text('Analytics Report', { align: 'center' });
+    doc.moveDown(0.5);
+
+    // Metadata
+    doc.fontSize(10).font('Helvetica');
+    const dateRangeLabel = dateRange === 'custom'
+      ? `${customStartDate} to ${customEndDate}`
+      : dateRange;
+    doc.text(`Report Type: ${reportType}`, { align: 'center' });
+    doc.text(`Date Range: ${dateRangeLabel}`, { align: 'center' });
+    doc.text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveDown(2);
+
+    // Summary Statistics
+    doc.fontSize(14).font('Helvetica-Bold').text('Summary Statistics');
+    doc.moveDown(0.5);
+    doc.fontSize(10).font('Helvetica');
+
+    const summaryY = doc.y;
+    doc.text(`Total Students: ${users.length}`, 50, summaryY);
+    doc.text(`Total Enrollments: ${enrollments}`, 250, summaryY);
+    doc.text(`Quiz Attempts: ${quizAttempts}`, 450, summaryY);
+    doc.moveDown(2);
+
+    // Top Performers Table
+    doc.fontSize(14).font('Helvetica-Bold').text('Top Performing Students');
+    doc.moveDown(0.5);
+
+    // Table headers
+    const tableTop = doc.y;
+    const rowHeight = 25;
+
+    doc.fontSize(10).font('Helvetica-Bold');
+    doc.text('Rank', 50, tableTop, { width: 50 });
+    doc.text('Name', 100, tableTop, { width: 150 });
+    doc.text('Courses', 250, tableTop, { width: 80 });
+    doc.text('Avg Score', 330, tableTop, { width: 80 });
+    doc.text('Attempts', 410, tableTop, { width: 80 });
+
+    // Draw header line
+    doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+
+    // Table rows
+    doc.font('Helvetica');
+    topUsers.forEach((user, index) => {
+      const y = tableTop + rowHeight + (index * rowHeight);
+
+      // Alternate row background
+      if (index % 2 === 0) {
+        doc.rect(50, y - 5, 500, rowHeight).fillAndStroke('#f3f4f6', '#e5e7eb');
+      }
+
+      doc.fillColor('#000000');
+      doc.text(`${index + 1}`, 50, y, { width: 50 });
+      doc.text(user.name, 100, y, { width: 150 });
+      doc.text(user.coursesCompleted.toString(), 250, y, { width: 80 });
+      doc.text(user.avgScore, 330, y, { width: 80 });
+      doc.text(user.quizAttempts.toString(), 410, y, { width: 80 });
+    });
+
+    // Footer
+    const pageHeight = doc.page.height;
+    doc.fontSize(8).font('Helvetica').fillColor('#666666');
+    doc.text(
+      'Generated by CyberGuard AI - Cybersecurity Training Platform',
+      50,
+      pageHeight - 50,
+      { align: 'center', width: 500 }
+    );
+
+    // Finalize PDF
+    doc.end();
+
+  } catch (error) {
+    console.error('ExportAnalyticsPDF error:', error);
+    res.status(500).json({ error: 'Failed to export analytics as PDF' });
   }
 };
 
