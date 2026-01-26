@@ -239,3 +239,54 @@ enum LabType {
   WIFI_SAFETY       // Network selection
   INCIDENT_RESPONSE // Decision tree scenario
 }
+
+model PlatformSettings {
+  id                        String   @id @default("singleton") // Singleton pattern
+
+  // General
+  platformName              String   @default("CyberGuard AI")
+  platformDescription       String   @default("Advanced cybersecurity training platform")
+  supportEmail              String   @default("support@cyberguard.com")
+  contactEmail              String   @default("contact@cyberguard.com")
+
+  // Security
+  requireEmailVerification  Boolean  @default(false)
+  minPasswordLength         Int      @default(6)
+  sessionTimeout            Int      @default(7)
+  enableTwoFactor           Boolean  @default(false)
+  maxLoginAttempts          Int      @default(5)
+
+  // Course Settings
+  autoEnrollNewUsers        Boolean  @default(false)
+  defaultCourseVisibility   String   @default("public")
+  defaultQuizPassingScore   Int      @default(70)
+  enableCertificates        Boolean  @default(true)
+  allowCourseReviews        Boolean  @default(true)
+
+  // User Settings
+  defaultUserRole           String   @default("STUDENT")
+  allowSelfRegistration     Boolean  @default(true)
+  requireProfileCompletion  Boolean  @default(false)
+  enablePublicProfiles      Boolean  @default(false)
+
+  // Email/Notifications
+  enableEmailNotifications  Boolean  @default(false)
+  enableEnrollmentEmails    Boolean  @default(true)
+  enableCompletionEmails    Boolean  @default(true)
+  enableWeeklyDigest        Boolean  @default(false)
+  smtpHost                  String   @default("")
+  smtpPort                  String   @default("587")
+  smtpUser                  String   @default("")
+  smtpPassword              String   @default("")
+
+  // Appearance
+  primaryColor              String   @default("#3b82f6")
+  logoUrl                   String   @default("")
+  favicon                   String   @default("")
+  customCss                 String   @default("")
+
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("platform_settings")
+}

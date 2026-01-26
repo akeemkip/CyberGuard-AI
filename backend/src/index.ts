@@ -12,6 +12,7 @@ import courseRoutes from './routes/course.routes';
 import adminRoutes from './routes/admin.routes';
 import aiRoutes from './routes/ai.routes';
 import labRoutes from './routes/lab.routes';
+import settingsRoutes from './routes/settings.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/settings', settingsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/labs', labRoutes);
 

@@ -30,6 +30,7 @@ import {
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
 import { toast } from "sonner";
+import adminService, { PlatformSettings as  APIPlatformSettings } from "../services/admin.service";
 
 interface AdminSettingsProps {
   userEmail: string;
@@ -135,16 +136,18 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     customCss: "",
   });
 
-  // Load settings from localStorage on mount
+  // Load settings from API on mount
   useEffect(() => {
-    const saved = localStorage.getItem('adminSettings');
-    if (saved) {
+    const loadSettings = async () => {
       try {
-        setSettings(JSON.parse(saved));
+        const data = await adminService.getPlatformSettings();
+        setSettings(data);
       } catch (error) {
         console.error('Error loading settings:', error);
+        toast.error('Failed to load settings');
       }
-    }
+    };
+    loadSettings();
   }, []);
 
   // Restore tab from browser history state on mount
@@ -259,11 +262,9 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     try {
       setIsSaving(true);
 
-      // Simulate API call - in real app, this would save to backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Store in localStorage for demo purposes
-      localStorage.setItem('adminSettings', JSON.stringify(settings));
+      // Save to backend API
+      const updatedSettings = await adminService.updatePlatformSettings(settings);
+      setSettings(updatedSettings);
 
       setHasUnsavedChanges(false);
       toast.success("Settings saved successfully!");
@@ -275,13 +276,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     }
   };
 
-  const handleReset = () => {
-    // Load from localStorage or use defaults
-    const saved = localStorage.getItem('adminSettings');
-    if (saved) {
-      setSettings(JSON.parse(saved));
+  const handleReset = async () => {
+    try {
+      // Reload from backend API
+      const data = await adminService.getPlatformSettings();
+      setSettings(data);
       setHasUnsavedChanges(false);
+      setValidationErrors({});
       toast.info("Settings reset to last saved state");
+    } catch (error) {
+      console.error("Error resetting settings:", error);
+      toast.error("Failed to reset settings");
     }
   };
 

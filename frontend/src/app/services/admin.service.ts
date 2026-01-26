@@ -1,5 +1,47 @@
 import api from './api';
 
+export interface PlatformSettings {
+  id: string;
+  // General
+  platformName: string;
+  platformDescription: string;
+  supportEmail: string;
+  contactEmail: string;
+  // Security
+  requireEmailVerification: boolean;
+  minPasswordLength: number;
+  sessionTimeout: number;
+  enableTwoFactor: boolean;
+  maxLoginAttempts: number;
+  // Course Settings
+  autoEnrollNewUsers: boolean;
+  defaultCourseVisibility: "public" | "private";
+  defaultQuizPassingScore: number;
+  enableCertificates: boolean;
+  allowCourseReviews: boolean;
+  // User Settings
+  defaultUserRole: "STUDENT" | "ADMIN";
+  allowSelfRegistration: boolean;
+  requireProfileCompletion: boolean;
+  enablePublicProfiles: boolean;
+  // Email/Notifications
+  enableEmailNotifications: boolean;
+  enableEnrollmentEmails: boolean;
+  enableCompletionEmails: boolean;
+  enableWeeklyDigest: boolean;
+  smtpHost: string;
+  smtpPort: string;
+  smtpUser: string;
+  smtpPassword: string;
+  // Appearance
+  primaryColor: string;
+  logoUrl: string;
+  favicon: string;
+  customCss: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AdminStats {
   totalUsers: number;
   totalCourses: number;
@@ -651,6 +693,17 @@ const adminService = {
 
     const response = await api.get<AnalyticsResponse>('/admin/analytics', { params });
     return response.data;
+  },
+
+  // Platform Settings
+  async getPlatformSettings(): Promise<PlatformSettings> {
+    const response = await api.get<{ settings: PlatformSettings }>('/admin/settings');
+    return response.data.settings;
+  },
+
+  async updatePlatformSettings(settings: Partial<PlatformSettings>): Promise<PlatformSettings> {
+    const response = await api.put<{ settings: PlatformSettings }>('/admin/settings', settings);
+    return response.data.settings;
   }
 };
 
