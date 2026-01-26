@@ -72,6 +72,7 @@ interface PlatformSettings {
   smtpHost: string;
   smtpPort: string;
   smtpUser: string;
+  smtpPassword: string;
 
   // Appearance
   primaryColor: string;
@@ -84,6 +85,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const { theme, toggleTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem("adminSettingsTab") || "general";
   });
@@ -124,6 +126,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     smtpHost: "",
     smtpPort: "587",
     smtpUser: "",
+    smtpPassword: "",
 
     // Appearance
     primaryColor: "#3b82f6",
@@ -131,6 +134,18 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     favicon: "",
     customCss: "",
   });
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('adminSettings');
+    if (saved) {
+      try {
+        setSettings(JSON.parse(saved));
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+  }, []);
 
   // Restore tab from browser history state on mount
   useEffect(() => {
@@ -153,12 +168,94 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     );
   }, [activeTab]);
 
+  // Validation functions
+  const validateEmail = (email: string): string | null => {
+    if (!email) return null; // Allow empty
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) ? null : "Invalid email format";
+  };
+
+  const validateUrl = (url: string): string | null => {
+    if (!url) return null; // Allow empty
+    try {
+      new URL(url);
+      return null;
+    } catch {
+      return "Invalid URL format";
+    }
+  };
+
+  const validateHexColor = (color: string): string | null => {
+    if (!color) return null;
+    const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    return hexRegex.test(color) ? null : "Invalid hex color (e.g., #3b82f6)";
+  };
+
+  const validatePort = (port: string): string | null => {
+    if (!port) return null;
+    const portNum = parseInt(port);
+    if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+      return "Port must be between 1 and 65535";
+    }
+    return null;
+  };
+
+  const validateNumberRange = (value: number, min: number, max: number, fieldName: string): string | null => {
+    if (value < min || value > max) {
+      return `${fieldName} must be between ${min} and ${max}`;
+    }
+    return null;
+  };
+
+  const validateField = (key: keyof PlatformSettings, value: any): string | null => {
+    switch (key) {
+      case "supportEmail":
+      case "contactEmail":
+        return validateEmail(value);
+      case "logoUrl":
+      case "favicon":
+        return validateUrl(value);
+      case "primaryColor":
+        return validateHexColor(value);
+      case "smtpPort":
+        return validatePort(value);
+      case "minPasswordLength":
+        return validateNumberRange(value, 6, 20, "Password length");
+      case "sessionTimeout":
+        return validateNumberRange(value, 1, 30, "Session timeout");
+      case "maxLoginAttempts":
+        return validateNumberRange(value, 3, 10, "Max login attempts");
+      case "defaultQuizPassingScore":
+        return validateNumberRange(value, 50, 100, "Passing score");
+      default:
+        return null;
+    }
+  };
+
   const handleChange = (key: keyof PlatformSettings, value: any) => {
     setSettings({ ...settings, [key]: value });
     setHasUnsavedChanges(true);
+
+    // Validate the field
+    const error = validateField(key, value);
+    setValidationErrors(prev => {
+      const newErrors = { ...prev };
+      if (error) {
+        newErrors[key] = error;
+      } else {
+        delete newErrors[key];
+      }
+      return newErrors;
+    });
   };
 
   const handleSave = async () => {
+    // Check for validation errors
+    if (Object.keys(validationErrors).length > 0) {
+      toast.error("Please fix validation errors before saving");
+      return;
+    }
+
     try {
       setIsSaving(true);
 
@@ -211,11 +308,16 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
               {hasUnsavedChanges && (
                 <span className="text-sm text-warning mr-2">Unsaved changes</span>
               )}
+              {Object.keys(validationErrors).length > 0 && (
+                <span className="text-sm text-destructive mr-2">
+                  {Object.keys(validationErrors).length} validation error{Object.keys(validationErrors).length > 1 ? 's' : ''}
+                </span>
+              )}
               <Button variant="outline" onClick={handleReset} disabled={!hasUnsavedChanges}>
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Reset
               </Button>
-              <Button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges}>
+              <Button onClick={handleSave} disabled={isSaving || !hasUnsavedChanges || Object.keys(validationErrors).length > 0}>
                 {isSaving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -306,10 +408,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         value={settings.supportEmail}
                         onChange={(e) => handleChange("supportEmail", e.target.value)}
                         placeholder="support@cyberguard.com"
+                        className={validationErrors.supportEmail ? "border-destructive" : ""}
                       />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Email for user support inquiries
-                      </p>
+                      {validationErrors.supportEmail ? (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.supportEmail}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Email for user support inquiries
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -320,10 +429,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         value={settings.contactEmail}
                         onChange={(e) => handleChange("contactEmail", e.target.value)}
                         placeholder="contact@cyberguard.com"
+                        className={validationErrors.contactEmail ? "border-destructive" : ""}
                       />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        General contact email address
-                      </p>
+                      {validationErrors.contactEmail ? (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.contactEmail}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          General contact email address
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -373,10 +489,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         max="20"
                         value={settings.minPasswordLength}
                         onChange={(e) => handleChange("minPasswordLength", parseInt(e.target.value))}
+                        className={validationErrors.minPasswordLength ? "border-destructive" : ""}
                       />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Minimum characters required
-                      </p>
+                      {validationErrors.minPasswordLength ? (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.minPasswordLength}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Minimum characters required
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -388,10 +511,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         max="30"
                         value={settings.sessionTimeout}
                         onChange={(e) => handleChange("sessionTimeout", parseInt(e.target.value))}
+                        className={validationErrors.sessionTimeout ? "border-destructive" : ""}
                       />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Days until auto-logout
-                      </p>
+                      {validationErrors.sessionTimeout ? (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.sessionTimeout}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Days until auto-logout
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -403,10 +533,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         max="10"
                         value={settings.maxLoginAttempts}
                         onChange={(e) => handleChange("maxLoginAttempts", parseInt(e.target.value))}
+                        className={validationErrors.maxLoginAttempts ? "border-destructive" : ""}
                       />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Before account lockout
-                      </p>
+                      {validationErrors.maxLoginAttempts ? (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.maxLoginAttempts}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Before account lockout
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -489,10 +626,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         max="100"
                         value={settings.defaultQuizPassingScore}
                         onChange={(e) => handleChange("defaultQuizPassingScore", parseInt(e.target.value))}
+                        className={validationErrors.defaultQuizPassingScore ? "border-destructive" : ""}
                       />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Minimum score to pass quizzes
-                      </p>
+                      {validationErrors.defaultQuizPassingScore ? (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.defaultQuizPassingScore}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Minimum score to pass quizzes
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -654,7 +798,13 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                             value={settings.smtpPort}
                             onChange={(e) => handleChange("smtpPort", e.target.value)}
                             placeholder="587"
+                            className={validationErrors.smtpPort ? "border-destructive" : ""}
                           />
+                          {validationErrors.smtpPort && (
+                            <p className="text-sm text-destructive mt-1">
+                              {validationErrors.smtpPort}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div>
@@ -665,6 +815,19 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                           onChange={(e) => handleChange("smtpUser", e.target.value)}
                           placeholder="your-email@gmail.com"
                         />
+                      </div>
+                      <div>
+                        <Label htmlFor="smtpPassword">SMTP Password</Label>
+                        <Input
+                          id="smtpPassword"
+                          type="password"
+                          value={settings.smtpPassword}
+                          onChange={(e) => handleChange("smtpPassword", e.target.value)}
+                          placeholder="••••••••••••"
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Password for SMTP authentication
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -691,12 +854,18 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         value={settings.primaryColor}
                         onChange={(e) => handleChange("primaryColor", e.target.value)}
                         placeholder="#3b82f6"
-                        className="flex-1"
+                        className={validationErrors.primaryColor ? "flex-1 border-destructive" : "flex-1"}
                       />
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Primary brand color used throughout the platform
-                    </p>
+                    {validationErrors.primaryColor ? (
+                      <p className="text-sm text-destructive mt-1">
+                        {validationErrors.primaryColor}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Primary brand color used throughout the platform
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -706,10 +875,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       value={settings.logoUrl}
                       onChange={(e) => handleChange("logoUrl", e.target.value)}
                       placeholder="https://example.com/logo.png"
+                      className={validationErrors.logoUrl ? "border-destructive" : ""}
                     />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      URL to your platform logo (recommended size: 200x50px)
-                    </p>
+                    {validationErrors.logoUrl ? (
+                      <p className="text-sm text-destructive mt-1">
+                        {validationErrors.logoUrl}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        URL to your platform logo (recommended size: 200x50px)
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -719,10 +895,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       value={settings.favicon}
                       onChange={(e) => handleChange("favicon", e.target.value)}
                       placeholder="https://example.com/favicon.ico"
+                      className={validationErrors.favicon ? "border-destructive" : ""}
                     />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      URL to your favicon (recommended size: 32x32px)
-                    </p>
+                    {validationErrors.favicon ? (
+                      <p className="text-sm text-destructive mt-1">
+                        {validationErrors.favicon}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        URL to your favicon (recommended size: 32x32px)
+                      </p>
+                    )}
                   </div>
 
                   <div>
