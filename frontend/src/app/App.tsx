@@ -7,6 +7,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LandingPage } from "./components/landing-page";
 import { LoginPage } from "./components/login-page";
 import { RegisterPage } from "./components/register-page";
+import { RegisterSuccessPage } from "./components/register-success-page";
 import { ResetPasswordPage } from "./components/reset-password-page";
 import { PrivacyPolicyPage } from "./components/privacy-policy-page";
 import { TermsOfServicePage } from "./components/terms-of-service-page";
@@ -30,7 +31,7 @@ import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
 import { LabPlayer } from "./components/lab-player";
 
-type Page = "landing" | "login" | "register" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
 const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-analytics", "admin-settings"];
@@ -333,6 +334,8 @@ function AppContent() {
         return <LoginPage onNavigate={handleNavigate} />;
       case "register":
         return <RegisterPage onNavigate={handleNavigate} />;
+      case "register-success":
+        return <RegisterSuccessPage onNavigate={handleNavigate} />;
       case "reset-password":
         return <ResetPasswordPage onNavigate={handleNavigate} />;
       case "privacy-policy":

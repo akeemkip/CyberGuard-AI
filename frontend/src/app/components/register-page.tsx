@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { Shield, Moon, Sun, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff, Check, X } from "lucide-react";
+import { Shield, Moon, Sun, Loader2, AlertCircle, Eye, EyeOff, Check, X } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
 
@@ -44,7 +44,6 @@ export function RegisterPage({
     confirmPassword: "",
   });
   const [validationError, setValidationError] = useState("");
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -73,8 +72,10 @@ export function RegisterPage({
     const success = await register(formData.email, formData.password, formData.firstName, formData.lastName);
 
     if (success) {
-      setRegistrationSuccess(true);
-      // Navigation is handled by App.tsx useEffect when user state changes
+      // Navigate to success page to show animation
+      // Store first name for the success message
+      localStorage.setItem('newUserFirstName', formData.firstName);
+      onNavigate("register-success");
     }
     // If failed, error is already set in context and will display
   };
@@ -109,26 +110,6 @@ export function RegisterPage({
       {/* Register Form */}
       <div className="flex-1 flex items-center justify-center p-4 bg-muted/30">
         <Card className="w-full max-w-md p-8">
-          {registrationSuccess ? (
-            // Success State
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
-              </div>
-              <h2 className="text-2xl font-bold mb-2">Account Created!</h2>
-              <p className="text-muted-foreground mb-4">
-                Welcome to CyberGuard AI, {formData.firstName}!
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Redirecting you to your dashboard...
-              </p>
-              <div className="mt-4">
-                <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary" />
-              </div>
-            </div>
-          ) : (
-            // Registration Form
-            <>
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold mb-2">Create Account</h1>
                 <p className="text-muted-foreground">Start your cybersecurity journey today</p>
@@ -319,8 +300,6 @@ export function RegisterPage({
                   </button>
                 </p>
               </div>
-            </>
-          )}
         </Card>
       </div>
     </div>
