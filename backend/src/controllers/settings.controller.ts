@@ -1,6 +1,41 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
 
+// Default settings for public endpoint
+const defaultPublicSettings = {
+  platformName: 'CyberGuard AI',
+  primaryColor: '#3b82f6',
+  logoUrl: '',
+  favicon: '',
+  customCss: '',
+  minPasswordLength: 6,
+  allowSelfRegistration: true,
+};
+
+// Get public platform settings (no auth required)
+export const getPublicSettings = async (req: Request, res: Response) => {
+  try {
+    const settings = await prisma.platformSettings.findUnique({
+      where: { id: 'singleton' },
+      select: {
+        platformName: true,
+        primaryColor: true,
+        logoUrl: true,
+        favicon: true,
+        customCss: true,
+        minPasswordLength: true,
+        allowSelfRegistration: true,
+      }
+    });
+
+    // Return defaults if no settings exist
+    res.json({ settings: settings || defaultPublicSettings });
+  } catch (error: any) {
+    console.error('Error fetching public platform settings:', error);
+    res.status(500).json({ error: 'Failed to fetch platform settings' });
+  }
+};
+
 // Get platform settings
 export const getPlatformSettings = async (req: Request, res: Response) => {
   try {

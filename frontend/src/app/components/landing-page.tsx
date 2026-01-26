@@ -3,9 +3,12 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Shield, Brain, Target, Users, Lock, TrendingUp, Moon, Sun, Menu, X } from "lucide-react";
 import { useTheme } from "./theme-provider";
+import { usePlatformSettings } from "../context/PlatformSettingsContext";
+import { PlatformLogo } from "./PlatformLogo";
 
 export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void }) {
   const { theme, toggleTheme } = useTheme();
+  const { settings: platformSettings } = usePlatformSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const scrollToSection = (sectionId: string) => {
@@ -22,10 +25,8 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-semibold">CyberGuard AI</span>
+            <PlatformLogo className="w-10 h-10" iconClassName="w-6 h-6" />
+            <span className="text-xl font-semibold">{platformSettings.platformName}</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -328,10 +329,8 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <span className="font-semibold">CyberGuard AI</span>
+                <PlatformLogo className="w-8 h-8" iconClassName="w-5 h-5" />
+                <span className="font-semibold">{platformSettings.platformName}</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 AI-powered cybersecurity training for the modern workforce.
@@ -365,7 +364,7 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            © 2026 CyberGuard AI. All rights reserved.
+            © {new Date().getFullYear()} {platformSettings.platformName}. All rights reserved.
           </div>
         </div>
       </footer>

@@ -3,9 +3,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { Shield, Moon, Sun, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Moon, Sun, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
+import { usePlatformSettings } from "../context/PlatformSettingsContext";
+import { PlatformLogo } from "./PlatformLogo";
 
 export function LoginPage({
   onNavigate
@@ -14,6 +16,7 @@ export function LoginPage({
 }) {
   const { theme, toggleTheme } = useTheme();
   const { login, isLoading, error, clearError } = useAuth();
+  const { settings: platformSettings } = usePlatformSettings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -49,10 +52,8 @@ export function LoginPage({
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => onNavigate("landing")}
           >
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-semibold">CyberGuard AI</span>
+            <PlatformLogo className="w-10 h-10" iconClassName="w-6 h-6" />
+            <span className="text-xl font-semibold">{platformSettings.platformName}</span>
           </div>
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
             {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}

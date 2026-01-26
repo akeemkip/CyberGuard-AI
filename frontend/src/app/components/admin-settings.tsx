@@ -25,7 +25,9 @@ import {
   Mail,
   Palette,
   Bell,
-  Loader2
+  Loader2,
+  Upload,
+  X
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
@@ -90,6 +92,8 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem("adminSettingsTab") || "general";
   });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
 
   // Initialize with default settings
   const [settings, setSettings] = useState<PlatformSettings>({
@@ -287,6 +291,38 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     } catch (error) {
       console.error("Error resetting settings:", error);
       toast.error("Failed to reset settings");
+    }
+  };
+
+  const handleFileUpload = async (
+    file: File,
+    field: "logoUrl" | "favicon",
+    setUploading: (value: boolean) => void
+  ) => {
+    try {
+      setUploading(true);
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("http://localhost:3000/api/uploads/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
+      }
+
+      const data = await response.json();
+      handleChange(field, data.url);
+      toast.success(`${field === "logoUrl" ? "Logo" : "Favicon"} uploaded successfully`);
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast.error(error.message || "Failed to upload file");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -926,21 +962,56 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                   </div>
 
                   <div>
-                    <Label htmlFor="logoUrl">Logo URL</Label>
-                    <Input
-                      id="logoUrl"
-                      value={settings.logoUrl}
-                      onChange={(e) => handleChange("logoUrl", e.target.value)}
-                      placeholder="https://example.com/logo.png"
-                      className={validationErrors.logoUrl ? "border-destructive" : ""}
-                    />
+                    <Label htmlFor="logoUrl">Logo</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="logoUrl"
+                        value={settings.logoUrl}
+                        onChange={(e) => handleChange("logoUrl", e.target.value)}
+                        placeholder="https://example.com/logo.png or upload a file"
+                        className={validationErrors.logoUrl ? "flex-1 border-destructive" : "flex-1"}
+                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileUpload(file, "logoUrl", setUploadingLogo);
+                            }
+                            e.target.value = "";
+                          }}
+                          disabled={uploadingLogo}
+                        />
+                        <Button type="button" variant="outline" disabled={uploadingLogo}>
+                          {uploadingLogo ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                      {settings.logoUrl && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleChange("logoUrl", "")}
+                          title="Clear logo"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                     {validationErrors.logoUrl ? (
                       <p className="text-sm text-destructive mt-1">
                         {validationErrors.logoUrl}
                       </p>
                     ) : (
                       <p className="text-sm text-muted-foreground mt-1">
-                        URL to your platform logo (recommended size: 200x50px)
+                        Enter a URL or upload a file (recommended size: 200x50px)
                       </p>
                     )}
 
@@ -966,21 +1037,56 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                   </div>
 
                   <div>
-                    <Label htmlFor="favicon">Favicon URL</Label>
-                    <Input
-                      id="favicon"
-                      value={settings.favicon}
-                      onChange={(e) => handleChange("favicon", e.target.value)}
-                      placeholder="https://example.com/favicon.ico"
-                      className={validationErrors.favicon ? "border-destructive" : ""}
-                    />
+                    <Label htmlFor="favicon">Favicon</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="favicon"
+                        value={settings.favicon}
+                        onChange={(e) => handleChange("favicon", e.target.value)}
+                        placeholder="https://example.com/favicon.ico or upload a file"
+                        className={validationErrors.favicon ? "flex-1 border-destructive" : "flex-1"}
+                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*,.ico"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileUpload(file, "favicon", setUploadingFavicon);
+                            }
+                            e.target.value = "";
+                          }}
+                          disabled={uploadingFavicon}
+                        />
+                        <Button type="button" variant="outline" disabled={uploadingFavicon}>
+                          {uploadingFavicon ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                      {settings.favicon && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleChange("favicon", "")}
+                          title="Clear favicon"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                     {validationErrors.favicon ? (
                       <p className="text-sm text-destructive mt-1">
                         {validationErrors.favicon}
                       </p>
                     ) : (
                       <p className="text-sm text-muted-foreground mt-1">
-                        URL to your favicon (recommended size: 32x32px)
+                        Enter a URL or upload a file (recommended size: 32x32px, .ico or .png)
                       </p>
                     )}
 

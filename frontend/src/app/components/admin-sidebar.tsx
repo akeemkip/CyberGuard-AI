@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import {
-  Shield,
   Users,
   BookOpen,
   BarChart3,
@@ -9,6 +8,8 @@ import {
   LogOut,
   Activity,
 } from "lucide-react";
+import { usePlatformSettings } from "../context/PlatformSettingsContext";
+import { PlatformLogo } from "./PlatformLogo";
 
 interface AdminSidebarProps {
   userEmail: string;
@@ -19,6 +20,7 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ userEmail, currentPage, onNavigate, onLogout }: AdminSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { settings: platformSettings } = usePlatformSettings();
 
   const menuItems = [
     { id: "admin-dashboard", label: "Overview", icon: BarChart3 },
@@ -39,15 +41,13 @@ export function AdminSidebar({ userEmail, currentPage, onNavigate, onLogout }: A
       <div className="p-6 flex-1 flex flex-col">
         {/* Logo Section */}
         <div className={`flex items-center gap-2 mb-8 ${isExpanded ? "" : "justify-center"}`}>
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <Shield className="w-6 h-6 text-primary-foreground" />
-          </div>
+          <PlatformLogo className="w-10 h-10 flex-shrink-0" iconClassName="w-6 h-6" />
           <div
             className={`transition-all duration-300 overflow-hidden ${
               isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
             }`}
           >
-            <h2 className="font-semibold whitespace-nowrap">CyberGuard AI</h2>
+            <h2 className="font-semibold whitespace-nowrap">{platformSettings.platformName}</h2>
             <p className="text-xs text-muted-foreground whitespace-nowrap">Admin Panel</p>
           </div>
         </div>

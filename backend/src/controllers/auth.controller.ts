@@ -5,10 +5,10 @@ import { z } from 'zod';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 
-// Validation schemas
-const registerSchema = z.object({
+// Base validation schema (password validation is dynamic based on settings)
+const baseRegisterSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string(), // Min length validated dynamically
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   role: z.enum(['STUDENT', 'ADMIN']).optional()
@@ -19,20 +19,54 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required')
 });
 
-// Generate JWT token
-const generateToken = (userId: string, role: string): string => {
+// Generate JWT token with dynamic session timeout from settings
+const generateToken = async (userId: string, role: string): Promise<string> => {
   const secret = process.env.JWT_SECRET || 'fallback-secret';
-  const expiresIn: string = process.env.JWT_EXPIRES_IN || '7d';
-  return jwt.sign(
-    { userId, role },
-    secret,
-    { expiresIn } as jwt.SignOptions
-  );
+
+  // Fetch session timeout from platform settings
+  try {
+    const settings = await prisma.platformSettings.findUnique({
+      where: { id: 'singleton' },
+      select: { sessionTimeout: true }
+    });
+    const days = settings?.sessionTimeout || 7;
+    return jwt.sign(
+      { userId, role },
+      secret,
+      { expiresIn: `${days}d` } as jwt.SignOptions
+    );
+  } catch (error) {
+    // Fallback to default 7 days if settings fetch fails
+    return jwt.sign(
+      { userId, role },
+      secret,
+      { expiresIn: '7d' } as jwt.SignOptions
+    );
+  }
 };
 
 // Register new user
 export const register = async (req: Request, res: Response) => {
   try {
+    // Fetch minPasswordLength from platform settings
+    let minPasswordLength = 6; // Default
+    try {
+      const settings = await prisma.platformSettings.findUnique({
+        where: { id: 'singleton' },
+        select: { minPasswordLength: true }
+      });
+      if (settings?.minPasswordLength) {
+        minPasswordLength = settings.minPasswordLength;
+      }
+    } catch (err) {
+      console.error('Failed to fetch password settings, using default:', err);
+    }
+
+    // Create dynamic schema with the correct password length
+    const registerSchema = baseRegisterSchema.extend({
+      password: z.string().min(minPasswordLength, `Password must be at least ${minPasswordLength} characters`)
+    });
+
     const validatedData = registerSchema.parse(req.body);
 
     // Check if user already exists
@@ -66,8 +100,8 @@ export const register = async (req: Request, res: Response) => {
       }
     });
 
-    // Generate token
-    const token = generateToken(user.id, user.role);
+    // Generate token (now async)
+    const token = await generateToken(user.id, user.role);
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -110,8 +144,8 @@ export const login = async (req: Request, res: Response) => {
       data: { lastLoginAt: new Date() }
     });
 
-    // Generate token
-    const token = generateToken(user.id, user.role);
+    // Generate token (now async)
+    const token = await generateToken(user.id, user.role);
 
     res.json({
       message: 'Login successful',

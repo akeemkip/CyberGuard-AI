@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 
 // Load environment variables
 dotenv.config();
@@ -13,6 +14,8 @@ import adminRoutes from './routes/admin.routes';
 import aiRoutes from './routes/ai.routes';
 import labRoutes from './routes/lab.routes';
 import settingsRoutes from './routes/settings.routes';
+import { getPublicSettings } from './controllers/settings.controller';
+import { upload, uploadImage, deleteImage } from './controllers/upload.controller';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,10 +27,20 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'CyberGuard API is running' });
 });
+
+// Public settings endpoint (no auth required)
+app.get('/api/settings/public', getPublicSettings);
+
+// File upload endpoint (for logo/favicon)
+app.post('/api/uploads/image', upload.single('image'), uploadImage);
+app.delete('/api/uploads/:filename', deleteImage);
 
 // Routes
 app.use('/api/auth', authRoutes);

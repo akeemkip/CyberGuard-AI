@@ -3,17 +3,19 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { Shield, Moon, Sun, Loader2, AlertCircle, Eye, EyeOff, Check, X } from "lucide-react";
+import { Moon, Sun, Loader2, AlertCircle, Eye, EyeOff, Check, X } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
+import { usePlatformSettings } from "../context/PlatformSettingsContext";
+import { PlatformLogo } from "./PlatformLogo";
 
 // Password strength calculator
-const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+const getPasswordStrength = (password: string, minLength: number): { score: number; label: string; color: string } => {
   let score = 0;
 
-  if (password.length >= 6) score++;
-  if (password.length >= 8) score++;
-  if (password.length >= 12) score++;
+  if (password.length >= minLength) score++;
+  if (password.length >= minLength + 2) score++;
+  if (password.length >= minLength + 6) score++;
   if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
   if (/\d/.test(password)) score++;
   if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
@@ -36,6 +38,7 @@ export function RegisterPage({
 }) {
   const { theme, toggleTheme } = useTheme();
   const { register, isLoading, error, clearError } = useAuth();
+  const { settings: platformSettings } = usePlatformSettings();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -48,7 +51,8 @@ export function RegisterPage({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Computed values
-  const passwordStrength = useMemo(() => getPasswordStrength(formData.password), [formData.password]);
+  const minPasswordLength = platformSettings.minPasswordLength || 6;
+  const passwordStrength = useMemo(() => getPasswordStrength(formData.password, minPasswordLength), [formData.password, minPasswordLength]);
   const emailValid = useMemo(() => isValidEmail(formData.email), [formData.email]);
   const emailTouched = formData.email.length > 0;
 
@@ -62,8 +66,8 @@ export function RegisterPage({
       return;
     }
 
-    if (formData.password.length < 6) {
-      setValidationError("Password must be at least 6 characters");
+    if (formData.password.length < minPasswordLength) {
+      setValidationError(`Password must be at least ${minPasswordLength} characters`);
       return;
     }
 
@@ -96,10 +100,8 @@ export function RegisterPage({
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => onNavigate("landing")}
           >
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-semibold">CyberGuard AI</span>
+            <PlatformLogo className="w-10 h-10" iconClassName="w-6 h-6" />
+            <span className="text-xl font-semibold">{platformSettings.platformName}</span>
           </div>
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
             {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
@@ -216,7 +218,7 @@ export function RegisterPage({
                       </p>
                     </div>
                   )}
-                  <p className="text-xs text-muted-foreground">Use 8+ characters with uppercase, numbers & symbols for a stronger password</p>
+                  <p className="text-xs text-muted-foreground">Use {minPasswordLength}+ characters with uppercase, numbers & symbols for a stronger password</p>
                 </div>
 
                 <div className="space-y-2">

@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { SettingsProvider } from "./context/SettingsContext";
+import { PlatformSettingsProvider } from "./context/PlatformSettingsContext";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LandingPage } from "./components/landing-page";
 import { LoginPage } from "./components/login-page";
@@ -505,15 +506,17 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <SettingsProvider>
-          <ErrorBoundary>
-            <AppContent />
-          </ErrorBoundary>
-          <Toaster richColors position="top-right" duration={2000} />
-        </SettingsProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <PlatformSettingsProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <SettingsProvider>
+            <ErrorBoundary>
+              <AppContent />
+            </ErrorBoundary>
+            <Toaster richColors position="top-right" duration={2000} />
+          </SettingsProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </PlatformSettingsProvider>
   );
 }
