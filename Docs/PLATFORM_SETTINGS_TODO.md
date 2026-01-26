@@ -2,7 +2,7 @@
 
 > **Last Updated:** January 26, 2026
 > **Component:** Admin Settings Page (`frontend/src/app/components/admin-settings.tsx`)
-> **Status:** 5/22 Complete (23%)
+> **Status:** 7/22 Complete (32%)
 
 ---
 
@@ -14,23 +14,25 @@ This document tracks all identified issues, missing features, and improvements n
 
 ## Progress Summary
 
-### Completed (5/22 - 23%)
+### Completed (7/22 - 32%)
 - ✅ #1: Settings Persistence (cf7a4aa)
 - ✅ #2: SMTP Password Field (cf7a4aa)
+- ✅ #3: Settings Apply to Platform (0d22cb9)
 - ✅ #4: Backend Integration (16b0f41)
 - ✅ #5: Input Validation (cf7a4aa)
+- ✅ #6: Apply Settings Dynamically (0d22cb9)
 - ✅ #8: Preview Functionality (7e43829)
 
 ### In Progress
-- 🔄 **Phase 2: Backend Integration** (1/3 complete)
+- 🔄 **Phase 2: Backend Integration** (3/3 complete)
 
 ### Next Priority
-- ⏳ #6: Apply Settings Dynamically (5-6 hours)
 - 🔜 #9: Settings Security Improvements (4 hours)
+- 🔜 #7: Test Email Functionality (2 hours)
 
 ### By Phase
 - **Phase 1:** ✅ Complete (4/4 items)
-- **Phase 2:** 🔄 In Progress (1/3 items)
+- **Phase 2:** ✅ Complete (3/3 items)
 - **Phase 3:** Not Started (4 items)
 - **Phase 4:** Not Started (10 items)
 
@@ -53,20 +55,21 @@ This document tracks all identified issues, missing features, and improvements n
 - **Result:** SMTP configuration now complete with host, port, username, and password
 
 ### 3. Settings Don't Actually Apply
-- **Status:** ❌ Not Started
-- **Problem:** Settings are saved but don't affect the platform behavior
-- **Non-functional Settings:**
-  - Primary color doesn't change theme colors
-  - Logo/Favicon URLs don't update the actual logo/favicon
-  - Custom CSS isn't injected into the page
-  - Min password length not enforced on registration
-  - Default quiz passing score not used in quiz creation
-  - Session timeout not enforced
-  - Max login attempts not tracked
-- **Impact:** Settings page is essentially decorative
-- **Fix:** Need to implement settings application throughout the app
-- **Estimated Effort:** 4-6 hours
-- **Dependencies:** Backend integration, global state management
+- **Status:** ✅ Complete
+- **Completed:** January 26, 2026
+- **Solution:** Created PlatformSettingsContext and updated all components
+- **Implemented Settings:**
+  - ✅ Primary color changes theme colors (CSS variables)
+  - ✅ Logo URL updates with fallback to Shield icon
+  - ✅ Favicon URL updates with restore-to-default support
+  - ✅ Custom CSS injected into page
+  - ✅ Min password length enforced on registration (frontend + backend)
+  - ✅ Session timeout enforced via JWT expiration
+  - ✅ Platform name updates throughout app
+  - ⏳ Default quiz passing score (not yet implemented)
+  - ⏳ Max login attempts (not yet implemented)
+- **Commit:** 0d22cb9
+- **Bonus:** Added file upload for logo/favicon images
 
 ---
 
@@ -104,18 +107,23 @@ This document tracks all identified issues, missing features, and improvements n
 - **Result:** All 11 validated fields show real-time feedback, prevents saving invalid data
 
 ### 6. Apply Settings Dynamically
-- **Status:** ❌ Not Started
-- **Problem:** Saved settings don't affect the platform
-- **Implementation Areas:**
-  - **Primary Color:** Inject CSS variables dynamically
-  - **Logo/Favicon:** Update document head dynamically
-  - **Custom CSS:** Inject style tag into document
-  - **Platform Name:** Update throughout app (header, title, etc.)
-  - **Min Password Length:** Enforce in registration validation
-  - **Session Timeout:** Implement JWT expiration based on setting
-  - **Default Passing Score:** Use when creating new quizzes
-- **Estimated Effort:** 5-6 hours
-- **Dependencies:** Settings persistence, backend integration
+- **Status:** ✅ Complete
+- **Completed:** January 26, 2026
+- **Solution:** Full dynamic settings implementation
+- **Implementation Details:**
+  - ✅ **Primary Color:** CSS variables (--primary, --ring, --sidebar-primary, --chart-1)
+  - ✅ **Logo:** PlatformLogo component with image URL + Shield fallback
+  - ✅ **Favicon:** Dynamic update with restore-to-default on clear
+  - ✅ **Custom CSS:** Injected via `<style id="platform-custom-css">` tag
+  - ✅ **Platform Name:** Document title + all page headers
+  - ✅ **Min Password Length:** Backend Zod validation + frontend validation
+  - ✅ **Session Timeout:** JWT expiration from DB setting
+  - ⏳ **Default Passing Score:** Not yet implemented (use when creating quizzes)
+- **Commit:** 0d22cb9
+- **Files Created:**
+  - `frontend/src/app/context/PlatformSettingsContext.tsx`
+  - `frontend/src/app/components/PlatformLogo.tsx`
+  - `backend/src/controllers/upload.controller.ts`
 
 ---
 
@@ -342,10 +350,10 @@ These features are currently functioning correctly:
 - [x] Add input validation (#5) ✅
 - [x] Add settings preview (#8) ✅
 
-### Phase 2: Backend Integration (Week 2) 🔄 IN PROGRESS (1/3)
+### Phase 2: Backend Integration (Week 2) ✅ COMPLETE
 - [x] Create backend API (#4) ✅
-- [ ] Apply settings dynamically (#6) ⏳ NEXT
-- [ ] Implement settings security (#9)
+- [x] Apply settings dynamically (#6) ✅
+- [ ] Implement settings security (#9) ⏳ NEXT
 
 ### Phase 3: Enhanced Features (Week 3)
 - [ ] Test email functionality (#7)
@@ -370,11 +378,11 @@ After implementing fixes, verify:
 - [x] Settings sync across browser tabs ✅
 - [x] Invalid inputs show error messages ✅
 - [ ] SMTP test email works
-- [ ] Primary color changes apply to theme
-- [ ] Logo/favicon updates work
-- [ ] Custom CSS applies correctly
-- [ ] Password length enforced on registration
-- [ ] Session timeout works as configured
+- [x] Primary color changes apply to theme ✅
+- [x] Logo/favicon updates work ✅
+- [x] Custom CSS applies correctly ✅
+- [x] Password length enforced on registration ✅
+- [x] Session timeout works as configured ✅
 - [ ] Export/import settings works
 - [ ] Factory reset works
 - [ ] Audit log tracks all changes
@@ -388,20 +396,23 @@ After implementing fixes, verify:
 ### Current State (January 26, 2026)
 - ✅ Settings stored in PostgreSQL database via PlatformSettings model
 - ✅ Backend API endpoints exist: GET/PUT /api/admin/settings
+- ✅ Public settings endpoint: GET /api/settings/public (no auth)
 - ✅ Frontend integrated with backend API (no more localStorage)
 - ✅ SMTP configuration complete (host, port, user, password)
 - ✅ Input validation working for all fields
 - ✅ Preview functionality showing real-time changes
-- ⚠️ Most settings are still cosmetic (don't affect platform behavior yet)
-- ⚠️ Backend server needs restart for Prisma client regeneration
-- 🔜 Next: Apply settings dynamically throughout the platform
+- ✅ Settings apply dynamically (colors, logo, favicon, CSS, platform name)
+- ✅ File upload for logo/favicon with local storage
+- ✅ Password validation uses DB minPasswordLength
+- ✅ JWT expiration uses DB sessionTimeout
+- 🔜 Next: Test email functionality, settings security
 
 ### Technical Debt
-- Settings don't actually apply to platform behavior (Item #3, #6)
 - SMTP password stored in database (consider encryption for #9)
 - No email service implementation yet
 - No settings audit log
-- Custom CSS not yet injected into page
+- Default quiz passing score not yet used
+- Max login attempts not yet tracked
 
 ---
 

@@ -22,7 +22,7 @@ import {
   Trophy,
   AlertTriangle
 } from "lucide-react";
-import courseService, { LabDetails, LabType } from "../services/course.service";
+import courseService, { LabDetails } from "../services/course.service";
 import { PhishingEmailConfig, SuspiciousLinksConfig, PasswordStrengthConfig, SocialEngineeringConfig } from "../services/admin.service";
 import { PhishingEmailSimulation } from "./lab-templates/PhishingEmailSimulation";
 import { SuspiciousLinksSimulation } from "./lab-templates/SuspiciousLinksSimulation";
@@ -55,7 +55,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
 
   // Timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isTimerRunning) {
       interval = setInterval(() => {
         setElapsedTime(prev => prev + 1);
@@ -68,7 +68,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
 
   // Auto-save notes every 30 seconds when timer is running (for CONTENT labs)
   useEffect(() => {
-    let saveInterval: NodeJS.Timeout;
+    let saveInterval: ReturnType<typeof setInterval> | undefined;
     const currentLabType = labData?.lab?.labType || 'CONTENT';
     if (isTimerRunning && currentLabType === 'CONTENT' && labData?.progress && notes !== (labData.progress.notes || "")) {
       saveInterval = setInterval(() => {
@@ -291,7 +291,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
         <div className="relative">
           {labType === 'PHISHING_EMAIL' && lab.simulationConfig && (
             <PhishingEmailSimulation
-              config={lab.simulationConfig as PhishingEmailConfig}
+              config={lab.simulationConfig as unknown as PhishingEmailConfig}
               passingScore={lab.passingScore}
               onComplete={handleSimulationComplete}
             />
@@ -299,7 +299,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
 
           {labType === 'SUSPICIOUS_LINKS' && lab.simulationConfig && (
             <SuspiciousLinksSimulation
-              config={lab.simulationConfig as SuspiciousLinksConfig}
+              config={lab.simulationConfig as unknown as SuspiciousLinksConfig}
               passingScore={lab.passingScore}
               onComplete={handleSimulationComplete}
             />
@@ -307,7 +307,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
 
           {labType === 'PASSWORD_STRENGTH' && lab.simulationConfig && (
             <PasswordStrengthSimulation
-              config={lab.simulationConfig as PasswordStrengthConfig}
+              config={lab.simulationConfig as unknown as PasswordStrengthConfig}
               passingScore={lab.passingScore}
               onComplete={handleSimulationComplete}
             />
@@ -315,7 +315,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
 
           {labType === 'SOCIAL_ENGINEERING' && lab.simulationConfig && (
             <SocialEngineeringSimulation
-              config={lab.simulationConfig as SocialEngineeringConfig}
+              config={lab.simulationConfig as unknown as SocialEngineeringConfig}
               passingScore={lab.passingScore}
               onComplete={handleSimulationComplete}
             />
