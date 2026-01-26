@@ -40,6 +40,9 @@ const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-p
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
 
+// Admin-only pages (require ADMIN role)
+const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-analytics", "admin-settings"];
+
 // Guest pages that should persist on refresh (not landing - that's the default)
 const persistableGuestPages: Page[] = ["login", "register", "reset-password"];
 
@@ -120,6 +123,7 @@ function AppContent() {
       isInitializing,
       isAuthenticated,
       user: user?.email,
+      userRole: user?.role,
       currentPage
     });
 
@@ -132,15 +136,33 @@ function AppContent() {
 
     if (isAuthenticated && user) {
       // User is logged in
-      console.log('[App] User is authenticated');
+      console.log('[App] User is authenticated, role:', user.role);
+      const isAdmin = user.role === "ADMIN";
+      const defaultDashboard = isAdmin ? "admin-dashboard" : "student-dashboard";
+
+      // Check if user is trying to access admin pages without admin role
+      if (!isAdmin && adminOnlyPages.includes(currentPage)) {
+        console.log('[App] Non-admin user trying to access admin page, redirecting to student dashboard');
+        setCurrentPage("student-dashboard");
+        localStorage.setItem("currentPage", "student-dashboard");
+        window.history.replaceState({ page: "student-dashboard" }, "", window.location.pathname);
+        setIsInitialized(true);
+        return;
+      }
+
       if (guestPages.includes(currentPage)) {
         // If on a guest page (landing, login, register), redirect to appropriate dashboard
-        const defaultDashboard = user.role === "ADMIN" ? "admin-dashboard" : "student-dashboard";
         console.log('[App] On guest page, redirecting to dashboard:', defaultDashboard);
         // If they had a saved protected page, go there; otherwise go to dashboard
         if (savedPage && protectedPages.includes(savedPage)) {
-          console.log('[App] Found saved protected page:', savedPage);
-          setCurrentPage(savedPage);
+          // But make sure they can access the saved page based on their role
+          if (!isAdmin && adminOnlyPages.includes(savedPage)) {
+            console.log('[App] Saved page is admin-only, going to student dashboard instead');
+            setCurrentPage("student-dashboard");
+          } else {
+            console.log('[App] Found saved protected page:', savedPage);
+            setCurrentPage(savedPage);
+          }
         } else {
           console.log('[App] No saved page, going to default dashboard');
           setCurrentPage(defaultDashboard);
@@ -184,8 +206,20 @@ function AppContent() {
     const handlePopState = (event: PopStateEvent) => {
       console.log('[App] popstate event triggered:', event.state);
       if (event.state?.page) {
+        const targetPage = event.state.page as Page;
+
+        // Security check: prevent non-admin users from navigating to admin pages via history
+        const isAdmin = user?.role === "ADMIN";
+        if (!isAdmin && adminOnlyPages.includes(targetPage)) {
+          console.log('[App] ⛔ Non-admin user attempted to navigate to admin page via history:', targetPage);
+          // Redirect to student dashboard instead
+          window.history.replaceState({ page: "student-dashboard" }, "", window.location.pathname);
+          setCurrentPage("student-dashboard");
+          return;
+        }
+
         console.log('[App] History state has page, navigating to:', event.state.page);
-        setCurrentPage(event.state.page as Page);
+        setCurrentPage(targetPage);
         if (event.state.idParam) {
           const page = event.state.page as Page;
           if (page === "course-player") {
@@ -259,6 +293,13 @@ function AppContent() {
     console.log('[App] 🔄 handleNavigate called:', { from: currentPage, to: page, idParam });
 
     const pageAsType = page as Page;
+
+    // Security check: prevent non-admin users from navigating to admin pages
+    const isAdmin = user?.role === "ADMIN";
+    if (!isAdmin && adminOnlyPages.includes(pageAsType)) {
+      console.log('[App] ⛔ Non-admin user attempted to navigate to admin page:', page);
+      return; // Block navigation
+    }
 
     // For transient pages, ensure we have a parent in history
     // (only if we're not coming from the parent page itself)

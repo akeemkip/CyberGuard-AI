@@ -290,3 +290,19 @@ model PlatformSettings {
 
   @@map("platform_settings")
 }
+
+model SettingsAuditLog {
+  id          String   @id @default(uuid())
+  adminId     String
+  adminEmail  String
+  action      String   @default("UPDATE")
+  fieldName   String
+  oldValue    String?
+  newValue    String?
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([timestamp])
+  @@map("settings_audit_log")
+}

@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import {
   getPlatformSettings,
-  updatePlatformSettings
+  updatePlatformSettings,
+  getSettingsAuditLogs,
+  testEmailSettings
 } from '../controllers/settings.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -16,5 +18,11 @@ router.get('/', getPlatformSettings);
 
 // PUT /api/admin/settings - Update platform settings
 router.put('/', updatePlatformSettings);
+
+// GET /api/admin/settings/audit-log - Get settings change audit log
+router.get('/audit-log', getSettingsAuditLogs);
+
+// POST /api/admin/settings/test-email - Send test email to verify SMTP
+router.post('/test-email', testEmailSettings);
 
 export default router;

@@ -33,6 +33,7 @@ export interface PlatformSettings {
   smtpPort: string;
   smtpUser: string;
   smtpPassword: string;
+  hasSmtpPassword?: boolean;
   // Appearance
   primaryColor: string;
   logoUrl: string;
@@ -40,6 +41,26 @@ export interface PlatformSettings {
   customCss: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SettingsAuditLogEntry {
+  id: string;
+  adminId: string;
+  adminEmail: string;
+  action: string;
+  fieldName: string;
+  oldValue: string | null;
+  newValue: string | null;
+  ipAddress: string | null;
+  timestamp: string;
+}
+
+export interface SettingsAuditLogResponse {
+  entries: SettingsAuditLogEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+  fields: string[];
 }
 
 export interface AdminStats {
@@ -704,6 +725,27 @@ const adminService = {
   async updatePlatformSettings(settings: Partial<PlatformSettings>): Promise<PlatformSettings> {
     const response = await api.put<{ settings: PlatformSettings }>('/admin/settings', settings);
     return response.data.settings;
+  },
+
+  // Settings Audit Log
+  async getSettingsAuditLog(
+    limit: number = 50,
+    offset: number = 0,
+    field?: string
+  ): Promise<SettingsAuditLogResponse> {
+    const params: Record<string, string | number> = { limit, offset };
+    if (field) params.field = field;
+    const response = await api.get<SettingsAuditLogResponse>('/admin/settings/audit-log', { params });
+    return response.data;
+  },
+
+  // Test Email
+  async sendTestEmail(email: string): Promise<{ success: boolean; message: string; details?: string }> {
+    const response = await api.post<{ success: boolean; message: string; details?: string }>(
+      '/admin/settings/test-email',
+      { email }
+    );
+    return response.data;
   }
 };
 

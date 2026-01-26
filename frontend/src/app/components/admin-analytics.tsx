@@ -1625,6 +1625,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
                 max={customEndDate || new Date().toISOString().split('T')[0]}
+                className="dark:[color-scheme:dark]"
               />
             </div>
             <div className="space-y-2">
@@ -1636,6 +1637,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 onChange={(e) => setCustomEndDate(e.target.value)}
                 min={customStartDate}
                 max={new Date().toISOString().split('T')[0]}
+                className="dark:[color-scheme:dark]"
               />
             </div>
           </div>

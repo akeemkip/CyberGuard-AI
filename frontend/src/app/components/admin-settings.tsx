@@ -24,15 +24,21 @@ import {
   Users as UsersIcon,
   Mail,
   Palette,
-  Bell,
   Loader2,
   Upload,
-  X
+  X,
+  History,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+  Send,
+  AlertCircle
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
 import { toast } from "sonner";
-import adminService, { PlatformSettings as  APIPlatformSettings } from "../services/admin.service";
+import adminService, { PlatformSettings as APIPlatformSettings, SettingsAuditLogEntry } from "../services/admin.service";
 
 interface AdminSettingsProps {
   userEmail: string;
@@ -76,6 +82,7 @@ interface PlatformSettings {
   smtpPort: string;
   smtpUser: string;
   smtpPassword: string;
+  hasSmtpPassword?: boolean;
 
   // Appearance
   primaryColor: string;
@@ -94,6 +101,19 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   });
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+
+  // Audit log state
+  const [auditLog, setAuditLog] = useState<SettingsAuditLogEntry[]>([]);
+  const [auditLogTotal, setAuditLogTotal] = useState(0);
+  const [auditLogOffset, setAuditLogOffset] = useState(0);
+  const [auditLogField, setAuditLogField] = useState<string>("");
+  const [auditLogFields, setAuditLogFields] = useState<string[]>([]);
+  const [loadingAuditLog, setLoadingAuditLog] = useState(false);
+  const AUDIT_LOG_LIMIT = 50;
+
+  // Test email state
+  const [testEmailAddress, setTestEmailAddress] = useState("");
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   // Initialize with default settings
   const [settings, setSettings] = useState<PlatformSettings>({
@@ -153,6 +173,32 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     };
     loadSettings();
   }, []);
+
+  // Load audit log when tab is active or filters change
+  const loadAuditLog = async () => {
+    setLoadingAuditLog(true);
+    try {
+      const data = await adminService.getSettingsAuditLog(
+        AUDIT_LOG_LIMIT,
+        auditLogOffset,
+        auditLogField || undefined
+      );
+      setAuditLog(data.entries);
+      setAuditLogTotal(data.total);
+      setAuditLogFields(data.fields);
+    } catch (error) {
+      console.error('Error loading audit log:', error);
+      toast.error('Failed to load audit log');
+    } finally {
+      setLoadingAuditLog(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'audit') {
+      loadAuditLog();
+    }
+  }, [activeTab, auditLogOffset, auditLogField]);
 
   // Restore tab from browser history state on mount
   useEffect(() => {
@@ -326,6 +372,65 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     }
   };
 
+  const handleSendTestEmail = async () => {
+    if (!testEmailAddress) {
+      toast.error("Please enter an email address");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(testEmailAddress)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    // Check if SMTP is configured
+    if (!settings.smtpHost || !settings.smtpUser || !settings.hasSmtpPassword) {
+      toast.error("Please configure and save SMTP settings first");
+      return;
+    }
+
+    setSendingTestEmail(true);
+    try {
+      const result = await adminService.sendTestEmail(testEmailAddress);
+      if (result.success) {
+        toast.success(
+          <div>
+            <div className="font-semibold">{result.message}</div>
+            {result.details && (
+              <div className="text-sm mt-1 opacity-90">{result.details}</div>
+            )}
+          </div>,
+          { duration: 5000 }
+        );
+      } else {
+        toast.error(
+          <div>
+            <div className="font-semibold">{result.message || "Failed to send test email"}</div>
+            {result.details && (
+              <div className="text-sm mt-1 opacity-90">{result.details}</div>
+            )}
+          </div>,
+          { duration: 6000 }
+        );
+      }
+    } catch (error: any) {
+      const errorData = error.response?.data;
+      toast.error(
+        <div>
+          <div className="font-semibold">{errorData?.error || "Failed to send test email"}</div>
+          {errorData?.details && (
+            <div className="text-sm mt-1 opacity-90">{errorData.details}</div>
+          )}
+        </div>,
+        { duration: 6000 }
+      );
+    } finally {
+      setSendingTestEmail(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -381,7 +486,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
         {/* Content */}
         <main className="flex-1 overflow-auto p-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-8">
+            <TabsList className="grid w-full grid-cols-7 mb-8">
               <TabsTrigger value="general">
                 <Settings className="w-4 h-4 mr-2" />
                 General
@@ -405,6 +510,10 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
               <TabsTrigger value="appearance">
                 <Palette className="w-4 h-4 mr-2" />
                 Appearance
+              </TabsTrigger>
+              <TabsTrigger value="audit">
+                <History className="w-4 h-4 mr-2" />
+                Audit Log
               </TabsTrigger>
             </TabsList>
 
@@ -872,17 +981,90 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       </div>
                       <div>
                         <Label htmlFor="smtpPassword">SMTP Password</Label>
-                        <Input
-                          id="smtpPassword"
-                          type="password"
-                          value={settings.smtpPassword}
-                          onChange={(e) => handleChange("smtpPassword", e.target.value)}
-                          placeholder="••••••••••••"
-                        />
+                        <div className="flex gap-2">
+                          <div className="flex-1 relative">
+                            <Input
+                              id="smtpPassword"
+                              type="password"
+                              value={settings.smtpPassword}
+                              onChange={(e) => handleChange("smtpPassword", e.target.value)}
+                              placeholder={settings.hasSmtpPassword ? "Enter new password to change" : "Enter SMTP password"}
+                            />
+                            {settings.hasSmtpPassword && settings.smtpPassword === "••••••••" && (
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-green-600">
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="text-xs font-medium">Set</span>
+                              </div>
+                            )}
+                          </div>
+                          {settings.hasSmtpPassword && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                handleChange("smtpPassword", "");
+                                setSettings(prev => ({ ...prev, hasSmtpPassword: false }));
+                              }}
+                              title="Clear SMTP password"
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Password for SMTP authentication
+                          {settings.hasSmtpPassword
+                            ? "Password is encrypted and stored securely. Enter a new password to change it, or click the trash icon to clear."
+                            : "Password for SMTP authentication (will be encrypted)"}
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Test Email Section */}
+                  <div className="border-t pt-6 mt-6">
+                    <h3 className="font-semibold mb-4">Test Email Configuration</h3>
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Send a test email to verify your SMTP configuration is working correctly.
+                        Make sure to save your settings before testing.
+                      </p>
+                      <div className="flex gap-3">
+                        <div className="flex-1">
+                          <Input
+                            type="email"
+                            placeholder="Enter email address to send test to"
+                            value={testEmailAddress}
+                            onChange={(e) => setTestEmailAddress(e.target.value)}
+                            disabled={sendingTestEmail}
+                          />
+                        </div>
+                        <Button
+                          onClick={handleSendTestEmail}
+                          disabled={sendingTestEmail || !settings.smtpHost || !settings.smtpUser || !settings.hasSmtpPassword}
+                          className="min-w-[140px]"
+                        >
+                          {sendingTestEmail ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4 mr-2" />
+                              Send Test Email
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      {(!settings.smtpHost || !settings.smtpUser || !settings.hasSmtpPassword) && (
+                        <div className="flex items-center gap-2 mt-3 text-amber-600 dark:text-amber-500">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="text-sm">
+                            Please configure and save all SMTP settings before testing.
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1129,6 +1311,148 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     </p>
                   </div>
                 </div>
+              </Card>
+            </TabsContent>
+
+            {/* Audit Log */}
+            <TabsContent value="audit">
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold">Settings Audit Log</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Track all changes made to platform settings
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Select
+                      value={auditLogField || "all"}
+                      onValueChange={(value) => {
+                        setAuditLogField(value === "all" ? "" : value);
+                        setAuditLogOffset(0);
+                      }}
+                    >
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Filter by field" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All fields</SelectItem>
+                        {auditLogFields.map((field) => (
+                          <SelectItem key={field} value={field}>
+                            {field}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadAuditLog}
+                      disabled={loadingAuditLog}
+                    >
+                      {loadingAuditLog ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RotateCcw className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {loadingAuditLog ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : auditLog.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No audit log entries found</p>
+                    <p className="text-sm">Changes to settings will appear here</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="border rounded-lg overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-left px-4 py-3 text-sm font-medium">Timestamp</th>
+                            <th className="text-left px-4 py-3 text-sm font-medium">Admin</th>
+                            <th className="text-left px-4 py-3 text-sm font-medium">Field</th>
+                            <th className="text-left px-4 py-3 text-sm font-medium">Old Value</th>
+                            <th className="text-left px-4 py-3 text-sm font-medium">New Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {auditLog.map((entry) => (
+                            <tr key={entry.id} className="hover:bg-muted/30">
+                              <td className="px-4 py-3 text-sm">
+                                {new Date(entry.timestamp).toLocaleString()}
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <span className="font-medium">{entry.adminEmail}</span>
+                                {entry.ipAddress && (
+                                  <span className="text-muted-foreground ml-2 text-xs">
+                                    ({entry.ipAddress})
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <code className="px-2 py-1 bg-muted rounded text-xs">
+                                  {entry.fieldName}
+                                </code>
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <span className={`${
+                                  entry.oldValue === '[REDACTED]' || entry.oldValue === '[SET]' || entry.oldValue === '[EMPTY]'
+                                    ? 'text-muted-foreground italic'
+                                    : ''
+                                } max-w-[200px] truncate block`}>
+                                  {entry.oldValue || '-'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <span className={`${
+                                  entry.newValue === '[REDACTED]' || entry.newValue === '[SET]' || entry.newValue === '[EMPTY]'
+                                    ? 'text-muted-foreground italic'
+                                    : ''
+                                } max-w-[200px] truncate block`}>
+                                  {entry.newValue || '-'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between mt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {auditLogOffset + 1}-{Math.min(auditLogOffset + AUDIT_LOG_LIMIT, auditLogTotal)} of {auditLogTotal} entries
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAuditLogOffset(Math.max(0, auditLogOffset - AUDIT_LOG_LIMIT))}
+                          disabled={auditLogOffset === 0}
+                        >
+                          <ChevronLeft className="w-4 h-4 mr-1" />
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAuditLogOffset(auditLogOffset + AUDIT_LOG_LIMIT)}
+                          disabled={auditLogOffset + AUDIT_LOG_LIMIT >= auditLogTotal}
+                        >
+                          Next
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </Card>
             </TabsContent>
           </Tabs>

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { useAuth } from './AuthContext';
 
 interface Settings {
   emailNotifications: boolean;
@@ -27,13 +28,22 @@ const defaultSettings: Settings = {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
+  const { user, isAuthenticated } = useAuth();
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [savedSettings, setSavedSettings] = useState<Settings>(defaultSettings);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Load settings from backend on mount
+  // Load settings from backend when user changes
   useEffect(() => {
     const fetchSettings = async () => {
+      // Reset to defaults if not authenticated
+      if (!isAuthenticated || !user) {
+        setSettings(defaultSettings);
+        setSavedSettings(defaultSettings);
+        setHasUnsavedChanges(false);
+        return;
+      }
+
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
@@ -49,31 +59,22 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
           const merged = { ...defaultSettings, ...data.settings };
           setSettings(merged);
           setSavedSettings(merged);
+          setHasUnsavedChanges(false);
         } else {
-          // Fallback to localStorage if backend fails
-          const localSettings = localStorage.getItem('cyberguard-settings');
-          if (localSettings) {
-            const parsed = JSON.parse(localSettings);
-            const merged = { ...defaultSettings, ...parsed };
-            setSettings(merged);
-            setSavedSettings(merged);
-          }
+          // Reset to defaults on error
+          setSettings(defaultSettings);
+          setSavedSettings(defaultSettings);
         }
       } catch (error) {
         console.error('Failed to fetch settings:', error);
-        // Fallback to localStorage if backend fails
-        const localSettings = localStorage.getItem('cyberguard-settings');
-        if (localSettings) {
-          const parsed = JSON.parse(localSettings);
-          const merged = { ...defaultSettings, ...parsed };
-          setSettings(merged);
-          setSavedSettings(merged);
-        }
+        // Reset to defaults on error
+        setSettings(defaultSettings);
+        setSavedSettings(defaultSettings);
       }
     };
 
     fetchSettings();
-  }, []);
+  }, [user?.id, isAuthenticated]); // Re-fetch when user changes
 
   // Check for unsaved changes whenever settings change
   useEffect(() => {
@@ -98,44 +99,29 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      // Save to backend API
-      const response = await fetch('http://localhost:3000/api/users/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(settings)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
-      }
-
-      const data = await response.json();
-
-      // Save to localStorage as backup
-      localStorage.setItem('cyberguard-settings', JSON.stringify(settings));
-      setSavedSettings(settings);
-      setHasUnsavedChanges(false);
-
-      return changes as Settings;
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-
-      // Fallback to localStorage only
-      localStorage.setItem('cyberguard-settings', JSON.stringify(settings));
-      setSavedSettings(settings);
-      setHasUnsavedChanges(false);
-
-      return changes as Settings;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Not authenticated');
     }
+
+    // Save to backend API only - no localStorage to avoid cross-user issues
+    const response = await fetch('http://localhost:3000/api/users/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(settings)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save settings');
+    }
+
+    setSavedSettings(settings);
+    setHasUnsavedChanges(false);
+
+    return changes as Settings;
   };
 
   return (
