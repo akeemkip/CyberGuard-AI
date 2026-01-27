@@ -286,9 +286,15 @@ model PlatformSettings {
 
   // Appearance
   primaryColor              String   @default("#3b82f6")
+  secondaryColor            String   @default("#10b981")
+  accentColor               String   @default("#f59e0b")
   logoUrl                   String   @default("")
   favicon                   String   @default("")
   customCss                 String   @default("")
+  fontFamily                String   @default("Inter")
+  fontSize                  String   @default("normal")
+  borderRadius              String   @default("medium")
+  darkModeDefault           Boolean  @default(false)
 
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt

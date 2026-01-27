@@ -12,6 +12,12 @@ const PASSWORD_MASK = '••••••••';
 const defaultPublicSettings = {
   platformName: 'CyberGuard AI',
   primaryColor: '#3b82f6',
+  secondaryColor: '#10b981',
+  accentColor: '#f59e0b',
+  fontFamily: 'Inter',
+  fontSize: 'normal',
+  borderRadius: 'medium',
+  darkModeDefault: false,
   logoUrl: '',
   favicon: '',
   customCss: '',
@@ -27,6 +33,12 @@ export const getPublicSettings = async (req: Request, res: Response) => {
       select: {
         platformName: true,
         primaryColor: true,
+        secondaryColor: true,
+        accentColor: true,
+        fontFamily: true,
+        fontSize: true,
+        borderRadius: true,
+        darkModeDefault: true,
         logoUrl: true,
         favicon: true,
         customCss: true,
@@ -139,6 +151,12 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
 
       // Appearance
       primaryColor,
+      secondaryColor,
+      accentColor,
+      fontFamily,
+      fontSize,
+      borderRadius,
+      darkModeDefault,
       logoUrl,
       favicon,
       customCss,
@@ -204,6 +222,12 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
 
       // Appearance
       ...(primaryColor !== undefined && { primaryColor }),
+      ...(secondaryColor !== undefined && { secondaryColor }),
+      ...(accentColor !== undefined && { accentColor }),
+      ...(fontFamily !== undefined && { fontFamily }),
+      ...(fontSize !== undefined && { fontSize }),
+      ...(borderRadius !== undefined && { borderRadius }),
+      ...(darkModeDefault !== undefined && { darkModeDefault }),
       ...(logoUrl !== undefined && { logoUrl }),
       ...(favicon !== undefined && { favicon }),
       ...(customCss !== undefined && { customCss }),
@@ -253,6 +277,12 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
 
         // Appearance
         primaryColor: primaryColor || '#3b82f6',
+        secondaryColor: secondaryColor || '#10b981',
+        accentColor: accentColor || '#f59e0b',
+        fontFamily: fontFamily || 'Inter',
+        fontSize: fontSize || 'normal',
+        borderRadius: borderRadius || 'medium',
+        darkModeDefault: darkModeDefault ?? false,
         logoUrl: logoUrl || '',
         favicon: favicon || '',
         customCss: customCss || '',
@@ -273,7 +303,8 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
         'defaultUserRole', 'allowSelfRegistration', 'requireProfileCompletion', 'enablePublicProfiles',
         'enableEmailNotifications', 'enableEnrollmentEmails', 'enableCompletionEmails', 'enableWeeklyDigest',
         'smtpHost', 'smtpPort', 'smtpUser',
-        'primaryColor', 'logoUrl', 'favicon', 'customCss',
+        'primaryColor', 'secondaryColor', 'accentColor', 'fontFamily', 'fontSize', 'borderRadius', 'darkModeDefault',
+        'logoUrl', 'favicon', 'customCss',
       ];
 
       for (const field of fieldsToCompare) {

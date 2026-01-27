@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { usePlatformSettings } from "../context/PlatformSettingsContext";
 
 type Theme = "light" | "dark";
 
@@ -10,10 +11,29 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const { settings } = usePlatformSettings();
+  const [initialized, setInitialized] = useState(false);
+
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem("theme");
-    return (stored as Theme) || "light";
+    if (stored) {
+      return stored as Theme;
+    }
+    // Will be updated when settings load
+    return "light";
   });
+
+  // Initialize theme based on platform settings if no user preference exists
+  useEffect(() => {
+    if (!initialized && settings) {
+      const stored = localStorage.getItem("theme");
+      if (!stored) {
+        // No user preference, use platform default
+        setTheme(settings.darkModeDefault ? "dark" : "light");
+      }
+      setInitialized(true);
+    }
+  }, [settings, initialized]);
 
   useEffect(() => {
     const root = document.documentElement;

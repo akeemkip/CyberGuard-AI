@@ -109,9 +109,15 @@ interface PlatformSettings {
 
   // Appearance
   primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
   logoUrl: string;
   favicon: string;
   customCss: string;
+  fontFamily: string;
+  fontSize: string;
+  borderRadius: string;
+  darkModeDefault: boolean;
 }
 
 // Types for import/export feature
@@ -182,6 +188,7 @@ interface ImportPreview {
 }
 
 const BACKUP_KEY = "platform-settings-backup";
+const BACKUP_NOTIFIED_KEY = "platform-settings-backup-notified";
 
 // Factory default settings
 const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
@@ -223,9 +230,15 @@ const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
 
   // Appearance
   primaryColor: "#3b82f6",
+  secondaryColor: "#10b981",
+  accentColor: "#f59e0b",
   logoUrl: "",
   favicon: "",
   customCss: "",
+  fontFamily: "Inter",
+  fontSize: "normal",
+  borderRadius: "medium",
+  darkModeDefault: false,
 };
 
 // Searchable settings index
@@ -349,10 +362,22 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
 
         // Check for pending backup recovery
         const savedBackup = localStorage.getItem(BACKUP_KEY);
-        if (savedBackup) {
+        const hasNotified = localStorage.getItem(BACKUP_NOTIFIED_KEY);
+
+        if (savedBackup && !hasNotified) {
           try {
             const backup = JSON.parse(savedBackup) as PlatformSettings;
             setLastBackup(backup);
+
+            // Mark as notified so it doesn't show again
+            localStorage.setItem(BACKUP_NOTIFIED_KEY, "true");
+
+            const dismissBackup = () => {
+              localStorage.removeItem(BACKUP_KEY);
+              localStorage.removeItem(BACKUP_NOTIFIED_KEY);
+              setLastBackup(null);
+            };
+
             toast.info(
               <div>
                 <div className="font-semibold">Backup Available</div>
@@ -361,15 +386,29 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                 </div>
               </div>,
               {
-                duration: 8000,
+                duration: 10000,
                 action: {
                   label: "Restore",
                   onClick: () => restoreBackup(backup),
+                },
+                cancel: {
+                  label: "Dismiss",
+                  onClick: dismissBackup,
                 },
               }
             );
           } catch {
             localStorage.removeItem(BACKUP_KEY);
+            localStorage.removeItem(BACKUP_NOTIFIED_KEY);
+          }
+        } else if (savedBackup) {
+          // Backup exists but we already notified, just set it in state
+          try {
+            const backup = JSON.parse(savedBackup) as PlatformSettings;
+            setLastBackup(backup);
+          } catch {
+            localStorage.removeItem(BACKUP_KEY);
+            localStorage.removeItem(BACKUP_NOTIFIED_KEY);
           }
         }
       } catch (error) {
@@ -1078,6 +1117,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
 
   const createBackup = () => {
     localStorage.setItem(BACKUP_KEY, JSON.stringify(settings));
+    localStorage.removeItem(BACKUP_NOTIFIED_KEY); // Allow notification for new backup
     setLastBackup(settings);
   };
 
@@ -1157,6 +1197,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       const updatedSettings = await adminService.updatePlatformSettings(backup);
       setSettings(updatedSettings);
       localStorage.removeItem(BACKUP_KEY);
+      localStorage.removeItem(BACKUP_NOTIFIED_KEY);
       setLastBackup(null);
       toast.success("Settings restored from backup");
     } catch (error) {
@@ -2241,6 +2282,72 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     )}
                   </div>
 
+                  {/* Secondary Color */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="secondaryColor">Secondary Color</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Used for success states, confirmations, and secondary actions throughout the platform
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <div className="flex gap-4 items-center">
+                      <Input
+                        id="secondaryColor"
+                        type="color"
+                        value={settings.secondaryColor}
+                        onChange={(e) => handleChange("secondaryColor", e.target.value)}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={settings.secondaryColor}
+                        onChange={(e) => handleChange("secondaryColor", e.target.value)}
+                        placeholder="#10b981"
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Secondary brand color for accents and highlights
+                    </p>
+                  </div>
+
+                  {/* Accent Color */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="accentColor">Accent Color</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Used for warnings, notifications, and attention-grabbing elements
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <div className="flex gap-4 items-center">
+                      <Input
+                        id="accentColor"
+                        type="color"
+                        value={settings.accentColor}
+                        onChange={(e) => handleChange("accentColor", e.target.value)}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={settings.accentColor}
+                        onChange={(e) => handleChange("accentColor", e.target.value)}
+                        placeholder="#f59e0b"
+                        className="flex-1"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Accent color for warnings and highlights
+                    </p>
+                  </div>
+
                   <div>
                     <Label htmlFor="logoUrl">Logo</Label>
                     <div className="flex gap-2">
@@ -2392,6 +2499,122 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Font Family */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="fontFamily">Font Family</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Choose a font family for the entire platform. System fonts load faster, Google Fonts provide more variety.
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Select value={settings.fontFamily} onValueChange={(value) => handleChange("fontFamily", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select font" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Inter">Inter (Default)</SelectItem>
+                        <SelectItem value="system-ui">System UI</SelectItem>
+                        <SelectItem value="Roboto">Roboto</SelectItem>
+                        <SelectItem value="Open Sans">Open Sans</SelectItem>
+                        <SelectItem value="Lato">Lato</SelectItem>
+                        <SelectItem value="Poppins">Poppins</SelectItem>
+                        <SelectItem value="Montserrat">Montserrat</SelectItem>
+                        <SelectItem value="monospace">Monospace</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Font used for all text across the platform
+                    </p>
+                  </div>
+
+                  {/* Font Size */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="fontSize">Font Size</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Adjust the overall text size for better readability or screen space optimization
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Select value={settings.fontSize} onValueChange={(value) => handleChange("fontSize", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="compact">Compact (smaller)</SelectItem>
+                        <SelectItem value="normal">Normal (default)</SelectItem>
+                        <SelectItem value="large">Large (bigger)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Overall text size scaling
+                    </p>
+                  </div>
+
+                  {/* Border Radius */}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="borderRadius">Border Radius</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          Controls the roundness of buttons, cards, and other UI elements
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Select value={settings.borderRadius} onValueChange={(value) => handleChange("borderRadius", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select radius" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None (square)</SelectItem>
+                        <SelectItem value="small">Small</SelectItem>
+                        <SelectItem value="medium">Medium (default)</SelectItem>
+                        <SelectItem value="large">Large</SelectItem>
+                        <SelectItem value="full">Full (pills)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Roundness of UI elements
+                    </p>
+                  </div>
+
+                  {/* Dark Mode Default */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="darkModeDefault">Dark Mode by Default</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            New users will start with dark mode enabled. They can still change it in their preferences.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Set dark mode as the default theme for new users
+                      </p>
+                    </div>
+                    <Switch
+                      id="darkModeDefault"
+                      checked={settings.darkModeDefault}
+                      onCheckedChange={(checked) => handleChange("darkModeDefault", checked)}
+                    />
                   </div>
 
                   <div>

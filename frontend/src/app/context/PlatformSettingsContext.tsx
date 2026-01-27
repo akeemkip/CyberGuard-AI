@@ -3,6 +3,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 export interface PublicPlatformSettings {
   platformName: string;
   primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  fontFamily: string;
+  fontSize: string;
+  borderRadius: string;
+  darkModeDefault: boolean;
   logoUrl: string;
   favicon: string;
   customCss: string;
@@ -18,6 +24,12 @@ interface PlatformSettingsContextType {
 const defaultSettings: PublicPlatformSettings = {
   platformName: 'CyberGuard AI',
   primaryColor: '#3b82f6',
+  secondaryColor: '#10b981',
+  accentColor: '#f59e0b',
+  fontFamily: 'Inter',
+  fontSize: 'normal',
+  borderRadius: 'medium',
+  darkModeDefault: false,
   logoUrl: '',
   favicon: '',
   customCss: '',
@@ -77,6 +89,85 @@ export function PlatformSettingsProvider({ children }: { children: ReactNode }) 
     }
   }, [settings.primaryColor]);
 
+  // Apply secondary color
+  useEffect(() => {
+    if (settings.secondaryColor && isValidHexColor(settings.secondaryColor)) {
+      const root = document.documentElement;
+      root.style.setProperty('--secondary', settings.secondaryColor);
+      root.style.setProperty('--success', settings.secondaryColor);
+      root.style.setProperty('--chart-4', settings.secondaryColor);
+    }
+  }, [settings.secondaryColor]);
+
+  // Apply accent color
+  useEffect(() => {
+    if (settings.accentColor && isValidHexColor(settings.accentColor)) {
+      const root = document.documentElement;
+      root.style.setProperty('--accent', settings.accentColor);
+      root.style.setProperty('--warning', settings.accentColor);
+      root.style.setProperty('--chart-5', settings.accentColor);
+    }
+  }, [settings.accentColor]);
+
+  // Apply font family
+  useEffect(() => {
+    if (settings.fontFamily) {
+      const root = document.documentElement;
+      const body = document.body;
+
+      // Load Google Fonts for non-system fonts
+      const googleFonts = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Montserrat'];
+      if (googleFonts.includes(settings.fontFamily)) {
+        // Check if font link already exists
+        let fontLink = document.getElementById('google-font') as HTMLLinkElement;
+        if (!fontLink) {
+          fontLink = document.createElement('link');
+          fontLink.id = 'google-font';
+          fontLink.rel = 'stylesheet';
+          document.head.appendChild(fontLink);
+        }
+        // Update font URL
+        const fontName = settings.fontFamily.replace(' ', '+');
+        fontLink.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@300;400;500;600;700&display=swap`;
+      }
+
+      // Apply font family to body
+      body.style.fontFamily = settings.fontFamily === 'system-ui'
+        ? 'system-ui, -apple-system, sans-serif'
+        : settings.fontFamily === 'monospace'
+        ? 'ui-monospace, monospace'
+        : `'${settings.fontFamily}', sans-serif`;
+    }
+  }, [settings.fontFamily]);
+
+  // Apply font size
+  useEffect(() => {
+    if (settings.fontSize) {
+      const root = document.documentElement;
+      const fontSizeMap: Record<string, string> = {
+        compact: '14px',
+        normal: '16px',
+        large: '18px',
+      };
+      root.style.setProperty('--font-size', fontSizeMap[settings.fontSize] || '16px');
+    }
+  }, [settings.fontSize]);
+
+  // Apply border radius
+  useEffect(() => {
+    if (settings.borderRadius) {
+      const root = document.documentElement;
+      const radiusMap: Record<string, string> = {
+        none: '0px',
+        small: '0.25rem',
+        medium: '0.625rem',
+        large: '1rem',
+        full: '9999px',
+      };
+      root.style.setProperty('--radius', radiusMap[settings.borderRadius] || '0.625rem');
+    }
+  }, [settings.borderRadius]);
+
   // Apply favicon when it changes, restore default when cleared
   useEffect(() => {
     let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
@@ -119,7 +210,7 @@ export function PlatformSettingsProvider({ children }: { children: ReactNode }) 
 
   return (
     <PlatformSettingsContext.Provider value={{ settings, isLoading }}>
-      {children}
+      {!isLoading && children}
     </PlatformSettingsContext.Provider>
   );
 }
