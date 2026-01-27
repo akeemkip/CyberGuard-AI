@@ -2,8 +2,8 @@
 
 > **Last Updated:** January 27, 2026
 > **Component:** Admin Settings Page (`frontend/src/app/components/admin-settings.tsx`)
-> **Status:** 10/22 Complete (45%)
-> **Latest Commit:** f0e01c0
+> **Status:** 12/22 Complete (55%)
+> **Latest Commit:** 1835482
 
 ---
 
@@ -15,7 +15,7 @@ This document tracks all identified issues, missing features, and improvements n
 
 ## Progress Summary
 
-### Completed (10/22 - 45%)
+### Completed (12/22 - 55%)
 - ✅ #1: Settings Persistence (cf7a4aa)
 - ✅ #2: SMTP Password Field (cf7a4aa)
 - ✅ #3: Settings Apply to Platform (0d22cb9)
@@ -25,19 +25,20 @@ This document tracks all identified issues, missing features, and improvements n
 - ✅ #7: Test Email Functionality (f0e01c0)
 - ✅ #8: Preview Functionality (7e43829)
 - ✅ #9: Settings Security Improvements (f0e01c0)
+- ✅ #10: Import/Export Settings (1835482)
+- ✅ #11: Reset to Factory Defaults (pending commit)
 - ✅ #12: Settings Audit Log (f0e01c0 - merged with #9)
 
 ### In Progress
-- 🔄 **Phase 3: Enhanced Features** (1/4 complete)
+- 🔄 **Phase 3: Enhanced Features** (3/4 complete)
 
 ### Next Priority
-- 🔜 #10: Import/Export Settings (2 hours)
-- 🔜 #11: Reset to Factory Defaults (1 hour)
+- 🔜 #15: Search Settings (2 hours)
 
 ### By Phase
 - **Phase 1:** ✅ Complete (4/4 items)
 - **Phase 2:** ✅ Complete (4/4 items)
-- **Phase 3:** In Progress (1/4 items)
+- **Phase 3:** In Progress (3/4 items)
 - **Phase 4:** 1/10 items (Audit Log completed early)
 
 ---
@@ -196,31 +197,38 @@ This document tracks all identified issues, missing features, and improvements n
   - `frontend/src/app/App.tsx` - Role-based access control
 
 ### 10. Settings Import/Export
-- **Status:** ❌ Not Started
+- **Status:** ✅ Complete
+- **Completed:** January 27, 2026
 - **Problem:** Can't backup or transfer settings
-- **Features:**
-  - [ ] Export settings to JSON file
-  - [ ] Import settings from JSON file
-  - [ ] Validate imported settings structure
-  - [ ] Backup settings before import
-  - [ ] Export/import confirmation dialogs
-- **Estimated Effort:** 2 hours
-- **Dependencies:** None
+- **Solution:** Full import/export implementation
+- **Features Implemented:**
+  - [x] Export settings to JSON file (excludes SMTP password for security)
+  - [x] Import settings from JSON file with validation
+  - [x] Validate imported settings structure, types, and ranges
+  - [x] Backup settings before import (stored in localStorage)
+  - [x] Export confirmation dialog with security note
+  - [x] Import preview dialog with changes diff table
+  - [x] Undo import via toast action
+- **Commit:** 1835482
 
 ---
 
 ## 🟢 Low Priority Enhancements
 
 ### 11. Reset to Factory Defaults
-- **Status:** ❌ Not Started
+- **Status:** ✅ Complete
+- **Completed:** January 27, 2026
 - **Problem:** No way to reset all settings to original defaults
-- **Features:**
-  - [ ] "Reset to Factory Defaults" button
-  - [ ] Confirmation dialog with warning
-  - [ ] Preserve non-resettable settings (API keys, etc.)
-  - [ ] Show diff of what will be reset
-- **Estimated Effort:** 1 hour
-- **Dependencies:** None
+- **Solution:** Full factory reset implementation
+- **Features Implemented:**
+  - [x] "Factory Reset" button in header (styled in destructive color)
+  - [x] Confirmation dialog with warning and changes preview
+  - [x] Option to preserve SMTP configuration (toggle switch)
+  - [x] Show diff table of settings that will be reset
+  - [x] Automatic backup before reset (for undo)
+  - [x] Undo reset via toast action
+  - [x] Disabled button when no changes needed
+- **Commit:** (pending)
 
 ### 12. Settings History/Audit Log
 - **Status:** ✅ Complete (Merged with #9)
@@ -388,9 +396,9 @@ These features are currently functioning correctly:
 
 ### Phase 3: Enhanced Features (Week 3) ⏳ IN PROGRESS
 - [x] Test email functionality (#7) ✅
-- [ ] Import/export settings (#10) 🔜 NEXT
-- [ ] Factory reset (#11)
-- [ ] Search settings (#15)
+- [x] Import/export settings (#10) ✅
+- [x] Factory reset (#11) ✅
+- [ ] Search settings (#15) 🔜 NEXT
 
 ### Phase 4: Advanced Features (Week 4+)
 - [x] Settings audit log (#12) ✅ (Completed with #9)
@@ -414,8 +422,8 @@ After implementing fixes, verify:
 - [x] Custom CSS applies correctly ✅
 - [x] Password length enforced on registration ✅
 - [x] Session timeout works as configured ✅
-- [ ] Export/import settings works
-- [ ] Factory reset works
+- [x] Export/import settings works ✅
+- [x] Factory reset works ✅
 - [x] Audit log tracks all changes ✅
 - [x] SMTP password encrypted in database ✅
 - [x] SMTP password masked in API responses ✅
@@ -444,7 +452,9 @@ After implementing fixes, verify:
 - ✅ JWT expiration uses DB sessionTimeout
 - ✅ Role-based access control (students blocked from admin pages)
 - ✅ Test email functionality with nodemailer
-- 🔜 Next: Import/Export settings (#10)
+- ✅ Import/Export settings with JSON validation and preview
+- ✅ Factory reset with SMTP preservation option
+- 🔜 Next: Search settings (#15)
 
 ### Technical Debt
 - Default quiz passing score not yet used when creating quizzes

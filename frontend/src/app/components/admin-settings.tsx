@@ -180,6 +180,51 @@ interface ImportPreview {
 
 const BACKUP_KEY = "platform-settings-backup";
 
+// Factory default settings
+const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
+  // General
+  platformName: "CyberGuard AI",
+  platformDescription: "Advanced cybersecurity training platform for professionals and enthusiasts",
+  supportEmail: "support@cyberguard.com",
+  contactEmail: "contact@cyberguard.com",
+
+  // Security
+  requireEmailVerification: false,
+  minPasswordLength: 6,
+  sessionTimeout: 7,
+  enableTwoFactor: false,
+  maxLoginAttempts: 5,
+
+  // Course Settings
+  autoEnrollNewUsers: false,
+  defaultCourseVisibility: "public",
+  defaultQuizPassingScore: 70,
+  enableCertificates: true,
+  allowCourseReviews: true,
+
+  // User Settings
+  defaultUserRole: "STUDENT",
+  allowSelfRegistration: true,
+  requireProfileCompletion: false,
+  enablePublicProfiles: false,
+
+  // Email/Notifications
+  enableEmailNotifications: false,
+  enableEnrollmentEmails: true,
+  enableCompletionEmails: true,
+  enableWeeklyDigest: false,
+  smtpHost: "",
+  smtpPort: "587",
+  smtpUser: "",
+  smtpPassword: "",
+
+  // Appearance
+  primaryColor: "#3b82f6",
+  logoUrl: "",
+  favicon: "",
+  customCss: "",
+};
+
 export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettingsProps) {
   const { theme, toggleTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
@@ -212,49 +257,15 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const [lastBackup, setLastBackup] = useState<PlatformSettings | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Factory reset state
+  const [showFactoryResetDialog, setShowFactoryResetDialog] = useState(false);
+  const [preserveSmtpConfig, setPreserveSmtpConfig] = useState(true);
+  const [isResettingToFactory, setIsResettingToFactory] = useState(false);
+  const [factoryResetChanges, setFactoryResetChanges] = useState<SettingChange[]>([]);
+
   // Initialize with default settings
   const [settings, setSettings] = useState<PlatformSettings>({
-    // General
-    platformName: "CyberGuard AI",
-    platformDescription: "Advanced cybersecurity training platform for professionals and enthusiasts",
-    supportEmail: "support@cyberguard.com",
-    contactEmail: "contact@cyberguard.com",
-
-    // Security
-    requireEmailVerification: false,
-    minPasswordLength: 6,
-    sessionTimeout: 7,
-    enableTwoFactor: false,
-    maxLoginAttempts: 5,
-
-    // Course Settings
-    autoEnrollNewUsers: false,
-    defaultCourseVisibility: "public",
-    defaultQuizPassingScore: 70,
-    enableCertificates: true,
-    allowCourseReviews: true,
-
-    // User Settings
-    defaultUserRole: "STUDENT",
-    allowSelfRegistration: true,
-    requireProfileCompletion: false,
-    enablePublicProfiles: false,
-
-    // Email/Notifications
-    enableEmailNotifications: false,
-    enableEnrollmentEmails: true,
-    enableCompletionEmails: true,
-    enableWeeklyDigest: false,
-    smtpHost: "",
-    smtpPort: "587",
-    smtpUser: "",
-    smtpPassword: "",
-
-    // Appearance
-    primaryColor: "#3b82f6",
-    logoUrl: "",
-    favicon: "",
-    customCss: "",
+    ...FACTORY_DEFAULTS,
   });
 
   // Load settings from API on mount and check for backup recovery
@@ -956,6 +967,121 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     }
   };
 
+  // Factory reset functionality
+  const getFactoryResetChanges = (preserveSmtp: boolean): SettingChange[] => {
+    const changes: SettingChange[] = [];
+
+    const fieldCategories: Record<string, string> = {
+      platformName: "General",
+      platformDescription: "General",
+      supportEmail: "General",
+      contactEmail: "General",
+      requireEmailVerification: "Security",
+      minPasswordLength: "Security",
+      sessionTimeout: "Security",
+      enableTwoFactor: "Security",
+      maxLoginAttempts: "Security",
+      autoEnrollNewUsers: "Courses",
+      defaultCourseVisibility: "Courses",
+      defaultQuizPassingScore: "Courses",
+      enableCertificates: "Courses",
+      allowCourseReviews: "Courses",
+      defaultUserRole: "Users",
+      allowSelfRegistration: "Users",
+      requireProfileCompletion: "Users",
+      enablePublicProfiles: "Users",
+      enableEmailNotifications: "Email",
+      enableEnrollmentEmails: "Email",
+      enableCompletionEmails: "Email",
+      enableWeeklyDigest: "Email",
+      smtpHost: "Email",
+      smtpPort: "Email",
+      smtpUser: "Email",
+      smtpPassword: "Email",
+      primaryColor: "Appearance",
+      logoUrl: "Appearance",
+      favicon: "Appearance",
+      customCss: "Appearance",
+    };
+
+    const smtpFields = ["smtpHost", "smtpPort", "smtpUser", "smtpPassword"];
+
+    for (const [key, defaultValue] of Object.entries(FACTORY_DEFAULTS)) {
+      // Skip SMTP fields if preserving
+      if (preserveSmtp && smtpFields.includes(key)) continue;
+
+      const currentValue = settings[key as keyof PlatformSettings];
+      if (currentValue !== defaultValue) {
+        changes.push({
+          field: key,
+          category: fieldCategories[key] || "Other",
+          currentValue: formatValue(currentValue),
+          newValue: formatValue(defaultValue),
+        });
+      }
+    }
+
+    return changes;
+  };
+
+  const handleFactoryReset = () => {
+    const changes = getFactoryResetChanges(preserveSmtpConfig);
+    setFactoryResetChanges(changes);
+    setShowFactoryResetDialog(true);
+  };
+
+  const confirmFactoryReset = async () => {
+    setIsResettingToFactory(true);
+
+    try {
+      // Create backup before resetting
+      createBackup();
+
+      // Build the reset settings
+      let resetSettings: PlatformSettings;
+
+      if (preserveSmtpConfig) {
+        // Keep current SMTP settings
+        resetSettings = {
+          ...FACTORY_DEFAULTS,
+          smtpHost: settings.smtpHost,
+          smtpPort: settings.smtpPort,
+          smtpUser: settings.smtpUser,
+          smtpPassword: settings.smtpPassword,
+          hasSmtpPassword: settings.hasSmtpPassword,
+        };
+      } else {
+        resetSettings = { ...FACTORY_DEFAULTS };
+      }
+
+      // Apply via API
+      const updatedSettings = await adminService.updatePlatformSettings(resetSettings);
+      setSettings(updatedSettings);
+      setShowFactoryResetDialog(false);
+      setHasUnsavedChanges(false);
+      setValidationErrors({});
+
+      toast.success(
+        <div>
+          <div className="font-semibold">Settings reset to factory defaults</div>
+          <div className="text-sm mt-1">{factoryResetChanges.length} setting(s) reset</div>
+        </div>,
+        {
+          duration: 8000,
+          action: {
+            label: "Undo",
+            onClick: () => restoreBackup(lastBackup),
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error resetting to factory defaults:", error);
+      toast.error("Failed to reset settings. Your previous settings have been preserved.");
+    } finally {
+      setIsResettingToFactory(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -998,6 +1124,10 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
               <Button variant="outline" onClick={handleExportSettings}>
                 <Download className="w-4 h-4 mr-2" />
                 Export
+              </Button>
+              <Button variant="outline" onClick={handleFactoryReset} className="text-destructive hover:text-destructive">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Factory Reset
               </Button>
               <div className="w-px h-6 bg-border" />
               <Button variant="outline" onClick={handleReset} disabled={!hasUnsavedChanges}>
@@ -2158,6 +2288,127 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                 <>
                   <Upload className="w-4 h-4 mr-2" />
                   Apply {importPreview?.changes.length || 0} Changes
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Factory Reset Dialog */}
+      <Dialog open={showFactoryResetDialog} onOpenChange={(open) => {
+        setShowFactoryResetDialog(open);
+        if (open) {
+          // Recalculate changes when dialog opens
+          setFactoryResetChanges(getFactoryResetChanges(preserveSmtpConfig));
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Reset to Factory Defaults
+            </DialogTitle>
+            <DialogDescription>
+              This will reset all settings to their original default values. This action can be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-auto space-y-4">
+            {/* Warning */}
+            <div className="flex items-start gap-2 text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium">Warning</p>
+                <p>This will overwrite your current configuration with factory defaults. A backup will be created automatically so you can undo this action.</p>
+              </div>
+            </div>
+
+            {/* Preserve SMTP Option */}
+            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+              <div className="flex-1">
+                <Label htmlFor="preserveSmtp" className="font-medium">Preserve SMTP Configuration</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Keep your current email server settings (host, port, username, password)
+                </p>
+              </div>
+              <Switch
+                id="preserveSmtp"
+                checked={preserveSmtpConfig}
+                onCheckedChange={(checked) => {
+                  setPreserveSmtpConfig(checked);
+                  setFactoryResetChanges(getFactoryResetChanges(checked));
+                }}
+              />
+            </div>
+
+            {/* Changes Preview */}
+            {factoryResetChanges.length > 0 ? (
+              <div>
+                <h4 className="font-medium mb-2">Settings to be reset ({factoryResetChanges.length})</h4>
+                <div className="border rounded-lg overflow-hidden max-h-[300px] overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 sticky top-0">
+                      <tr>
+                        <th className="text-left px-3 py-2 font-medium">Setting</th>
+                        <th className="text-left px-3 py-2 font-medium">Current</th>
+                        <th className="text-left px-3 py-2 font-medium">Default</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {factoryResetChanges.map((change, i) => (
+                        <tr key={i} className="hover:bg-muted/30">
+                          <td className="px-3 py-2">
+                            <div className="font-medium">{change.field}</div>
+                            <div className="text-xs text-muted-foreground">{change.category}</div>
+                          </td>
+                          <td className="px-3 py-2 text-muted-foreground">
+                            {change.currentValue}
+                          </td>
+                          <td className="px-3 py-2 text-primary font-medium">
+                            {change.newValue}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                <p className="font-medium">All settings are already at factory defaults</p>
+                <p className="text-sm">No changes needed</p>
+              </div>
+            )}
+
+            {/* Backup Notice */}
+            <div className="flex items-start gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+              <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p className="text-sm">
+                A backup of your current settings will be created. You can undo this reset after applying.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowFactoryResetDialog(false)} disabled={isResettingToFactory}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmFactoryReset}
+              disabled={isResettingToFactory || factoryResetChanges.length === 0}
+            >
+              {isResettingToFactory ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Resetting...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset {factoryResetChanges.length} Settings
                 </>
               )}
             </Button>
