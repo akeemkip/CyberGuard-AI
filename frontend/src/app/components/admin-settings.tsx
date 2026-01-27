@@ -53,7 +53,8 @@ import {
   Trash2,
   Send,
   AlertCircle,
-  AlertTriangle
+  AlertTriangle,
+  Search
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
@@ -225,6 +226,59 @@ const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
   customCss: "",
 };
 
+// Searchable settings index
+interface SearchableSetting {
+  id: string;
+  tab: string;
+  label: string;
+  description: string;
+  keywords: string[];
+}
+
+const SETTINGS_INDEX: SearchableSetting[] = [
+  // General
+  { id: "platformName", tab: "general", label: "Platform Name", description: "The name of your platform displayed throughout the application", keywords: ["name", "title", "brand", "site"] },
+  { id: "platformDescription", tab: "general", label: "Platform Description", description: "Brief description shown on landing page and meta tags", keywords: ["description", "about", "summary", "meta"] },
+  { id: "supportEmail", tab: "general", label: "Support Email", description: "Email for user support inquiries", keywords: ["support", "email", "help", "contact"] },
+  { id: "contactEmail", tab: "general", label: "Contact Email", description: "General contact email address", keywords: ["contact", "email", "general"] },
+
+  // Security
+  { id: "requireEmailVerification", tab: "security", label: "Require Email Verification", description: "Users must verify their email before accessing the platform", keywords: ["email", "verification", "verify", "confirm"] },
+  { id: "enableTwoFactor", tab: "security", label: "Enable Two-Factor Authentication", description: "Allow users to enable 2FA for their accounts", keywords: ["2fa", "two-factor", "authentication", "security", "mfa"] },
+  { id: "minPasswordLength", tab: "security", label: "Minimum Password Length", description: "Minimum characters required for passwords", keywords: ["password", "length", "characters", "security"] },
+  { id: "sessionTimeout", tab: "security", label: "Session Timeout", description: "Days until auto-logout", keywords: ["session", "timeout", "logout", "expiry", "days"] },
+  { id: "maxLoginAttempts", tab: "security", label: "Max Login Attempts", description: "Before account lockout", keywords: ["login", "attempts", "lockout", "security", "brute force"] },
+
+  // Courses
+  { id: "autoEnrollNewUsers", tab: "courses", label: "Auto-Enroll New Users", description: "Automatically enroll new users in beginner courses", keywords: ["enroll", "auto", "new users", "beginner"] },
+  { id: "enableCertificates", tab: "courses", label: "Enable Certificates", description: "Generate certificates upon course completion", keywords: ["certificates", "completion", "badge", "credential"] },
+  { id: "allowCourseReviews", tab: "courses", label: "Allow Course Reviews", description: "Let students leave reviews and ratings on courses", keywords: ["reviews", "ratings", "feedback", "comments"] },
+  { id: "defaultCourseVisibility", tab: "courses", label: "Default Course Visibility", description: "Default visibility for new courses", keywords: ["visibility", "public", "private", "access"] },
+  { id: "defaultQuizPassingScore", tab: "courses", label: "Default Quiz Passing Score", description: "Minimum score to pass quizzes", keywords: ["quiz", "passing", "score", "percentage", "grade"] },
+
+  // Users
+  { id: "allowSelfRegistration", tab: "users", label: "Allow Self-Registration", description: "Allow users to create accounts without invitation", keywords: ["registration", "signup", "self", "invite"] },
+  { id: "requireProfileCompletion", tab: "users", label: "Require Profile Completion", description: "Users must complete their profile before accessing courses", keywords: ["profile", "completion", "required", "mandatory"] },
+  { id: "enablePublicProfiles", tab: "users", label: "Enable Public Profiles", description: "Allow user profiles to be publicly viewable", keywords: ["public", "profiles", "visible", "privacy"] },
+  { id: "defaultUserRole", tab: "users", label: "Default User Role", description: "Default role assigned to new users", keywords: ["role", "default", "student", "admin", "permissions"] },
+
+  // Email
+  { id: "enableEmailNotifications", tab: "email", label: "Enable Email Notifications", description: "Master switch for all email notifications", keywords: ["email", "notifications", "alerts", "messages"] },
+  { id: "enableEnrollmentEmails", tab: "email", label: "Enrollment Emails", description: "Send email when user enrolls in a course", keywords: ["enrollment", "email", "course", "notification"] },
+  { id: "enableCompletionEmails", tab: "email", label: "Completion Emails", description: "Send email when user completes a course", keywords: ["completion", "email", "finished", "notification"] },
+  { id: "enableWeeklyDigest", tab: "email", label: "Weekly Digest", description: "Send weekly progress summary to users", keywords: ["weekly", "digest", "summary", "progress", "report"] },
+  { id: "smtpHost", tab: "email", label: "SMTP Host", description: "SMTP server hostname", keywords: ["smtp", "host", "server", "mail", "email"] },
+  { id: "smtpPort", tab: "email", label: "SMTP Port", description: "SMTP server port", keywords: ["smtp", "port", "587", "465", "25"] },
+  { id: "smtpUser", tab: "email", label: "SMTP Username", description: "SMTP authentication username", keywords: ["smtp", "username", "user", "email", "authentication"] },
+  { id: "smtpPassword", tab: "email", label: "SMTP Password", description: "Password for SMTP authentication", keywords: ["smtp", "password", "authentication", "credentials"] },
+
+  // Appearance
+  { id: "primaryColor", tab: "appearance", label: "Primary Color", description: "Primary brand color used throughout the platform", keywords: ["color", "primary", "brand", "theme", "hex"] },
+  { id: "logoUrl", tab: "appearance", label: "Logo", description: "Platform logo image", keywords: ["logo", "image", "brand", "header"] },
+  { id: "favicon", tab: "appearance", label: "Favicon", description: "Browser tab icon", keywords: ["favicon", "icon", "tab", "browser"] },
+  { id: "customCss", tab: "appearance", label: "Custom CSS", description: "Add custom CSS to override default styles", keywords: ["css", "custom", "styles", "design", "advanced"] },
+];
+
 export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettingsProps) {
   const { theme, toggleTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
@@ -262,6 +316,13 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const [preserveSmtpConfig, setPreserveSmtpConfig] = useState(true);
   const [isResettingToFactory, setIsResettingToFactory] = useState(false);
   const [factoryResetChanges, setFactoryResetChanges] = useState<SettingChange[]>([]);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchableSetting[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [highlightedSettings, setHighlightedSettings] = useState<Set<string>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize with default settings
   const [settings, setSettings] = useState<PlatformSettings>({
@@ -1082,6 +1143,66 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     }
   };
 
+  // Search functionality
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      setHighlightedSettings(new Set());
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const results = SETTINGS_INDEX.filter((setting) => {
+      const searchableText = [
+        setting.label,
+        setting.description,
+        ...setting.keywords,
+      ].join(" ").toLowerCase();
+
+      return searchableText.includes(lowerQuery);
+    });
+
+    setSearchResults(results);
+    setShowSearchResults(results.length > 0);
+  };
+
+  const handleSearchResultClick = (setting: SearchableSetting) => {
+    // Switch to the setting's tab
+    setActiveTab(setting.tab);
+    setShowSearchResults(false);
+
+    // Highlight the setting temporarily
+    setHighlightedSettings(new Set([setting.id]));
+
+    // Scroll to the setting after a brief delay (to allow tab switch)
+    setTimeout(() => {
+      const element = document.getElementById(setting.id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.focus();
+      }
+    }, 100);
+
+    // Remove highlight after 3 seconds
+    setTimeout(() => {
+      setHighlightedSettings(new Set());
+    }, 3000);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchResults(false);
+    setHighlightedSettings(new Set());
+    searchInputRef.current?.focus();
+  };
+
+  // Helper to check if a setting should be highlighted
+  const isHighlighted = (settingId: string) => highlightedSettings.has(settingId);
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -1156,6 +1277,71 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
 
         {/* Content */}
         <main className="flex-1 overflow-auto p-8">
+          {/* Search Bar */}
+          <div className="relative mb-6">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search settings..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => searchResults.length > 0 && setShowSearchResults(true)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute z-20 mt-1 w-full max-w-md bg-popover border rounded-lg shadow-lg max-h-80 overflow-auto">
+                <div className="p-2 text-xs text-muted-foreground border-b">
+                  {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
+                </div>
+                {searchResults.map((result) => (
+                  <button
+                    key={result.id}
+                    onClick={() => handleSearchResultClick(result)}
+                    className="w-full text-left px-4 py-3 hover:bg-muted transition-colors border-b last:border-b-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{result.label}</span>
+                      <span className="text-xs px-2 py-0.5 bg-muted rounded capitalize">
+                        {result.tab}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
+                      {result.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* No Results Message */}
+            {showSearchResults && searchQuery && searchResults.length === 0 && (
+              <div className="absolute z-20 mt-1 w-full max-w-md bg-popover border rounded-lg shadow-lg p-4 text-center text-muted-foreground">
+                No settings found for "{searchQuery}"
+              </div>
+            )}
+          </div>
+
+          {/* Click outside to close search results */}
+          {showSearchResults && (
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setShowSearchResults(false)}
+            />
+          )}
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-7 mb-8">
               <TabsTrigger value="general">
@@ -1193,7 +1379,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
               <Card className="p-6">
                 <h2 className="text-xl font-semibold mb-4">General Settings</h2>
                 <div className="space-y-6">
-                  <div>
+                  <div className={`transition-all duration-300 ${isHighlighted("platformName") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                     <Label htmlFor="platformName">Platform Name</Label>
                     <Input
                       id="platformName"
@@ -1219,7 +1405,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     )}
                   </div>
 
-                  <div>
+                  <div className={`transition-all duration-300 ${isHighlighted("platformDescription") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                     <Label htmlFor="platformDescription">Platform Description</Label>
                     <Textarea
                       id="platformDescription"
@@ -1234,7 +1420,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
-                    <div>
+                    <div className={`transition-all duration-300 ${isHighlighted("supportEmail") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                       <Label htmlFor="supportEmail">Support Email</Label>
                       <Input
                         id="supportEmail"
@@ -1255,7 +1441,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       )}
                     </div>
 
-                    <div>
+                    <div className={`transition-all duration-300 ${isHighlighted("contactEmail") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                       <Label htmlFor="contactEmail">Contact Email</Label>
                       <Input
                         id="contactEmail"
@@ -1285,7 +1471,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
               <Card className="p-6">
                 <h2 className="text-xl font-semibold mb-4">Security Settings</h2>
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between">
+                  <div className={`flex items-center justify-between transition-all duration-300 ${isHighlighted("requireEmailVerification") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                     <div className="flex-1">
                       <Label htmlFor="requireEmailVerification">Require Email Verification</Label>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -1299,7 +1485,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className={`flex items-center justify-between transition-all duration-300 ${isHighlighted("enableTwoFactor") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                     <div className="flex-1">
                       <Label htmlFor="enableTwoFactor">Enable Two-Factor Authentication</Label>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -1314,7 +1500,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                   </div>
 
                   <div className="grid grid-cols-3 gap-6">
-                    <div>
+                    <div className={`transition-all duration-300 ${isHighlighted("minPasswordLength") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                       <Label htmlFor="minPasswordLength">Minimum Password Length</Label>
                       <Input
                         id="minPasswordLength"
@@ -1336,7 +1522,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       )}
                     </div>
 
-                    <div>
+                    <div className={`transition-all duration-300 ${isHighlighted("sessionTimeout") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                       <Label htmlFor="sessionTimeout">Session Timeout (days)</Label>
                       <Input
                         id="sessionTimeout"
@@ -1747,7 +1933,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
               <Card className="p-6">
                 <h2 className="text-xl font-semibold mb-4">Appearance Settings</h2>
                 <div className="space-y-6">
-                  <div>
+                  <div className={`transition-all duration-300 ${isHighlighted("primaryColor") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                     <Label htmlFor="primaryColor">Primary Color</Label>
                     <div className="flex gap-4 items-center">
                       <Input
