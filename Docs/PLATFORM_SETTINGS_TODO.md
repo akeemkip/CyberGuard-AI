@@ -2,8 +2,8 @@
 
 > **Last Updated:** January 27, 2026
 > **Component:** Admin Settings Page (`frontend/src/app/components/admin-settings.tsx`)
-> **Status:** 16/22 Complete (73%) + All Technical Debt Complete
-> **Latest:** Quick wins complete - tooltips, conditional display, smart validation
+> **Status:** 17/22 Complete (77%) + All Technical Debt Complete
+> **Latest:** Extended appearance customization complete - secondary/accent colors, fonts, dark mode default
 
 ---
 
@@ -15,7 +15,7 @@ This document tracks all identified issues, missing features, and improvements n
 
 ## Progress Summary
 
-### Completed (16/22 - 73%)
+### Completed (17/22 - 77%)
 - ✅ #1: Settings Persistence (cf7a4aa)
 - ✅ #2: SMTP Password Field (cf7a4aa)
 - ✅ #3: Settings Apply to Platform (0d22cb9)
@@ -28,10 +28,11 @@ This document tracks all identified issues, missing features, and improvements n
 - ✅ #10: Import/Export Settings (1835482)
 - ✅ #11: Factory Reset (3a88544)
 - ✅ #12: Settings Audit Log (f0e01c0 - merged with #9)
+- ✅ #14: Extended Appearance Customization (0c1902b)
 - ✅ #15: Search Settings (efb0b9b)
-- ✅ #17: Settings Tooltips/Help (January 27, 2026)
-- ✅ #18: Conditional Settings Display (January 27, 2026)
-- ✅ #19: Settings Validation Rules (January 27, 2026)
+- ✅ #17: Settings Tooltips/Help (8c5cb25)
+- ✅ #18: Conditional Settings Display (8c5cb25)
+- ✅ #19: Settings Validation Rules (8c5cb25)
 
 ### Technical Debt (All Complete)
 - ✅ Default quiz passing score implementation
@@ -269,19 +270,30 @@ This document tracks all identified issues, missing features, and improvements n
 - **Dependencies:** External services (Twilio, etc.)
 
 ### 14. Extended Appearance Customization
-- **Status:** ❌ Not Started
+- **Status:** ✅ Complete
+- **Completed:** January 27, 2026
 - **Problem:** Limited branding options
-- **Missing Features:**
-  - Secondary color picker
-  - Accent color picker
-  - Font family selector (Google Fonts integration)
-  - Font size scaling (compact/normal/large)
-  - Theme presets (pre-configured color schemes)
-  - Dark mode default toggle
-  - Layout density options
-  - Border radius customization
-- **Estimated Effort:** 5 hours
-- **Dependencies:** Theme system refactor
+- **Solution:** Comprehensive appearance customization system
+- **Features Implemented:**
+  - [x] Secondary color picker (for success states, confirmations, secondary actions)
+  - [x] Accent color picker (for warnings, highlights, badges)
+  - [x] Font family selector with 8 options (Inter, Roboto, Open Sans, Lato, Poppins, Montserrat, System UI, Monospace)
+  - [x] Google Fonts integration (automatic loading for non-system fonts)
+  - [x] Font size scaling: compact (14px), normal (16px), large (18px)
+  - [x] Border radius options: none, small, medium, large, full
+  - [x] Dark mode default toggle (new users start with platform's preferred theme)
+  - [x] Dynamic CSS variable application (instant updates)
+  - [x] ThemeProvider integration with darkModeDefault
+  - [x] All settings persisted to database and synced across users
+  - [x] Tooltips for all new appearance controls
+- **Commit:** 0c1902b
+- **Files Modified:**
+  - `backend/prisma/schema.prisma` - Added appearance fields to PlatformSettings
+  - `backend/src/controllers/settings.controller.ts` - Backend support for new fields
+  - `frontend/src/app/context/PlatformSettingsContext.tsx` - Dynamic CSS application
+  - `frontend/src/app/components/theme-provider.tsx` - Dark mode default integration
+  - `frontend/src/app/components/admin-settings.tsx` - UI controls with tooltips
+- **Note:** Theme presets and layout density deferred for future enhancement
 
 ### 15. Search Settings
 - **Status:** ✅ Complete
@@ -424,7 +436,8 @@ These features are currently functioning correctly:
 
 ### Phase 4: Advanced Features (Week 4+)
 - [x] Settings audit log (#12) ✅ (Completed with #9)
-- [ ] Extended customization (#13, #14)
+- [x] Extended appearance customization (#14) ✅
+- [ ] Extended email options (#13)
 - [ ] Settings presets (#16)
 - [ ] Permissions & monitoring (#21, #22)
 
@@ -457,7 +470,7 @@ After implementing fixes, verify:
 
 ## Notes
 
-### Current State (January 26, 2026)
+### Current State (January 27, 2026)
 - ✅ Settings stored in PostgreSQL database via PlatformSettings model
 - ✅ Backend API endpoints exist: GET/PUT /api/admin/settings
 - ✅ Public settings endpoint: GET /api/settings/public (no auth)
@@ -465,24 +478,31 @@ After implementing fixes, verify:
 - ✅ SMTP configuration complete (host, port, user, password)
 - ✅ SMTP password encrypted with AES-256-GCM
 - ✅ Password masked in API responses (never exposed)
-- ✅ Settings audit log tracking all changes
-- ✅ Input validation working for all fields
+- ✅ Settings audit log tracking all changes with rollback & export
+- ✅ Input validation working for all fields with warnings system
 - ✅ Preview functionality showing real-time changes
 - ✅ Settings apply dynamically (colors, logo, favicon, CSS, platform name)
+- ✅ Extended appearance: secondary/accent colors, fonts, border radius, dark mode default
+- ✅ Google Fonts integration for custom font families
 - ✅ File upload for logo/favicon with local storage
 - ✅ Password validation uses DB minPasswordLength
 - ✅ JWT expiration uses DB sessionTimeout
+- ✅ Max login attempts tracking & enforcement with account lockout
 - ✅ Role-based access control (students blocked from admin pages)
 - ✅ Test email functionality with nodemailer
 - ✅ Import/Export settings with JSON validation and preview
 - ✅ Factory reset with SMTP preservation option
 - ✅ Search settings with keyword index and tab navigation
-- 🔜 Next: Phase 4 - Advanced Features (Extended customization, presets, etc.)
+- ✅ Tooltips/help text for complex settings
+- ✅ Conditional display of settings sections
+- 🔜 Next: Settings presets, extended email options, permissions
 
 ### Technical Debt
-- Default quiz passing score not yet used when creating quizzes
-- Max login attempts not yet tracked/enforced
-- Audit log rollback/export not yet implemented
+- ✅ All technical debt items completed (January 27, 2026)
+  - ✅ Default quiz passing score implemented
+  - ✅ Max login attempts tracking & enforcement with 15-min lockout
+  - ✅ Audit log rollback functionality
+  - ✅ Audit log export to CSV
 
 ### Deferred (Low Priority for University Project)
 - SMTP configuration - Code complete, configure when needed for production
