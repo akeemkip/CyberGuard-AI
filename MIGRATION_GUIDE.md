@@ -103,3 +103,68 @@ After completing all steps, you should be able to:
 - Navigate to Admin Settings → Appearance
 - See new controls for secondary color, accent color, font family, etc.
 - Change appearance settings and see them applied instantly
+
+
+
+
+Server running on http://localhost:3000
+Health check: http://localhost:3000/api/health
+Error fetching public platform settings: TypeError: Cannot read properties of undefined (reading 'findUnique')
+    at getPublicSettings (/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/settings.controller.ts:31:52)
+    at Layer.handle [as handle_request] (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/layer.js:95:5)
+    at /home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/index.js:280:10)
+    at jsonParser (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/body-parser/lib/types/json.js:113:7)
+    at Layer.handle [as handle_request] (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/express/lib/router/layer.js:95:5)
+Failed to fetch login attempt settings, using default: TypeError: Cannot read properties of undefined (reading 'findUnique')
+    at login (/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/auth.controller.ts:137:54)
+Login error: PrismaClientValidationError: 
+Invalid `prisma.user.update()` invocation in
+/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/auth.controller.ts:193:23
+
+  190 }
+  191 
+  192 // Successful login - reset login attempts and clear lockout
+→ 193 await prisma.user.update({
+        where: {
+          id: "719acdc3-370e-4adc-ae86-7c293f568063"
+        },
+        data: {
+          lastLoginAt: new Date("2026-01-27T20:27:37.070Z"),
+          loginAttempts: 0,
+          ~~~~~~~~~~~~~
+          lastFailedLogin: null,
+          accountLockedUntil: null,
+      ?   id?: String | StringFieldUpdateOperationsInput,
+      ?   email?: String | StringFieldUpdateOperationsInput,
+      ?   password?: String | StringFieldUpdateOperationsInput,
+      ?   firstName?: String | StringFieldUpdateOperationsInput,
+      ?   lastName?: String | StringFieldUpdateOperationsInput,
+      ?   role?: Role | EnumRoleFieldUpdateOperationsInput,
+      ?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+      ?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+      ?   autoPlayVideos?: Boolean | BoolFieldUpdateOperationsInput,
+      ?   courseReminders?: Boolean | BoolFieldUpdateOperationsInput,
+      ?   emailNotifications?: Boolean | BoolFieldUpdateOperationsInput,
+      ?   marketingEmails?: Boolean | BoolFieldUpdateOperationsInput,
+      ?   showProgress?: Boolean | BoolFieldUpdateOperationsInput,
+      ?   certificates?: CertificateUpdateManyWithoutUserNestedInput,
+      ?   enrollments?: EnrollmentUpdateManyWithoutUserNestedInput,
+      ?   labProgress?: LabProgressUpdateManyWithoutUserNestedInput,
+      ?   progress?: ProgressUpdateManyWithoutUserNestedInput,
+      ?   quizAttempts?: QuizAttemptUpdateManyWithoutUserNestedInput
+        }
+      })
+
+Unknown argument `loginAttempts`. Available options are marked with ?.
+    at wn (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:29:1363)
+    at $n.handleRequestError (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:6958)
+    at $n.handleAndLogRequestError (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:6623)
+    at $n.request (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:121:6307)
+    at l (/home/joshua/Documents/Github/CyberGuard-AI/backend/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at login (/home/joshua/Documents/Github/CyberGuard-AI/backend/src/controllers/auth.controller.ts:193:5) {
+  clientVersion: '5.22.0'
