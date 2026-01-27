@@ -238,6 +238,15 @@ export function AdminQuizEdit({ quizId, userEmail, onNavigate, onLogout }: Admin
         setQuestions(quiz.questions);
         setStats(quiz.stats);
         setAttempts(quiz.attempts || []);
+      } else {
+        // If creating new quiz, use default passing score from platform settings
+        try {
+          const platformSettings = await adminService.getPlatformSettings();
+          setPassingScore(platformSettings.defaultQuizPassingScore);
+        } catch (error) {
+          console.error("Failed to load platform settings, using default:", error);
+          // Keep the hardcoded default (70) if fetching settings fails
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);

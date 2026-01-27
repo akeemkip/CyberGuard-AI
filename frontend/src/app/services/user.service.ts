@@ -73,6 +73,12 @@ const userService = {
   // Delete user (admin only)
   async deleteUser(id: string): Promise<void> {
     await api.delete(`/users/${id}`);
+  },
+
+  // Unlock user account (admin only)
+  async unlockUserAccount(id: string): Promise<{ message: string; user: { id: string; email: string } }> {
+    const response = await api.put<{ message: string; user: { id: string; email: string } }>(`/users/${id}/unlock`);
+    return response.data;
   }
 };
 

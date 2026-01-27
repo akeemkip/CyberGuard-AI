@@ -355,6 +355,149 @@ export const getSettingsAuditLogs = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Rollback a settings change from audit log
+export const rollbackSettingsChange = async (req: AuthRequest, res: Response) => {
+  try {
+    const auditLogId = req.params.auditLogId as string;
+
+    // Get the audit log entry
+    const auditEntry = await prisma.settingsAuditLog.findUnique({
+      where: { id: auditLogId }
+    });
+
+    if (!auditEntry) {
+      return res.status(404).json({ error: 'Audit log entry not found' });
+    }
+
+    // Check if this is a sensitive field that can't be rolled back
+    if (auditEntry.fieldName === 'smtpPassword') {
+      return res.status(400).json({ error: 'Cannot rollback password changes for security reasons' });
+    }
+
+    // Check if oldValue is redacted (can't rollback)
+    if (auditEntry.oldValue === '[REDACTED]' || auditEntry.oldValue === null) {
+      return res.status(400).json({ error: 'Cannot rollback: original value not available' });
+    }
+
+    // Get current settings
+    const currentSettings = await prisma.platformSettings.findUnique({
+      where: { id: 'singleton' }
+    });
+
+    if (!currentSettings) {
+      return res.status(404).json({ error: 'Settings not found' });
+    }
+
+    // Prepare update data with the old value
+    const updateData: any = {};
+    const fieldName = auditEntry.fieldName;
+    const oldValue = auditEntry.oldValue;
+
+    // Parse the value based on field type
+    if (typeof (currentSettings as any)[fieldName] === 'boolean') {
+      updateData[fieldName] = oldValue === 'true';
+    } else if (typeof (currentSettings as any)[fieldName] === 'number') {
+      updateData[fieldName] = parseInt(oldValue);
+    } else {
+      updateData[fieldName] = oldValue;
+    }
+
+    // Update settings
+    await prisma.platformSettings.update({
+      where: { id: 'singleton' },
+      data: updateData
+    });
+
+    // Create audit log entry for the rollback
+    const adminEmail = await getAdminEmail(req.userId!, req.userEmail!);
+    const ipAddress = getClientIp(req);
+
+    await logSettingsChanges([{
+      adminId: req.userId!,
+      adminEmail,
+      action: 'ROLLBACK',
+      fieldName: auditEntry.fieldName,
+      oldValue: auditEntry.newValue,
+      newValue: auditEntry.oldValue,
+      ipAddress
+    }]);
+
+    res.json({
+      message: 'Settings rolled back successfully',
+      fieldName: auditEntry.fieldName,
+      rolledBackTo: auditEntry.oldValue
+    });
+  } catch (error) {
+    console.error('Error rolling back settings:', error);
+    res.status(500).json({ error: 'Failed to rollback settings' });
+  }
+};
+
+// Export audit log to CSV
+export const exportAuditLogCSV = async (req: AuthRequest, res: Response) => {
+  try {
+    // Get filter parameters
+    const fieldFilter = req.query.field as string | undefined;
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+
+    // Build where clause
+    const where: any = {};
+    if (fieldFilter) {
+      where.fieldName = fieldFilter;
+    }
+    if (startDate || endDate) {
+      where.timestamp = {};
+      if (startDate) {
+        where.timestamp.gte = new Date(startDate);
+      }
+      if (endDate) {
+        where.timestamp.lte = new Date(endDate);
+      }
+    }
+
+    // Fetch all audit log entries matching filters
+    const entries = await prisma.settingsAuditLog.findMany({
+      where,
+      orderBy: { timestamp: 'desc' }
+    });
+
+    // Generate CSV
+    const headers = ['Timestamp', 'Admin Email', 'Admin ID', 'Action', 'Field Name', 'Old Value', 'New Value', 'IP Address'];
+    const rows = entries.map(entry => [
+      new Date(entry.timestamp).toISOString(),
+      entry.adminEmail,
+      entry.adminId,
+      entry.action,
+      entry.fieldName,
+      entry.oldValue || '',
+      entry.newValue || '',
+      entry.ipAddress || ''
+    ]);
+
+    // Escape CSV values (handle commas and quotes)
+    const escapeCSV = (value: string) => {
+      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(escapeCSV).join(','))
+    ].join('\n');
+
+    // Set headers for file download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=settings-audit-log-${Date.now()}.csv`);
+    res.send(csvContent);
+  } catch (error) {
+    console.error('Error exporting audit log:', error);
+    res.status(500).json({ error: 'Failed to export audit log' });
+  }
+};
+
 // Send test email to verify SMTP configuration
 export const testEmailSettings = async (req: AuthRequest, res: Response) => {
   try {

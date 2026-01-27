@@ -8,7 +8,8 @@ import {
   deleteUser,
   getUserStats,
   getUserSettings,
-  updateUserSettings
+  updateUserSettings,
+  unlockUserAccount
 } from '../controllers/user.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -40,6 +41,9 @@ router.put('/:id', updateUser);
 
 // PUT /api/users/:id/role - Change user role (admin only)
 router.put('/:id/role', requireAdmin, changeUserRole);
+
+// PUT /api/users/:id/unlock - Unlock user account (admin only)
+router.put('/:id/unlock', requireAdmin, unlockUserAccount);
 
 // DELETE /api/users/:id - Delete user (admin only)
 router.delete('/:id', requireAdmin, deleteUser);

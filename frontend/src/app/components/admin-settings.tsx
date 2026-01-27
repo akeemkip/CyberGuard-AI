@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,7 +55,8 @@ import {
   Send,
   AlertCircle,
   AlertTriangle,
-  Search
+  Search,
+  HelpCircle
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
@@ -284,6 +286,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationWarnings, setValidationWarnings] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem("adminSettingsTab") || "general";
   });
@@ -298,6 +301,14 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const [auditLogFields, setAuditLogFields] = useState<string[]>([]);
   const [loadingAuditLog, setLoadingAuditLog] = useState(false);
   const AUDIT_LOG_LIMIT = 50;
+
+  // Rollback state
+  const [showRollbackDialog, setShowRollbackDialog] = useState(false);
+  const [rollbackEntry, setRollbackEntry] = useState<SettingsAuditLogEntry | null>(null);
+  const [isRollingBack, setIsRollingBack] = useState(false);
+
+  // Export state
+  const [isExportingAuditLog, setIsExportingAuditLog] = useState(false);
 
   // Test email state
   const [testEmailAddress, setTestEmailAddress] = useState("");
@@ -389,6 +400,66 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     }
   };
 
+  const handleRollbackClick = (entry: SettingsAuditLogEntry) => {
+    setRollbackEntry(entry);
+    setShowRollbackDialog(true);
+  };
+
+  const handleRollbackConfirm = async () => {
+    if (!rollbackEntry) return;
+
+    try {
+      setIsRollingBack(true);
+      const result = await adminService.rollbackSettingsChange(rollbackEntry.id);
+
+      toast.success(`Rolled back ${result.fieldName} to previous value`);
+
+      // Reload audit log to show the new ROLLBACK entry
+      await loadAuditLog();
+
+      // Reload settings to reflect the change
+      await loadSettings();
+
+      setShowRollbackDialog(false);
+      setRollbackEntry(null);
+    } catch (error: any) {
+      console.error('Error rolling back setting:', error);
+      toast.error(error.response?.data?.error || 'Failed to rollback setting');
+    } finally {
+      setIsRollingBack(false);
+    }
+  };
+
+  const handleExportAuditLog = async () => {
+    try {
+      setIsExportingAuditLog(true);
+
+      // Export with current filters
+      const blob = await adminService.exportAuditLogCSV(
+        auditLogField || undefined,
+        undefined, // startDate - could be added later
+        undefined  // endDate - could be added later
+      );
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `settings-audit-log-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Audit log exported successfully');
+    } catch (error: any) {
+      console.error('Error exporting audit log:', error);
+      toast.error('Failed to export audit log');
+    } finally {
+      setIsExportingAuditLog(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'audit') {
       loadAuditLog();
@@ -470,7 +541,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       case "minPasswordLength":
         return validateNumberRange(value, 6, 20, "Password length");
       case "sessionTimeout":
-        return validateNumberRange(value, 1, 30, "Session timeout");
+        return validateNumberRange(value, 1, 90, "Session timeout");
       case "maxLoginAttempts":
         return validateNumberRange(value, 3, 10, "Max login attempts");
       case "defaultQuizPassingScore":
@@ -480,11 +551,56 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     }
   };
 
+  const validateFieldWarning = (key: keyof PlatformSettings, value: any): string | null => {
+    switch (key) {
+      case "minPasswordLength":
+        if (value < 8) {
+          return "⚠️ Recommended: Use at least 8 characters for better security";
+        }
+        return null;
+      case "sessionTimeout":
+        if (value < 3) {
+          return "⚠️ Very short timeout may inconvenience users";
+        }
+        if (value > 30) {
+          return "⚠️ Long timeout reduces security. Consider 7-14 days";
+        }
+        return null;
+      case "maxLoginAttempts":
+        if (value > 7) {
+          return "⚠️ High limit may allow brute-force attacks. Recommended: 5 attempts";
+        }
+        if (value < 5) {
+          return "⚠️ Low limit may frustrate legitimate users";
+        }
+        return null;
+      case "defaultQuizPassingScore":
+        if (value < 60) {
+          return "⚠️ Low passing score. Consider 60-80% for meaningful assessment";
+        }
+        return null;
+      case "smtpPort":
+        const port = parseInt(value);
+        if (port === 587) {
+          return "ℹ️ Port 587: STARTTLS (recommended for most providers)";
+        }
+        if (port === 465) {
+          return "ℹ️ Port 465: SSL/TLS";
+        }
+        if (port === 25) {
+          return "⚠️ Port 25: Unencrypted (not recommended)";
+        }
+        return null;
+      default:
+        return null;
+    }
+  };
+
   const handleChange = (key: keyof PlatformSettings, value: any) => {
     setSettings({ ...settings, [key]: value });
     setHasUnsavedChanges(true);
 
-    // Validate the field
+    // Validate the field for errors
     const error = validateField(key, value);
     setValidationErrors(prev => {
       const newErrors = { ...prev };
@@ -495,6 +611,27 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       }
       return newErrors;
     });
+
+    // Check for warnings (only if no error)
+    if (!error) {
+      const warning = validateFieldWarning(key, value);
+      setValidationWarnings(prev => {
+        const newWarnings = { ...prev };
+        if (warning) {
+          newWarnings[key] = warning;
+        } else {
+          delete newWarnings[key];
+        }
+        return newWarnings;
+      });
+    } else {
+      // Clear warning if there's an error
+      setValidationWarnings(prev => {
+        const newWarnings = { ...prev };
+        delete newWarnings[key];
+        return newWarnings;
+      });
+    }
   };
 
   const handleSave = async () => {
@@ -1509,11 +1646,15 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         max="20"
                         value={settings.minPasswordLength}
                         onChange={(e) => handleChange("minPasswordLength", parseInt(e.target.value))}
-                        className={validationErrors.minPasswordLength ? "border-destructive" : ""}
+                        className={validationErrors.minPasswordLength ? "border-destructive" : validationWarnings.minPasswordLength ? "border-yellow-500" : ""}
                       />
                       {validationErrors.minPasswordLength ? (
                         <p className="text-sm text-destructive mt-1">
                           {validationErrors.minPasswordLength}
+                        </p>
+                      ) : validationWarnings.minPasswordLength ? (
+                        <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
+                          {validationWarnings.minPasswordLength}
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground mt-1">
@@ -1523,19 +1664,33 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     </div>
 
                     <div className={`transition-all duration-300 ${isHighlighted("sessionTimeout") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
-                      <Label htmlFor="sessionTimeout">Session Timeout (days)</Label>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="sessionTimeout">Session Timeout (days)</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            Number of days a user can stay logged in before automatic logout. Shorter timeouts improve security, but may inconvenience users. Recommended: 7-14 days.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <Input
                         id="sessionTimeout"
                         type="number"
                         min="1"
-                        max="30"
+                        max="90"
                         value={settings.sessionTimeout}
                         onChange={(e) => handleChange("sessionTimeout", parseInt(e.target.value))}
-                        className={validationErrors.sessionTimeout ? "border-destructive" : ""}
+                        className={validationErrors.sessionTimeout ? "border-destructive" : validationWarnings.sessionTimeout ? "border-yellow-500" : ""}
                       />
                       {validationErrors.sessionTimeout ? (
                         <p className="text-sm text-destructive mt-1">
                           {validationErrors.sessionTimeout}
+                        </p>
+                      ) : validationWarnings.sessionTimeout ? (
+                        <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
+                          {validationWarnings.sessionTimeout}
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground mt-1">
@@ -1545,7 +1700,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     </div>
 
                     <div>
-                      <Label htmlFor="maxLoginAttempts">Max Login Attempts</Label>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="maxLoginAttempts">Max Login Attempts</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            Number of failed login attempts before an account is locked for 15 minutes. Protects against brute-force attacks. Recommended: 5 attempts.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <Input
                         id="maxLoginAttempts"
                         type="number"
@@ -1553,11 +1718,15 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         max="10"
                         value={settings.maxLoginAttempts}
                         onChange={(e) => handleChange("maxLoginAttempts", parseInt(e.target.value))}
-                        className={validationErrors.maxLoginAttempts ? "border-destructive" : ""}
+                        className={validationErrors.maxLoginAttempts ? "border-destructive" : validationWarnings.maxLoginAttempts ? "border-yellow-500" : ""}
                       />
                       {validationErrors.maxLoginAttempts ? (
                         <p className="text-sm text-destructive mt-1">
                           {validationErrors.maxLoginAttempts}
+                        </p>
+                      ) : validationWarnings.maxLoginAttempts ? (
+                        <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
+                          {validationWarnings.maxLoginAttempts}
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground mt-1">
@@ -1638,7 +1807,17 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     </div>
 
                     <div>
-                      <Label htmlFor="defaultQuizPassingScore">Default Quiz Passing Score (%)</Label>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="defaultQuizPassingScore">Default Quiz Passing Score (%)</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            The default passing score used when creating new quizzes. Instructors can override this per-quiz. Typical range: 60-80%. This setting applies only to newly created quizzes.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       <Input
                         id="defaultQuizPassingScore"
                         type="number"
@@ -1646,11 +1825,15 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         max="100"
                         value={settings.defaultQuizPassingScore}
                         onChange={(e) => handleChange("defaultQuizPassingScore", parseInt(e.target.value))}
-                        className={validationErrors.defaultQuizPassingScore ? "border-destructive" : ""}
+                        className={validationErrors.defaultQuizPassingScore ? "border-destructive" : validationWarnings.defaultQuizPassingScore ? "border-yellow-500" : ""}
                       />
                       {validationErrors.defaultQuizPassingScore ? (
                         <p className="text-sm text-destructive mt-1">
                           {validationErrors.defaultQuizPassingScore}
+                        </p>
+                      ) : validationWarnings.defaultQuizPassingScore ? (
+                        <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
+                          {validationWarnings.defaultQuizPassingScore}
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground mt-1">
@@ -1751,10 +1934,12 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     />
                   </div>
 
-                  <div className="pl-6 space-y-4 border-l-2 border-muted">
-                    <div className="flex items-center justify-between">
+                  <div className={`pl-6 space-y-4 border-l-2 transition-colors ${settings.enableEmailNotifications ? 'border-muted' : 'border-muted/50'}`}>
+                    <div className={`flex items-center justify-between ${!settings.enableEmailNotifications ? 'opacity-50' : ''}`}>
                       <div className="flex-1">
-                        <Label htmlFor="enableEnrollmentEmails">Enrollment Emails</Label>
+                        <Label htmlFor="enableEnrollmentEmails" className={!settings.enableEmailNotifications ? 'cursor-not-allowed' : ''}>
+                          Enrollment Emails
+                        </Label>
                         <p className="text-sm text-muted-foreground mt-1">
                           Send email when user enrolls in a course
                         </p>
@@ -1767,9 +1952,11 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       />
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className={`flex items-center justify-between ${!settings.enableEmailNotifications ? 'opacity-50' : ''}`}>
                       <div className="flex-1">
-                        <Label htmlFor="enableCompletionEmails">Completion Emails</Label>
+                        <Label htmlFor="enableCompletionEmails" className={!settings.enableEmailNotifications ? 'cursor-not-allowed' : ''}>
+                          Completion Emails
+                        </Label>
                         <p className="text-sm text-muted-foreground mt-1">
                           Send email when user completes a course
                         </p>
@@ -1782,9 +1969,11 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       />
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className={`flex items-center justify-between ${!settings.enableEmailNotifications ? 'opacity-50' : ''}`}>
                       <div className="flex-1">
-                        <Label htmlFor="enableWeeklyDigest">Weekly Digest</Label>
+                        <Label htmlFor="enableWeeklyDigest" className={!settings.enableEmailNotifications ? 'cursor-not-allowed' : ''}>
+                          Weekly Digest
+                        </Label>
                         <p className="text-sm text-muted-foreground mt-1">
                           Send weekly progress summary to users
                         </p>
@@ -1798,12 +1987,47 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t">
-                    <h3 className="font-semibold mb-4">SMTP Configuration</h3>
-                    <div className="space-y-4">
+                  {!settings.enableEmailNotifications && (
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-blue-900 dark:text-blue-100">Email notifications are disabled</p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                            Enable email notifications above to configure SMTP settings and send emails to users.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {settings.enableEmailNotifications && (
+                    <div className="pt-6 border-t animate-in fade-in-50 duration-300">
+                      <div className="flex items-center gap-2 mb-4">
+                        <h3 className="font-semibold">SMTP Configuration</h3>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            Configure your email server to send notifications. Common providers: Gmail (smtp.gmail.com:587), Outlook (smtp-mail.outlook.com:587), SendGrid, etc.
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="smtpHost">SMTP Host</Label>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor="smtpHost">SMTP Host</Label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                Your mail server's address (e.g., smtp.gmail.com)
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                           <Input
                             id="smtpHost"
                             value={settings.smtpHost}
@@ -1812,19 +2036,33 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                           />
                         </div>
                         <div>
-                          <Label htmlFor="smtpPort">SMTP Port</Label>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor="smtpPort">SMTP Port</Label>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                Common ports: 587 (TLS), 465 (SSL), or 25 (unsecured)
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                           <Input
                             id="smtpPort"
                             value={settings.smtpPort}
                             onChange={(e) => handleChange("smtpPort", e.target.value)}
                             placeholder="587"
-                            className={validationErrors.smtpPort ? "border-destructive" : ""}
+                            className={validationErrors.smtpPort ? "border-destructive" : validationWarnings.smtpPort ? "border-blue-500" : ""}
                           />
-                          {validationErrors.smtpPort && (
+                          {validationErrors.smtpPort ? (
                             <p className="text-sm text-destructive mt-1">
                               {validationErrors.smtpPort}
                             </p>
-                          )}
+                          ) : validationWarnings.smtpPort ? (
+                            <p className={`text-sm mt-1 ${validationWarnings.smtpPort.includes('⚠️') ? 'text-yellow-600 dark:text-yellow-500' : 'text-blue-600 dark:text-blue-400'}`}>
+                              {validationWarnings.smtpPort}
+                            </p>
+                          ) : null}
                         </div>
                       </div>
                       <div>
@@ -1876,10 +2114,12 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         </p>
                       </div>
                     </div>
-                  </div>
+                    </div>
+                  )}
 
                   {/* Test Email Section */}
-                  <div className="border-t pt-6 mt-6">
+                  {settings.enableEmailNotifications && (
+                    <div className="border-t pt-6 mt-6 animate-in fade-in-50 duration-300">
                     <h3 className="font-semibold mb-4">Test Email Configuration</h3>
                     <div className="bg-muted/50 p-4 rounded-lg">
                       <p className="text-sm text-muted-foreground mb-4">
@@ -1923,7 +2163,8 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         </div>
                       )}
                     </div>
-                  </div>
+                    </div>
+                  )}
                 </div>
               </Card>
             </TabsContent>
@@ -2154,7 +2395,20 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                   </div>
 
                   <div>
-                    <Label htmlFor="customCss">Custom CSS</Label>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="customCss">Custom CSS</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <div className="space-y-1">
+                            <p className="font-semibold text-yellow-500">⚠️ Advanced users only</p>
+                            <p>Custom CSS can override default styles and potentially break the UI. Test changes thoroughly before saving.</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Textarea
                       id="customCss"
                       value={settings.customCss}
@@ -2213,6 +2467,24 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         <RotateCcw className="w-4 h-4" />
                       )}
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportAuditLog}
+                      disabled={isExportingAuditLog || auditLogTotal === 0}
+                    >
+                      {isExportingAuditLog ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Exporting...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4 mr-2" />
+                          Export CSV
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
 
@@ -2237,6 +2509,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                             <th className="text-left px-4 py-3 text-sm font-medium">Field</th>
                             <th className="text-left px-4 py-3 text-sm font-medium">Old Value</th>
                             <th className="text-left px-4 py-3 text-sm font-medium">New Value</th>
+                            <th className="text-right px-4 py-3 text-sm font-medium">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
@@ -2275,6 +2548,25 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                                 } max-w-[200px] truncate block`}>
                                   {entry.newValue || '-'}
                                 </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {entry.oldValue &&
+                                 entry.oldValue !== '[REDACTED]' &&
+                                 entry.fieldName !== 'smtpPassword' &&
+                                 entry.action !== 'ROLLBACK' ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRollbackClick(entry)}
+                                    title="Rollback to previous value"
+                                    className="text-xs"
+                                  >
+                                    <RotateCcw className="w-3 h-3 mr-1" />
+                                    Rollback
+                                  </Button>
+                                ) : (
+                                  <span className="text-muted-foreground text-xs italic">-</span>
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -2595,6 +2887,77 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                 <>
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset {factoryResetChanges.length} Settings
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rollback Confirmation Dialog */}
+      <Dialog open={showRollbackDialog} onOpenChange={setShowRollbackDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rollback Setting Change</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to rollback this change?
+            </DialogDescription>
+          </DialogHeader>
+
+          {rollbackEntry && (
+            <div className="space-y-3">
+              <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                <div>
+                  <span className="text-sm font-medium">Field:</span>
+                  <code className="ml-2 px-2 py-1 bg-background rounded text-xs">
+                    {rollbackEntry.fieldName}
+                  </code>
+                </div>
+                <div>
+                  <span className="text-sm font-medium">Current Value:</span>
+                  <span className="ml-2 text-sm text-muted-foreground">
+                    {rollbackEntry.newValue || '-'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm font-medium">Will Rollback To:</span>
+                  <span className="ml-2 text-sm font-semibold text-primary">
+                    {rollbackEntry.oldValue || '-'}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground pt-2 border-t border-border">
+                  Changed by {rollbackEntry.adminEmail} on{' '}
+                  {new Date(rollbackEntry.timestamp).toLocaleString()}
+                </div>
+              </div>
+
+              <div className="text-sm text-muted-foreground">
+                A new audit log entry will be created to track this rollback.
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowRollbackDialog(false)}
+              disabled={isRollingBack}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRollbackConfirm}
+              disabled={isRollingBack}
+            >
+              {isRollingBack ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Rolling Back...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Confirm Rollback
                 </>
               )}
             </Button>

@@ -58,7 +58,9 @@ import {
   UserCog,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Lock,
+  Unlock
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import userService, { CreateUserData } from "../services/user.service";
@@ -78,6 +80,8 @@ interface User {
   email: string;
   role: "ADMIN" | "STUDENT";
   createdAt: string;
+  loginAttempts?: number;
+  accountLockedUntil?: string | null;
   _count: {
     enrollments: number;
   };
@@ -198,6 +202,27 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleUnlockAccount = async (userId: string) => {
+    try {
+      await userService.unlockUserAccount(userId);
+      // Update the user in the list to reflect unlocked status
+      setUsers(users.map(u =>
+        u.id === userId
+          ? { ...u, loginAttempts: 0, accountLockedUntil: null }
+          : u
+      ));
+      toast.success("Account unlocked successfully");
+    } catch (error: any) {
+      console.error("Error unlocking account:", error);
+      toast.error(error.response?.data?.error || "Failed to unlock account");
+    }
+  };
+
+  const isAccountLocked = (user: User): boolean => {
+    if (!user.accountLockedUntil) return false;
+    return new Date(user.accountLockedUntil) > new Date();
   };
 
   const handleExportToCSV = () => {
@@ -558,7 +583,22 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{user.email}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getRoleBadge(user.role)}
+                          {isAccountLocked(user) && (
+                            <Badge variant="destructive" className="text-xs">
+                              <Lock className="w-3 h-3 mr-1" />
+                              Locked
+                            </Badge>
+                          )}
+                          {!isAccountLocked(user) && user.loginAttempts && user.loginAttempts > 0 && (
+                            <Badge variant="outline" className="text-xs text-yellow-600 dark:text-yellow-400">
+                              {user.loginAttempts} failed attempt{user.loginAttempts !== 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">
                           {user._count?.enrollments || 0} courses
@@ -593,6 +633,17 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
+                          {isAccountLocked(user) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleUnlockAccount(user.id)}
+                              title="Unlock Account"
+                              className="text-green-600 hover:text-green-700 dark:text-green-400"
+                            >
+                              <Unlock className="w-4 h-4" />
+                            </Button>
+                          )}
                           {user.role === "ADMIN" ? (
                             // Demote admin - requires confirmation
                             <AlertDialog>

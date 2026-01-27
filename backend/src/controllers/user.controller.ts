@@ -96,6 +96,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
         lastName: true,
         role: true,
         createdAt: true,
+        loginAttempts: true,
+        accountLockedUntil: true,
         _count: {
           select: {
             enrollments: true
@@ -369,5 +371,48 @@ export const updateUserSettings = async (req: AuthRequest, res: Response) => {
     }
     console.error('UpdateUserSettings error:', error);
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+};
+
+// Unlock user account (admin only)
+export const unlockUserAccount = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id as string;
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        loginAttempts: true,
+        accountLockedUntil: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Reset login attempts and unlock account
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        loginAttempts: 0,
+        lastFailedLogin: null,
+        accountLockedUntil: null
+      }
+    });
+
+    res.json({
+      message: 'User account unlocked successfully',
+      user: {
+        id: user.id,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('UnlockUserAccount error:', error);
+    res.status(500).json({ error: 'Failed to unlock user account' });
   }
 };

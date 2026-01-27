@@ -133,6 +133,11 @@ model User {
   updatedAt            DateTime      @updatedAt
   lastLoginAt          DateTime?
 
+  // Login attempt tracking
+  loginAttempts        Int           @default(0)
+  lastFailedLogin      DateTime?
+  accountLockedUntil   DateTime?
+
   // Settings
   emailNotifications   Boolean       @default(true)
   courseReminders      Boolean       @default(true)

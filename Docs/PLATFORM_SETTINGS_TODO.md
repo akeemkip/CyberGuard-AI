@@ -2,8 +2,8 @@
 
 > **Last Updated:** January 27, 2026
 > **Component:** Admin Settings Page (`frontend/src/app/components/admin-settings.tsx`)
-> **Status:** 13/22 Complete (59%)
-> **Latest Commit:** efb0b9b
+> **Status:** 16/22 Complete (73%) + All Technical Debt Complete
+> **Latest:** Quick wins complete - tooltips, conditional display, smart validation
 
 ---
 
@@ -15,7 +15,7 @@ This document tracks all identified issues, missing features, and improvements n
 
 ## Progress Summary
 
-### Completed (13/22 - 59%)
+### Completed (16/22 - 73%)
 - ✅ #1: Settings Persistence (cf7a4aa)
 - ✅ #2: SMTP Password Field (cf7a4aa)
 - ✅ #3: Settings Apply to Platform (0d22cb9)
@@ -29,6 +29,15 @@ This document tracks all identified issues, missing features, and improvements n
 - ✅ #11: Factory Reset (3a88544)
 - ✅ #12: Settings Audit Log (f0e01c0 - merged with #9)
 - ✅ #15: Search Settings (efb0b9b)
+- ✅ #17: Settings Tooltips/Help (January 27, 2026)
+- ✅ #18: Conditional Settings Display (January 27, 2026)
+- ✅ #19: Settings Validation Rules (January 27, 2026)
+
+### Technical Debt (All Complete)
+- ✅ Default quiz passing score implementation
+- ✅ Max login attempts tracking & enforcement
+- ✅ Audit log rollback functionality
+- ✅ Audit log export to CSV
 
 ### In Progress
 - 🔄 **Phase 3: Enhanced Features** (4/4 complete)
@@ -72,8 +81,8 @@ This document tracks all identified issues, missing features, and improvements n
   - ✅ Min password length enforced on registration (frontend + backend)
   - ✅ Session timeout enforced via JWT expiration
   - ✅ Platform name updates throughout app
-  - ⏳ Default quiz passing score (not yet implemented)
-  - ⏳ Max login attempts (not yet implemented)
+  - ✅ Default quiz passing score ✅ Complete (January 27, 2026)
+  - ✅ Max login attempts tracking & enforcement ✅ Complete (January 27, 2026)
 - **Commit:** 0d22cb9
 - **Bonus:** Added file upload for logo/favicon images
 
@@ -243,8 +252,8 @@ This document tracks all identified issues, missing features, and improvements n
   - [x] Filter by field name dropdown
   - [x] Pagination (50 entries per page)
   - [x] Sensitive values redacted in logs
-  - [ ] Rollback capability (future enhancement)
-  - [ ] Export audit log (future enhancement)
+  - [x] Rollback capability ✅ Complete (January 27, 2026)
+  - [x] Export audit log to CSV ✅ Complete (January 27, 2026)
 
 ### 13. Extended Email Options
 - **Status:** ❌ Not Started
@@ -301,38 +310,46 @@ This document tracks all identified issues, missing features, and improvements n
 - **Dependencies:** Settings persistence
 
 ### 17. Settings Tooltips/Help
-- **Status:** ❌ Not Started
+- **Status:** ✅ Complete
+- **Completed:** January 27, 2026
 - **Problem:** Some settings need more explanation
-- **Features:**
-  - [ ] Info icons with detailed tooltips
-  - [ ] Link to documentation for complex settings
-  - [ ] "Learn more" links
-  - [ ] Warning tooltips for dangerous settings
-- **Estimated Effort:** 2 hours
-- **Dependencies:** Documentation
+- **Solution:** Added HelpCircle icons with Radix UI tooltips
+- **Features Implemented:**
+  - [x] Info icons with detailed tooltips for 7 key settings
+  - [x] Session Timeout, Max Login Attempts tooltips
+  - [x] SMTP Configuration tooltips (host, port)
+  - [x] Default Quiz Passing Score tooltip
+  - [x] Warning tooltip for Custom CSS (advanced users)
+  - [x] Max-width constraint for readability
+  - [x] Dark mode support
 
 ### 18. Conditional Settings Display
-- **Status:** ❌ Not Started
+- **Status:** ✅ Complete
+- **Completed:** January 27, 2026
 - **Problem:** Some settings only relevant when others are enabled
-- **Features:**
-  - [ ] Hide SMTP config when email notifications disabled
-  - [ ] Show warnings when related settings conflict
-  - [ ] Group dependent settings visually
-  - [ ] Smart defaults based on other settings
-- **Estimated Effort:** 2 hours
-- **Dependencies:** None
+- **Solution:** Dynamic show/hide with smooth animations
+- **Features Implemented:**
+  - [x] Hide SMTP config when email notifications disabled
+  - [x] Show blue info banner explaining why SMTP is hidden
+  - [x] Visual opacity on disabled email toggles (50%)
+  - [x] Smooth fade-in animations when showing sections
+  - [x] Test Email section also hidden conditionally
+  - [x] Improved UX with clear visual feedback
 
 ### 19. Settings Validation Rules
-- **Status:** ❌ Not Started
+- **Status:** ✅ Complete
+- **Completed:** January 27, 2026
 - **Problem:** No business logic validation
-- **Examples:**
-  - Min password length should be at least 6 for security
-  - Session timeout should have reasonable range
-  - SMTP port should be valid port number
-  - Email addresses must be valid format
-  - URLs must be valid and accessible
-- **Estimated Effort:** 2 hours
-- **Dependencies:** Validation library (Zod)
+- **Solution:** Separate warnings from errors with smart recommendations
+- **Features Implemented:**
+  - [x] Warning system separate from blocking errors
+  - [x] Min password length: warns if < 8 (recommends 8+)
+  - [x] Session timeout: warns if too short (<3) or too long (>30)
+  - [x] Max login attempts: warns if too permissive (>7) or restrictive (<5)
+  - [x] Default quiz score: warns if < 60%
+  - [x] SMTP port: shows info for common ports (587 TLS, 465 SSL, 25 warning)
+  - [x] Color-coded: red=error, yellow=warning, blue=info
+  - [x] Warnings don't block saving (only errors do)
 
 ### 20. Multi-Language Support
 - **Status:** ❌ Not Started

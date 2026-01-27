@@ -3,7 +3,9 @@ import {
   getPlatformSettings,
   updatePlatformSettings,
   getSettingsAuditLogs,
-  testEmailSettings
+  testEmailSettings,
+  rollbackSettingsChange,
+  exportAuditLogCSV
 } from '../controllers/settings.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -21,6 +23,12 @@ router.put('/', updatePlatformSettings);
 
 // GET /api/admin/settings/audit-log - Get settings change audit log
 router.get('/audit-log', getSettingsAuditLogs);
+
+// GET /api/admin/settings/audit-log/export - Export audit log to CSV
+router.get('/audit-log/export', exportAuditLogCSV);
+
+// POST /api/admin/settings/rollback/:auditLogId - Rollback a settings change
+router.post('/rollback/:auditLogId', rollbackSettingsChange);
 
 // POST /api/admin/settings/test-email - Send test email to verify SMTP
 router.post('/test-email', testEmailSettings);

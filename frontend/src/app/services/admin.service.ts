@@ -746,6 +746,28 @@ const adminService = {
       { email }
     );
     return response.data;
+  },
+
+  // Rollback Settings Change
+  async rollbackSettingsChange(auditLogId: string): Promise<{ message: string; fieldName: string; rolledBackTo: string }> {
+    const response = await api.post<{ message: string; fieldName: string; rolledBackTo: string }>(
+      `/admin/settings/rollback/${auditLogId}`
+    );
+    return response.data;
+  },
+
+  // Export Audit Log to CSV
+  async exportAuditLogCSV(field?: string, startDate?: string, endDate?: string): Promise<Blob> {
+    const params: Record<string, string> = {};
+    if (field) params.field = field;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const response = await api.get('/admin/settings/audit-log/export', {
+      params,
+      responseType: 'blob'
+    });
+    return response.data;
   }
 };
 

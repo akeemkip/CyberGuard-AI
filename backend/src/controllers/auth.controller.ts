@@ -131,17 +131,73 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // Fetch maxLoginAttempts from platform settings
+    let maxLoginAttempts = 5; // Default
+    try {
+      const settings = await prisma.platformSettings.findUnique({
+        where: { id: 'singleton' },
+        select: { maxLoginAttempts: true }
+      });
+      if (settings?.maxLoginAttempts) {
+        maxLoginAttempts = settings.maxLoginAttempts;
+      }
+    } catch (err) {
+      console.error('Failed to fetch login attempt settings, using default:', err);
+    }
+
+    // Check if account is locked
+    if (user.accountLockedUntil && user.accountLockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.accountLockedUntil.getTime() - Date.now()) / 60000);
+      return res.status(423).json({
+        error: `Account is locked due to too many failed login attempts. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`,
+        lockedUntil: user.accountLockedUntil
+      });
+    }
+
     // Check password
     const isPasswordValid = await bcrypt.compare(validatedData.password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      // Increment login attempts
+      const newAttempts = user.loginAttempts + 1;
+      const updateData: any = {
+        loginAttempts: newAttempts,
+        lastFailedLogin: new Date()
+      };
+
+      // Lock account if max attempts reached (15 minute lockout)
+      if (newAttempts >= maxLoginAttempts) {
+        updateData.accountLockedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: updateData
+      });
+
+      // Send appropriate error message
+      if (newAttempts >= maxLoginAttempts) {
+        return res.status(423).json({
+          error: 'Account locked due to too many failed login attempts. Please try again in 15 minutes.',
+          lockedUntil: updateData.accountLockedUntil
+        });
+      } else {
+        const attemptsLeft = maxLoginAttempts - newAttempts;
+        return res.status(401).json({
+          error: `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining before account lockout.`
+        });
+      }
     }
 
-    // Update last login timestamp
+    // Successful login - reset login attempts and clear lockout
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() }
+      data: {
+        lastLoginAt: new Date(),
+        loginAttempts: 0,
+        lastFailedLogin: null,
+        accountLockedUntil: null
+      }
     });
 
     // Generate token (now async)
