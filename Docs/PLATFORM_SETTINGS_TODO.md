@@ -3,7 +3,7 @@
 > **Last Updated:** January 27, 2026
 > **Component:** Admin Settings Page (`frontend/src/app/components/admin-settings.tsx`)
 > **Status:** 13/22 Complete (59%)
-> **Latest Commit:** 3a88544
+> **Latest Commit:** efb0b9b
 
 ---
 
@@ -26,9 +26,9 @@ This document tracks all identified issues, missing features, and improvements n
 - ✅ #8: Preview Functionality (7e43829)
 - ✅ #9: Settings Security Improvements (f0e01c0)
 - ✅ #10: Import/Export Settings (1835482)
-- ✅ #11: Reset to Factory Defaults (3a88544)
+- ✅ #11: Factory Reset (3a88544)
 - ✅ #12: Settings Audit Log (f0e01c0 - merged with #9)
-- ✅ #15: Search Settings (pending commit)
+- ✅ #15: Search Settings (efb0b9b)
 
 ### In Progress
 - 🔄 **Phase 3: Enhanced Features** (4/4 complete)
@@ -229,7 +229,7 @@ This document tracks all identified issues, missing features, and improvements n
   - [x] Automatic backup before reset (for undo)
   - [x] Undo reset via toast action
   - [x] Disabled button when no changes needed
-- **Commit:** (pending)
+- **Commit:** 3a88544
 
 ### 12. Settings History/Audit Log
 - **Status:** ✅ Complete (Merged with #9)
@@ -287,7 +287,7 @@ This document tracks all identified issues, missing features, and improvements n
   - [x] Visual highlight animation on target setting (ring + background)
   - [x] Auto-scroll to setting after tab switch
   - [x] Searchable index of 30+ settings with keywords
-- **Commit:** (pending)
+- **Commit:** efb0b9b
 
 ### 16. Settings Presets
 - **Status:** ❌ Not Started
