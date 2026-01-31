@@ -17,7 +17,12 @@ import {
   Loader2,
   ArrowLeft,
   Moon,
-  Sun
+  Sun,
+  ShieldAlert,
+  MousePointerClick,
+  Flag,
+  Timer,
+  XCircle
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
@@ -152,7 +157,7 @@ export function AdminUserProfile({ userId, userEmail, onNavigate, onLogout }: Ad
               </div>
 
               {/* Key Metrics Grid */}
-              <div className="grid grid-cols-4 gap-6">
+              <div className="grid grid-cols-5 gap-6">
                 <Card className="p-6">
                   <div className="flex items-center gap-2 mb-2">
                     <BookOpen className="w-4 h-4 text-primary" />
@@ -191,6 +196,17 @@ export function AdminUserProfile({ userId, userEmail, onNavigate, onLogout }: Ad
                   </div>
                   <div className="text-2xl font-bold">{stats.academic.certificates.total}</div>
                   <div className="text-xs text-muted-foreground mt-1">earned</div>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldAlert className="w-4 h-4 text-orange-500" />
+                    <span className="text-sm text-muted-foreground">Phishing</span>
+                  </div>
+                  <div className="text-2xl font-bold">{stats.academic.phishing?.accuracy || 0}%</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {stats.academic.phishing?.totalAttempts || 0} attempts
+                  </div>
                 </Card>
               </div>
 
@@ -278,6 +294,67 @@ export function AdminUserProfile({ userId, userEmail, onNavigate, onLogout }: Ad
                       </div>
                     </div>
                   </Card>
+
+                  {/* Phishing Simulation Performance */}
+                  <Card className="p-6">
+                    <h4 className="font-semibold mb-4 flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4" />
+                      Phishing Simulation
+                    </h4>
+                    {stats.academic.phishing?.totalAttempts > 0 ? (
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Target className="w-3 h-3" /> Total Attempts
+                          </span>
+                          <span className="font-semibold">{stats.academic.phishing.totalAttempts}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Correct
+                          </span>
+                          <span className="font-semibold text-success">{stats.academic.phishing.correctAttempts}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3" /> Accuracy
+                          </span>
+                          <span className={`font-semibold ${stats.academic.phishing.accuracy >= 70 ? 'text-success' : stats.academic.phishing.accuracy >= 50 ? 'text-warning' : 'text-destructive'}`}>
+                            {stats.academic.phishing.accuracy}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <MousePointerClick className="w-3 h-3" /> Click Rate
+                          </span>
+                          <span className={`font-semibold ${stats.academic.phishing.clickRate <= 10 ? 'text-success' : stats.academic.phishing.clickRate <= 30 ? 'text-warning' : 'text-destructive'}`}>
+                            {stats.academic.phishing.clickRate}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Flag className="w-3 h-3" /> Report Rate
+                          </span>
+                          <span className={`font-semibold ${stats.academic.phishing.reportRate >= 70 ? 'text-success' : stats.academic.phishing.reportRate >= 50 ? 'text-warning' : 'text-destructive'}`}>
+                            {stats.academic.phishing.reportRate}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Timer className="w-3 h-3" /> Avg Response
+                          </span>
+                          <span className="font-semibold">
+                            {stats.academic.phishing.avgResponseTimeMs > 60000
+                              ? `${Math.round(stats.academic.phishing.avgResponseTimeMs / 60000)}m`
+                              : `${Math.round(stats.academic.phishing.avgResponseTimeMs / 1000)}s`
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">No phishing simulation attempts</p>
+                    )}
+                  </Card>
                 </div>
 
                 {/* Right Column */}
@@ -345,7 +422,11 @@ export function AdminUserProfile({ userId, userEmail, onNavigate, onLogout }: Ad
                         <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
                       ) : (
                         stats.recentActivity.map((activity, index) => (
-                          <div key={index} className="p-2 border-l-2 border-primary pl-3">
+                          <div key={index} className={`p-2 border-l-2 pl-3 ${
+                            activity.type === "phishing_attempt"
+                              ? "border-orange-500"
+                              : "border-primary"
+                          }`}>
                             {activity.type === "lesson_completed" ? (
                               <>
                                 <div className="text-sm font-medium">Completed: {activity.lesson}</div>
@@ -353,6 +434,29 @@ export function AdminUserProfile({ userId, userEmail, onNavigate, onLogout }: Ad
                                 <div className="text-xs text-muted-foreground">
                                   <Clock className="w-3 h-3 inline mr-1" />
                                   {formatDate(activity.completedAt!)}
+                                </div>
+                              </>
+                            ) : activity.type === "phishing_attempt" ? (
+                              <>
+                                <div className="text-sm font-medium flex items-center gap-2">
+                                  <ShieldAlert className="w-3 h-3 text-orange-500" />
+                                  Phishing: {activity.scenario}
+                                  {activity.isCorrect ? (
+                                    <Badge variant="default" className="bg-success text-xs">
+                                      Correct
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="destructive" className="text-xs">
+                                      {activity.action === "CLICKED_LINK" ? "Clicked Link" : "Incorrect"}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground capitalize">
+                                  Action: {activity.action?.toLowerCase().replace('_', ' ')}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  <Clock className="w-3 h-3 inline mr-1" />
+                                  {formatDate(activity.attemptedAt!)}
                                 </div>
                               </>
                             ) : (

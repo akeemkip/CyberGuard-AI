@@ -288,6 +288,50 @@ export const getUserStatistics = async (req: Request, res: Response) => {
       (new Date().getTime() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)
     );
 
+    // Get phishing simulation stats
+    const phishingAttempts = await prisma.phishingAttempt.findMany({
+      where: { userId },
+      include: {
+        scenario: {
+          select: { title: true, isPhishing: true }
+        }
+      },
+      orderBy: { attemptedAt: 'desc' }
+    });
+
+    const totalPhishingAttempts = phishingAttempts.length;
+    const correctPhishingAttempts = phishingAttempts.filter(a => a.isCorrect).length;
+    const phishingAccuracy = totalPhishingAttempts > 0
+      ? Math.round((correctPhishingAttempts / totalPhishingAttempts) * 100)
+      : 0;
+
+    // Calculate click rate (how often they clicked on phishing links)
+    const clickedLinks = phishingAttempts.filter(a => a.userAction === 'CLICKED_LINK').length;
+    const phishingClickRate = totalPhishingAttempts > 0
+      ? Math.round((clickedLinks / totalPhishingAttempts) * 100)
+      : 0;
+
+    // Calculate report rate (how often they correctly reported phishing)
+    const reportedPhishing = phishingAttempts.filter(a => a.userAction === 'REPORTED' && a.scenario.isPhishing).length;
+    const totalPhishingScenarios = phishingAttempts.filter(a => a.scenario.isPhishing).length;
+    const phishingReportRate = totalPhishingScenarios > 0
+      ? Math.round((reportedPhishing / totalPhishingScenarios) * 100)
+      : 0;
+
+    // Average response time
+    const avgResponseTime = totalPhishingAttempts > 0
+      ? Math.round(phishingAttempts.reduce((sum, a) => sum + a.responseTimeMs, 0) / totalPhishingAttempts)
+      : 0;
+
+    // Recent phishing attempts for activity
+    const recentPhishingAttempts = phishingAttempts.slice(0, 5).map(a => ({
+      type: 'phishing_attempt',
+      scenario: a.scenario.title,
+      action: a.userAction,
+      isCorrect: a.isCorrect,
+      attemptedAt: a.attemptedAt
+    }));
+
     // Get recent activity (last 10 completed lessons)
     const recentActivity = lessonProgress
       .filter(p => p.completed && p.completedAt)
@@ -312,7 +356,7 @@ export const getUserStatistics = async (req: Request, res: Response) => {
     }));
 
     // Combine and sort recent activity
-    const allRecentActivity = [...recentActivity, ...recentQuizzes]
+    const allRecentActivity = [...recentActivity, ...recentQuizzes, ...recentPhishingAttempts]
       .sort((a: any, b: any) => {
         const dateA = new Date(a.completedAt || a.attemptedAt).getTime();
         const dateB = new Date(b.completedAt || b.attemptedAt).getTime();
@@ -362,6 +406,14 @@ export const getUserStatistics = async (req: Request, res: Response) => {
             courseName: c.course.title,
             issuedAt: c.issuedAt
           }))
+        },
+        phishing: {
+          totalAttempts: totalPhishingAttempts,
+          correctAttempts: correctPhishingAttempts,
+          accuracy: phishingAccuracy,
+          clickRate: phishingClickRate,
+          reportRate: phishingReportRate,
+          avgResponseTimeMs: avgResponseTime
         }
       },
       courses: courseDetails,

@@ -155,6 +155,14 @@ export interface UserStatistics {
         issuedAt: string;
       }>;
     };
+    phishing: {
+      totalAttempts: number;
+      correctAttempts: number;
+      accuracy: number;
+      clickRate: number;
+      reportRate: number;
+      avgResponseTimeMs: number;
+    };
   };
   courses: Array<{
     courseId: string;
@@ -167,7 +175,10 @@ export interface UserStatistics {
     type: string;
     lesson?: string;
     quiz?: string;
-    course: string;
+    scenario?: string;
+    action?: string;
+    isCorrect?: boolean;
+    course?: string;
     score?: number;
     passed?: boolean;
     completedAt?: string;
