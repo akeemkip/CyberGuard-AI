@@ -37,8 +37,12 @@ export function CertificatesPage({ onNavigate, onLogout }: CertificatesPageProps
       try {
         setLoading(true);
         const enrolledCourses = await courseService.getEnrolledCourses();
-        // Filter for completed courses only
-        const completed = enrolledCourses.filter(e => e.completedAt !== null);
+        // Filter for completed courses only - must have completedAt AND all lessons actually completed
+        const completed = enrolledCourses.filter(e =>
+          e.completedAt !== null &&
+          e.progress.totalLessons > 0 &&
+          e.progress.completedLessons === e.progress.totalLessons
+        );
         setCompletedCourses(completed);
       } catch (error) {
         console.error("Error fetching certificates:", error);

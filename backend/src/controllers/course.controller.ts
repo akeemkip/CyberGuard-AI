@@ -458,8 +458,9 @@ export const markLessonComplete = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    // If all lessons complete, mark course as complete
-    if (completedLessons === courseLessons.length) {
+    // If all lessons complete AND course has lessons, mark course as complete
+    // (prevents marking empty courses as complete)
+    if (courseLessons.length > 0 && completedLessons === courseLessons.length) {
       await prisma.enrollment.update({
         where: {
           userId_courseId: { userId, courseId: lesson.courseId }
