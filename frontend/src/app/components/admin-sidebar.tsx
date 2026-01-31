@@ -31,13 +31,16 @@ export function AdminSidebar({ userEmail, currentPage, onNavigate, onLogout }: A
   ];
 
   return (
-    <aside
-      className={`border-r border-border bg-sidebar flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-screen ${
-        isExpanded ? "w-72" : "w-20"
-      }`}
+    <div
+      className="w-20 flex-shrink-0 relative"
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
+      <aside
+        className={`border-r border-border bg-sidebar flex flex-col h-screen z-40 absolute top-0 left-0 transition-all duration-300 ease-in-out ${
+          isExpanded ? "w-72 shadow-xl" : "w-20"
+        }`}
+      >
       <div className="p-6 flex-1 flex flex-col">
         {/* Logo Section */}
         <div className={`flex items-center gap-2 mb-8 ${isExpanded ? "" : "justify-center"}`}>
@@ -117,5 +120,6 @@ export function AdminSidebar({ userEmail, currentPage, onNavigate, onLogout }: A
         </Button>
       </div>
     </aside>
+    </div>
   );
 }
