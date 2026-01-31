@@ -73,11 +73,19 @@ import {
   HelpCircle,
   TrendingUp,
   Target,
-  Users
+  Users,
+  Mail,
+  AlertTriangle,
+  ShieldCheck,
+  ShieldX,
+  CheckCircle,
+  XCircle,
+  Clock
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import courseService, { Course, Lesson } from "../services/course.service";
 import adminService, { QuizWithStats, Module, LabWithStats } from "../services/admin.service";
+import phishingService, { ScenarioWithStats, AdminPhishingStats } from "../services/phishing.service";
 import { AdminSidebar } from "./admin-sidebar";
 
 // Sortable Lesson Item Component
@@ -453,6 +461,21 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     description: "",
     order: 0
   });
+
+  // Phishing management state
+  const [phishingScenarios, setPhishingScenarios] = useState<ScenarioWithStats[]>([]);
+  const [phishingStats, setPhishingStats] = useState<AdminPhishingStats | null>(null);
+  const [isLoadingPhishing, setIsLoadingPhishing] = useState(false);
+  const [phishingSearch, setPhishingSearch] = useState("");
+  const [phishingFilterDifficulty, setPhishingFilterDifficulty] = useState<string>("all");
+  const [phishingFilterCategory, setPhishingFilterCategory] = useState<string>("all");
+  const [phishingFilterActive, setPhishingFilterActive] = useState<string>("all");
+  const [deletingPhishingId, setDeletingPhishingId] = useState<string | null>(null);
+  const [showDeletePhishingDialog, setShowDeletePhishingDialog] = useState(false);
+  const [phishingToDelete, setPhishingToDelete] = useState<ScenarioWithStats | null>(null);
+  const [phishingAttempts, setPhishingAttempts] = useState<any[]>([]);
+  const [showPhishingAttempts, setShowPhishingAttempts] = useState(false);
+  const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
 
   useEffect(() => {
     // Restore tab from browser history state if available (for back button navigation)
@@ -1107,6 +1130,92 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     }
   }, [activeTab]);
 
+  // ============================================
+  // PHISHING MANAGEMENT FUNCTIONS
+  // ============================================
+
+  const fetchPhishingScenarios = async () => {
+    try {
+      setIsLoadingPhishing(true);
+      const [scenarios, stats] = await Promise.all([
+        phishingService.getAllScenarios(),
+        phishingService.getPlatformStats()
+      ]);
+      setPhishingScenarios(scenarios);
+      setPhishingStats(stats);
+    } catch (error) {
+      console.error("Error fetching phishing scenarios:", error);
+      toast.error("Failed to load phishing scenarios");
+    } finally {
+      setIsLoadingPhishing(false);
+    }
+  };
+
+  const fetchPhishingAttempts = async () => {
+    try {
+      setIsLoadingAttempts(true);
+      const response = await phishingService.getAllAttempts(20, 0);
+      setPhishingAttempts(response.attempts);
+    } catch (error) {
+      console.error("Error fetching phishing attempts:", error);
+      toast.error("Failed to load attempts");
+    } finally {
+      setIsLoadingAttempts(false);
+    }
+  };
+
+  const togglePhishingAttempts = () => {
+    if (!showPhishingAttempts && phishingAttempts.length === 0) {
+      fetchPhishingAttempts();
+    }
+    setShowPhishingAttempts(!showPhishingAttempts);
+  };
+
+  const handleDeletePhishing = async (scenario: ScenarioWithStats) => {
+    setPhishingToDelete(scenario);
+    setShowDeletePhishingDialog(true);
+  };
+
+  const confirmDeletePhishing = async () => {
+    if (!phishingToDelete) return;
+
+    try {
+      setDeletingPhishingId(phishingToDelete.id);
+      await phishingService.deleteScenario(phishingToDelete.id);
+      toast.success("Phishing scenario deleted successfully");
+      await fetchPhishingScenarios();
+      setShowDeletePhishingDialog(false);
+      setPhishingToDelete(null);
+    } catch (error) {
+      console.error("Error deleting phishing scenario:", error);
+      toast.error("Failed to delete scenario");
+    } finally {
+      setDeletingPhishingId(null);
+    }
+  };
+
+  const filteredPhishingScenarios = phishingScenarios
+    .filter(scenario => {
+      const matchesSearch = scenario.title.toLowerCase().includes(phishingSearch.toLowerCase()) ||
+                          scenario.description.toLowerCase().includes(phishingSearch.toLowerCase());
+      const matchesDifficulty = phishingFilterDifficulty === "all" || scenario.difficulty === phishingFilterDifficulty;
+      const matchesCategory = phishingFilterCategory === "all" || scenario.category === phishingFilterCategory;
+      const matchesActive = phishingFilterActive === "all" ||
+                          (phishingFilterActive === "active" && scenario.isActive) ||
+                          (phishingFilterActive === "inactive" && !scenario.isActive);
+      return matchesSearch && matchesDifficulty && matchesCategory && matchesActive;
+    });
+
+  // Get unique categories from scenarios
+  const uniqueCategories = Array.from(new Set(phishingScenarios.map(s => s.category)));
+
+  // When phishing tab is active, fetch scenarios (always refetch to get latest data)
+  useEffect(() => {
+    if (activeTab === 'phishing') {
+      fetchPhishingScenarios();
+    }
+  }, [activeTab]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -1308,6 +1417,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
               <TabsTrigger value="lessons">Lessons</TabsTrigger>
               <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
               <TabsTrigger value="labs">Labs</TabsTrigger>
+              <TabsTrigger value="phishing">Phishing</TabsTrigger>
             </TabsList>
 
             <TabsContent value="courses" className="space-y-6">
@@ -2354,6 +2464,385 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         </>
                       ) : (
                         "Delete Lab"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </TabsContent>
+
+            <TabsContent value="phishing" className="space-y-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-semibold">Phishing Simulation Management</h2>
+                  <p className="text-muted-foreground">Create and manage phishing email scenarios</p>
+                </div>
+                <Button onClick={() => onNavigate("admin-phishing-edit")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Scenario
+                </Button>
+              </div>
+
+              {/* Platform Stats */}
+              {phishingStats && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Scenarios</p>
+                        <p className="text-2xl font-bold">{phishingStats.overview.totalScenarios}</p>
+                      </div>
+                      <Mail className="w-6 h-6 text-primary opacity-50" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {phishingStats.overview.activeScenarios} active
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Attempts</p>
+                        <p className="text-2xl font-bold">{phishingStats.overview.totalAttempts}</p>
+                      </div>
+                      <Users className="w-6 h-6 text-blue-500 opacity-50" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {phishingStats.overview.uniqueUsers} users
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Accuracy</p>
+                        <p className="text-2xl font-bold">{phishingStats.overview.overallAccuracy}%</p>
+                      </div>
+                      <Target className="w-6 h-6 text-green-500 opacity-50" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {phishingStats.overview.correctAttempts} correct
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Report Rate</p>
+                        <p className="text-2xl font-bold text-green-600">{phishingStats.overview.reportRate}%</p>
+                      </div>
+                      <ShieldCheck className="w-6 h-6 text-green-500 opacity-50" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Phishing reported
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Click Rate</p>
+                        <p className="text-2xl font-bold text-red-600">{phishingStats.overview.clickRate}%</p>
+                      </div>
+                      <AlertTriangle className="w-6 h-6 text-red-500 opacity-50" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Dangerous clicks
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Avg Response</p>
+                        <p className="text-2xl font-bold">{(phishingStats.overview.avgResponseTimeMs / 1000).toFixed(1)}s</p>
+                      </div>
+                      <Clock className="w-6 h-6 text-muted-foreground opacity-50" />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Decision time
+                    </p>
+                  </Card>
+                </div>
+              )}
+
+              {/* Recent Attempts Section */}
+              <Card className="p-4">
+                <div
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={togglePhishingAttempts}
+                >
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    <h3 className="font-semibold">Recent User Attempts</h3>
+                    {phishingAttempts.length > 0 && (
+                      <Badge variant="secondary">{phishingAttempts.length}</Badge>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="sm">
+                    {showPhishingAttempts ? "Hide" : "Show"}
+                  </Button>
+                </div>
+
+                {showPhishingAttempts && (
+                  <div className="mt-4">
+                    {isLoadingAttempts ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : phishingAttempts.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-4">No attempts yet</p>
+                    ) : (
+                      <div className="space-y-2 max-h-80 overflow-y-auto">
+                        {phishingAttempts.map((attempt) => (
+                          <div
+                            key={attempt.id}
+                            className={`p-3 rounded-lg border ${
+                              attempt.isCorrect
+                                ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+                                : "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm">
+                                  {attempt.user.firstName || attempt.user.email}
+                                </span>
+                                {attempt.isCorrect ? (
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-600" />
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(attempt.attemptedAt).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{attempt.scenario.title}</span>
+                              <span>•</span>
+                              <Badge variant="outline" className="text-xs py-0">
+                                {attempt.userAction.replace("_", " ")}
+                              </Badge>
+                              {attempt.scenario.isPhishing ? (
+                                <Badge variant="destructive" className="text-xs py-0">Phishing</Badge>
+                              ) : (
+                                <Badge className="text-xs py-0 bg-green-600">Legitimate</Badge>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Card>
+
+              {/* Filters */}
+              <Card className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Label>Search Scenarios</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search by title or description..."
+                        value={phishingSearch}
+                        onChange={(e) => setPhishingSearch(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Difficulty</Label>
+                    <Select value={phishingFilterDifficulty} onValueChange={setPhishingFilterDifficulty}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Difficulties" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Difficulties</SelectItem>
+                        <SelectItem value="Beginner">Beginner</SelectItem>
+                        <SelectItem value="Intermediate">Intermediate</SelectItem>
+                        <SelectItem value="Advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <Select value={phishingFilterCategory} onValueChange={setPhishingFilterCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {uniqueCategories.map(cat => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Status</Label>
+                    <Select value={phishingFilterActive} onValueChange={setPhishingFilterActive}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Scenarios List */}
+              {isLoadingPhishing ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : filteredPhishingScenarios.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">No phishing scenarios found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {phishingScenarios.length === 0
+                      ? "Get started by creating your first phishing scenario"
+                      : "No scenarios match your current filters"}
+                  </p>
+                  {phishingScenarios.length === 0 && (
+                    <Button onClick={() => onNavigate("admin-phishing-edit")}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Scenario
+                    </Button>
+                  )}
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {filteredPhishingScenarios.map((scenario) => (
+                    <Card key={scenario.id} className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-semibold text-lg">{scenario.title}</h3>
+                            <Badge
+                              variant={scenario.isPhishing ? "destructive" : "default"}
+                              className={!scenario.isPhishing ? "bg-green-600" : ""}
+                            >
+                              {scenario.isPhishing ? (
+                                <><ShieldX className="w-3 h-3 mr-1" />Phishing</>
+                              ) : (
+                                <><ShieldCheck className="w-3 h-3 mr-1" />Legitimate</>
+                              )}
+                            </Badge>
+                            {scenario.isActive ? (
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                <CheckCircle className="w-3 h-3 mr-1" />Active
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground">
+                                <XCircle className="w-3 h-3 mr-1" />Inactive
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">{scenario.description}</p>
+
+                          <div className="flex items-center gap-4 text-sm mb-3">
+                            <Badge variant="outline">{scenario.difficulty}</Badge>
+                            <Badge variant="secondary">{scenario.category}</Badge>
+                            {scenario.redFlagsCount > 0 && (
+                              <span className="text-muted-foreground">
+                                {scenario.redFlagsCount} red flag{scenario.redFlagsCount !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Email Preview */}
+                          <div className="bg-muted/30 rounded-lg p-3 mb-3">
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">From:</span> {scenario.senderName} &lt;{scenario.senderEmail}&gt;
+                            </p>
+                            <p className="text-sm">
+                              <span className="text-muted-foreground">Subject:</span> {scenario.subject}
+                            </p>
+                          </div>
+
+                          {/* Statistics */}
+                          <div className="grid grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground">Attempts</p>
+                              <p className="font-semibold">{scenario.stats.totalAttempts}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Correct</p>
+                              <p className="font-semibold text-green-600">{scenario.stats.correctAttempts}</p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground">Accuracy</p>
+                              <p className="font-semibold">{scenario.stats.accuracy}%</p>
+                            </div>
+                            {scenario.stats.clickRate !== null && (
+                              <div>
+                                <p className="text-muted-foreground">Click Rate</p>
+                                <p className="font-semibold text-red-600">{scenario.stats.clickRate}%</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onNavigate("admin-phishing-edit", scenario.id)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeletePhishing(scenario)}
+                            disabled={deletingPhishingId === scenario.id}
+                          >
+                            {deletingPhishingId === scenario.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Delete Phishing Confirmation Dialog */}
+              <AlertDialog open={showDeletePhishingDialog} onOpenChange={setShowDeletePhishingDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Phishing Scenario</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{phishingToDelete?.title}"?
+                      <br /><br />
+                      This will:
+                      <ul className="list-disc list-inside mt-2">
+                        <li>Permanently delete the scenario</li>
+                        <li>Remove all student attempt history for this scenario</li>
+                        <li>Cannot be undone</li>
+                      </ul>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={confirmDeletePhishing}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={!!deletingPhishingId}
+                    >
+                      {deletingPhishingId ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Delete Scenario"
                       )}
                     </AlertDialogAction>
                   </AlertDialogFooter>

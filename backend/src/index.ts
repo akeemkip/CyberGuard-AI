@@ -14,6 +14,7 @@ import adminRoutes from './routes/admin.routes';
 import aiRoutes from './routes/ai.routes';
 import labRoutes from './routes/lab.routes';
 import settingsRoutes from './routes/settings.routes';
+import phishingRoutes from './routes/phishing.routes';
 import { getPublicSettings } from './controllers/settings.controller';
 import { upload, uploadImage, deleteImage } from './controllers/upload.controller';
 
@@ -50,6 +51,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin/settings', settingsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/labs', labRoutes);
+app.use('/api/phishing', phishingRoutes);
 
 // 404 handler
 app.use((req, res) => {

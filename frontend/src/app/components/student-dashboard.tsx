@@ -18,7 +18,8 @@ import {
   Loader2,
   X,
   Award,
-  ClipboardCheck
+  ClipboardCheck,
+  Mail
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
@@ -463,6 +464,14 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 >
                   <ClipboardCheck className="w-4 h-4 mr-2" />
                   Take Assessment
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => onNavigate("phishing-simulation")}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Phishing Simulation
                 </Button>
               </div>
             </Card>

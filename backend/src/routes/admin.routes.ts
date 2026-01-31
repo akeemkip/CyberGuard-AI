@@ -22,7 +22,14 @@ import {
   createLab,
   updateLab,
   deleteLab,
-  reorderLabs
+  reorderLabs,
+  getAllPhishingScenarios,
+  getPhishingScenarioById,
+  createPhishingScenario,
+  updatePhishingScenario,
+  deletePhishingScenario,
+  getPhishingPlatformStats,
+  getAllPhishingAttempts
 } from '../controllers/admin.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
@@ -103,5 +110,27 @@ router.put('/labs/:id', updateLab);
 
 // DELETE /api/admin/labs/:id - Delete lab
 router.delete('/labs/:id', deleteLab);
+
+// Phishing Management Routes
+// GET /api/admin/phishing/scenarios - Get all scenarios with stats
+router.get('/phishing/scenarios', getAllPhishingScenarios);
+
+// GET /api/admin/phishing/stats - Get platform-wide phishing stats
+router.get('/phishing/stats', getPhishingPlatformStats);
+
+// GET /api/admin/phishing/attempts - Get all attempts (filterable)
+router.get('/phishing/attempts', getAllPhishingAttempts);
+
+// GET /api/admin/phishing/scenarios/:id - Get single scenario
+router.get('/phishing/scenarios/:id', getPhishingScenarioById);
+
+// POST /api/admin/phishing/scenarios - Create scenario
+router.post('/phishing/scenarios', createPhishingScenario);
+
+// PUT /api/admin/phishing/scenarios/:id - Update scenario
+router.put('/phishing/scenarios/:id', updatePhishingScenario);
+
+// DELETE /api/admin/phishing/scenarios/:id - Delete scenario
+router.delete('/phishing/scenarios/:id', deletePhishingScenario);
 
 export default router;

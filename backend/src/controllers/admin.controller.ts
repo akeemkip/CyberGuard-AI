@@ -2264,3 +2264,480 @@ export const reorderLabs = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to reorder labs' });
   }
 };
+
+// ============================================================
+// PHISHING MANAGEMENT ENDPOINTS (ADMIN)
+// ============================================================
+
+// Get all phishing scenarios with statistics
+export const getAllPhishingScenarios = async (req: Request, res: Response) => {
+  try {
+    const scenarios = await prisma.phishingScenario.findMany({
+      include: {
+        attempts: {
+          select: { isCorrect: true, userAction: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const scenariosWithStats = scenarios.map(scenario => {
+      const totalAttempts = scenario.attempts.length;
+      const correctAttempts = scenario.attempts.filter(a => a.isCorrect).length;
+      const accuracy = totalAttempts > 0
+        ? Math.round((correctAttempts / totalAttempts) * 100)
+        : 0;
+
+      // For phishing scenarios, track click rate
+      const clickRate = scenario.isPhishing && totalAttempts > 0
+        ? Math.round((scenario.attempts.filter(a => a.userAction === 'CLICKED_LINK').length / totalAttempts) * 100)
+        : null;
+
+      return {
+        id: scenario.id,
+        title: scenario.title,
+        description: scenario.description,
+        difficulty: scenario.difficulty,
+        category: scenario.category,
+        isActive: scenario.isActive,
+        senderName: scenario.senderName,
+        senderEmail: scenario.senderEmail,
+        subject: scenario.subject,
+        isPhishing: scenario.isPhishing,
+        redFlagsCount: scenario.redFlags.length,
+        createdAt: scenario.createdAt,
+        updatedAt: scenario.updatedAt,
+        stats: {
+          totalAttempts,
+          correctAttempts,
+          accuracy,
+          clickRate
+        }
+      };
+    });
+
+    res.json({ scenarios: scenariosWithStats });
+  } catch (error) {
+    console.error('GetAllPhishingScenarios error:', error);
+    res.status(500).json({ error: 'Failed to fetch phishing scenarios' });
+  }
+};
+
+// Get single phishing scenario by ID
+export const getPhishingScenarioById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    const scenario = await prisma.phishingScenario.findUnique({
+      where: { id },
+      include: {
+        attempts: {
+          select: { isCorrect: true, userAction: true }
+        }
+      }
+    });
+
+    if (!scenario) {
+      return res.status(404).json({ error: 'Scenario not found' });
+    }
+
+    const totalAttempts = scenario.attempts.length;
+    const correctAttempts = scenario.attempts.filter(a => a.isCorrect).length;
+    const accuracy = totalAttempts > 0
+      ? Math.round((correctAttempts / totalAttempts) * 100)
+      : 0;
+
+    res.json({
+      id: scenario.id,
+      title: scenario.title,
+      description: scenario.description,
+      difficulty: scenario.difficulty,
+      category: scenario.category,
+      isActive: scenario.isActive,
+      senderName: scenario.senderName,
+      senderEmail: scenario.senderEmail,
+      subject: scenario.subject,
+      body: scenario.body,
+      attachments: scenario.attachments,
+      isPhishing: scenario.isPhishing,
+      redFlags: scenario.redFlags,
+      legitimateReason: scenario.legitimateReason,
+      createdAt: scenario.createdAt,
+      updatedAt: scenario.updatedAt,
+      stats: {
+        totalAttempts,
+        correctAttempts,
+        accuracy
+      }
+    });
+  } catch (error) {
+    console.error('GetPhishingScenarioById error:', error);
+    res.status(500).json({ error: 'Failed to fetch scenario' });
+  }
+};
+
+// Create new phishing scenario
+export const createPhishingScenario = async (req: Request, res: Response) => {
+  try {
+    const {
+      title,
+      description,
+      difficulty,
+      category,
+      isActive,
+      senderName,
+      senderEmail,
+      subject,
+      body,
+      attachments,
+      isPhishing,
+      redFlags,
+      legitimateReason
+    } = req.body;
+
+    // Validation
+    if (!title || title.trim().length < 3) {
+      return res.status(400).json({ error: 'Title must be at least 3 characters' });
+    }
+
+    if (!description || description.trim().length < 10) {
+      return res.status(400).json({ error: 'Description must be at least 10 characters' });
+    }
+
+    if (!senderName || !senderEmail || !subject || !body) {
+      return res.status(400).json({ error: 'Sender name, email, subject, and body are required' });
+    }
+
+    if (typeof isPhishing !== 'boolean') {
+      return res.status(400).json({ error: 'isPhishing must be a boolean' });
+    }
+
+    if (isPhishing && (!redFlags || !Array.isArray(redFlags) || redFlags.length === 0)) {
+      return res.status(400).json({ error: 'Phishing scenarios must have at least one red flag' });
+    }
+
+    if (!isPhishing && !legitimateReason) {
+      return res.status(400).json({ error: 'Legitimate scenarios must have a reason explaining why they are safe' });
+    }
+
+    const validDifficulties = ['Beginner', 'Intermediate', 'Advanced'];
+    if (difficulty && !validDifficulties.includes(difficulty)) {
+      return res.status(400).json({ error: 'Invalid difficulty level' });
+    }
+
+    const scenario = await prisma.phishingScenario.create({
+      data: {
+        title: title.trim(),
+        description: description.trim(),
+        difficulty: difficulty || 'Beginner',
+        category: category || 'General',
+        isActive: isActive !== undefined ? isActive : true,
+        senderName: senderName.trim(),
+        senderEmail: senderEmail.trim(),
+        subject: subject.trim(),
+        body: body.trim(),
+        attachments: attachments || [],
+        isPhishing,
+        redFlags: redFlags || [],
+        legitimateReason: legitimateReason?.trim() || null
+      }
+    });
+
+    res.status(201).json({
+      message: 'Scenario created successfully',
+      scenario
+    });
+  } catch (error) {
+    console.error('CreatePhishingScenario error:', error);
+    res.status(500).json({ error: 'Failed to create scenario' });
+  }
+};
+
+// Update phishing scenario
+export const updatePhishingScenario = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const {
+      title,
+      description,
+      difficulty,
+      category,
+      isActive,
+      senderName,
+      senderEmail,
+      subject,
+      body,
+      attachments,
+      isPhishing,
+      redFlags,
+      legitimateReason
+    } = req.body;
+
+    // Check if scenario exists
+    const existingScenario = await prisma.phishingScenario.findUnique({
+      where: { id }
+    });
+
+    if (!existingScenario) {
+      return res.status(404).json({ error: 'Scenario not found' });
+    }
+
+    // Validation
+    if (!title || title.trim().length < 3) {
+      return res.status(400).json({ error: 'Title must be at least 3 characters' });
+    }
+
+    if (!description || description.trim().length < 10) {
+      return res.status(400).json({ error: 'Description must be at least 10 characters' });
+    }
+
+    if (!senderName || !senderEmail || !subject || !body) {
+      return res.status(400).json({ error: 'Sender name, email, subject, and body are required' });
+    }
+
+    if (typeof isPhishing !== 'boolean') {
+      return res.status(400).json({ error: 'isPhishing must be a boolean' });
+    }
+
+    if (isPhishing && (!redFlags || !Array.isArray(redFlags) || redFlags.length === 0)) {
+      return res.status(400).json({ error: 'Phishing scenarios must have at least one red flag' });
+    }
+
+    if (!isPhishing && !legitimateReason) {
+      return res.status(400).json({ error: 'Legitimate scenarios must have a reason explaining why they are safe' });
+    }
+
+    const validDifficulties = ['Beginner', 'Intermediate', 'Advanced'];
+    if (difficulty && !validDifficulties.includes(difficulty)) {
+      return res.status(400).json({ error: 'Invalid difficulty level' });
+    }
+
+    const scenario = await prisma.phishingScenario.update({
+      where: { id },
+      data: {
+        title: title.trim(),
+        description: description.trim(),
+        difficulty: difficulty || 'Beginner',
+        category: category || 'General',
+        isActive: isActive !== undefined ? isActive : existingScenario.isActive,
+        senderName: senderName.trim(),
+        senderEmail: senderEmail.trim(),
+        subject: subject.trim(),
+        body: body.trim(),
+        attachments: attachments || [],
+        isPhishing,
+        redFlags: redFlags || [],
+        legitimateReason: legitimateReason?.trim() || null
+      }
+    });
+
+    res.json({
+      message: 'Scenario updated successfully',
+      scenario
+    });
+  } catch (error) {
+    console.error('UpdatePhishingScenario error:', error);
+    res.status(500).json({ error: 'Failed to update scenario' });
+  }
+};
+
+// Delete phishing scenario
+export const deletePhishingScenario = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    // Check if scenario exists
+    const scenario = await prisma.phishingScenario.findUnique({
+      where: { id },
+      include: {
+        attempts: true
+      }
+    });
+
+    if (!scenario) {
+      return res.status(404).json({ error: 'Scenario not found' });
+    }
+
+    // Delete scenario (cascade will delete attempts)
+    await prisma.phishingScenario.delete({
+      where: { id }
+    });
+
+    res.json({
+      message: 'Scenario deleted successfully',
+      deletedAttempts: scenario.attempts.length
+    });
+  } catch (error) {
+    console.error('DeletePhishingScenario error:', error);
+    res.status(500).json({ error: 'Failed to delete scenario' });
+  }
+};
+
+// Get platform-wide phishing stats
+export const getPhishingPlatformStats = async (req: Request, res: Response) => {
+  try {
+    // Get all attempts
+    const attempts = await prisma.phishingAttempt.findMany({
+      include: {
+        scenario: {
+          select: { difficulty: true, isPhishing: true, category: true }
+        }
+      }
+    });
+
+    const totalAttempts = attempts.length;
+    const correctAttempts = attempts.filter(a => a.isCorrect).length;
+    const overallAccuracy = totalAttempts > 0
+      ? Math.round((correctAttempts / totalAttempts) * 100)
+      : 0;
+
+    // Phishing-specific stats
+    const phishingAttempts = attempts.filter(a => a.scenario.isPhishing);
+    const clickedLinks = phishingAttempts.filter(a => a.userAction === 'CLICKED_LINK').length;
+    const clickRate = phishingAttempts.length > 0
+      ? Math.round((clickedLinks / phishingAttempts.length) * 100)
+      : 0;
+
+    const reportedPhishing = phishingAttempts.filter(a => a.userAction === 'REPORTED').length;
+    const reportRate = phishingAttempts.length > 0
+      ? Math.round((reportedPhishing / phishingAttempts.length) * 100)
+      : 0;
+
+    // Stats by difficulty
+    const byDifficulty: { [key: string]: { total: number; correct: number } } = {
+      Beginner: { total: 0, correct: 0 },
+      Intermediate: { total: 0, correct: 0 },
+      Advanced: { total: 0, correct: 0 }
+    };
+
+    attempts.forEach(a => {
+      const diff = a.scenario.difficulty;
+      if (byDifficulty[diff]) {
+        byDifficulty[diff].total++;
+        if (a.isCorrect) byDifficulty[diff].correct++;
+      }
+    });
+
+    // Stats by category
+    const byCategory: { [key: string]: { total: number; correct: number } } = {};
+    attempts.forEach(a => {
+      const cat = a.scenario.category;
+      if (!byCategory[cat]) {
+        byCategory[cat] = { total: 0, correct: 0 };
+      }
+      byCategory[cat].total++;
+      if (a.isCorrect) byCategory[cat].correct++;
+    });
+
+    // Count unique users
+    const uniqueUsers = new Set(attempts.map(a => a.userId)).size;
+
+    // Total scenarios
+    const totalScenarios = await prisma.phishingScenario.count();
+    const activeScenarios = await prisma.phishingScenario.count({ where: { isActive: true } });
+
+    // Average response time
+    const avgResponseTime = totalAttempts > 0
+      ? Math.round(attempts.reduce((sum, a) => sum + a.responseTimeMs, 0) / totalAttempts)
+      : 0;
+
+    res.json({
+      overview: {
+        totalAttempts,
+        correctAttempts,
+        overallAccuracy,
+        clickRate,
+        reportRate,
+        uniqueUsers,
+        totalScenarios,
+        activeScenarios,
+        avgResponseTimeMs: avgResponseTime
+      },
+      byDifficulty: Object.entries(byDifficulty).map(([difficulty, data]) => ({
+        difficulty,
+        total: data.total,
+        correct: data.correct,
+        accuracy: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0
+      })),
+      byCategory: Object.entries(byCategory).map(([category, data]) => ({
+        category,
+        total: data.total,
+        correct: data.correct,
+        accuracy: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0
+      }))
+    });
+  } catch (error) {
+    console.error('GetPhishingPlatformStats error:', error);
+    res.status(500).json({ error: 'Failed to fetch platform stats' });
+  }
+};
+
+// Get all phishing attempts (filterable)
+export const getAllPhishingAttempts = async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const userId = req.query.userId as string | undefined;
+    const scenarioId = req.query.scenarioId as string | undefined;
+    const isCorrect = req.query.isCorrect as string | undefined;
+
+    // Build where clause
+    const where: any = {};
+    if (userId) where.userId = userId;
+    if (scenarioId) where.scenarioId = scenarioId;
+    if (isCorrect !== undefined) where.isCorrect = isCorrect === 'true';
+
+    const [attempts, total] = await Promise.all([
+      prisma.phishingAttempt.findMany({
+        where,
+        include: {
+          user: {
+            select: { id: true, email: true, firstName: true, lastName: true }
+          },
+          scenario: {
+            select: {
+              id: true,
+              title: true,
+              difficulty: true,
+              category: true,
+              isPhishing: true
+            }
+          }
+        },
+        orderBy: { attemptedAt: 'desc' },
+        take: limit,
+        skip: offset
+      }),
+      prisma.phishingAttempt.count({ where })
+    ]);
+
+    res.json({
+      attempts: attempts.map(a => ({
+        id: a.id,
+        user: {
+          id: a.user.id,
+          email: a.user.email,
+          firstName: a.user.firstName,
+          lastName: a.user.lastName
+        },
+        scenario: {
+          id: a.scenario.id,
+          title: a.scenario.title,
+          difficulty: a.scenario.difficulty,
+          category: a.scenario.category,
+          isPhishing: a.scenario.isPhishing
+        },
+        userAction: a.userAction,
+        isCorrect: a.isCorrect,
+        responseTimeMs: a.responseTimeMs,
+        attemptedAt: a.attemptedAt
+      })),
+      total,
+      limit,
+      offset
+    });
+  } catch (error) {
+    console.error('GetAllPhishingAttempts error:', error);
+    res.status(500).json({ error: 'Failed to fetch attempts' });
+  }
+};

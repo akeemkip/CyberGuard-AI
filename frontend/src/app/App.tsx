@@ -31,24 +31,26 @@ import { AssessmentsPage } from "./components/assessments-page";
 import { ProfilePage } from "./components/profile-page";
 import { SettingsPage } from "./components/settings-page";
 import { LabPlayer } from "./components/lab-player";
+import { PhishingSimulation } from "./components/phishing-simulation";
+import { AdminPhishingEdit } from "./components/admin-phishing-edit";
 
-type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "phishing-simulation" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-phishing-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
 
 // Admin-only pages (require ADMIN role)
-const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-analytics", "admin-settings"];
+const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Guest pages that should persist on refresh (not landing - that's the default)
 const persistableGuestPages: Page[] = ["login", "register", "reset-password"];
 
 // "Transient" pages that require an ID parameter - these should NOT persist to localStorage
 // because refreshing them without proper context can cause navigation issues
-const transientPages: Page[] = ["lab-player", "course-player", "admin-user-profile", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit"];
+const transientPages: Page[] = ["lab-player", "course-player", "admin-user-profile", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit"];
 
 // Map of transient pages to their "parent" page (for back button support)
 const transientPageParents: Partial<Record<Page, Page>> = {
@@ -58,6 +60,7 @@ const transientPageParents: Partial<Record<Page, Page>> = {
   "admin-lesson-edit": "admin-content",
   "admin-quiz-edit": "admin-content",
   "admin-lab-edit": "admin-content",
+  "admin-phishing-edit": "admin-content",
 };
 
 function AppContent() {
@@ -100,6 +103,9 @@ function AppContent() {
   });
   const [selectedLabId, setSelectedLabId] = useState<string | null>(() => {
     return localStorage.getItem("selectedLabId");
+  });
+  const [selectedPhishingScenarioId, setSelectedPhishingScenarioId] = useState<string | null>(() => {
+    return localStorage.getItem("selectedPhishingScenarioId");
   });
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -284,6 +290,7 @@ function AppContent() {
     localStorage.removeItem("selectedLessonId");
     localStorage.removeItem("selectedQuizId");
     localStorage.removeItem("selectedLabId");
+    localStorage.removeItem("selectedPhishingScenarioId");
     localStorage.removeItem("adminContentTab");
     localStorage.removeItem("adminSettingsTab");
     window.history.pushState({ page: "landing" }, "", window.location.pathname);
@@ -350,6 +357,18 @@ function AppContent() {
     if (page === "admin-lab-edit" && !idParam) {
       setSelectedLabId(null);
       localStorage.removeItem("selectedLabId");
+    }
+
+    // Handle phishing scenario ID for admin edit
+    if (page === "admin-phishing-edit" && idParam) {
+      setSelectedPhishingScenarioId(idParam);
+      localStorage.setItem("selectedPhishingScenarioId", idParam);
+    }
+
+    // Clear phishing scenario ID when creating new scenario
+    if (page === "admin-phishing-edit" && !idParam) {
+      setSelectedPhishingScenarioId(null);
+      localStorage.removeItem("selectedPhishingScenarioId");
     }
   };
 
@@ -449,6 +468,12 @@ function AppContent() {
             onLogout={handleLogout}
           />
         );
+      case "phishing-simulation":
+        return (
+          <PhishingSimulation
+            onNavigate={handleNavigate}
+          />
+        );
       case "admin-dashboard":
         return (
           <AdminDashboard
@@ -516,6 +541,15 @@ function AppContent() {
         return (
           <AdminLabEdit
             labId={selectedLabId}
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        );
+      case "admin-phishing-edit":
+        return (
+          <AdminPhishingEdit
+            scenarioId={selectedPhishingScenarioId}
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
