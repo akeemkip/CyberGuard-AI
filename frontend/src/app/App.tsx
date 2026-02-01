@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { SettingsProvider } from "./context/SettingsContext";
@@ -318,6 +318,12 @@ function AppContent() {
     localStorage.removeItem("adminContentTab");
     localStorage.removeItem("adminSettingsTab");
     window.history.pushState({ page: "landing" }, "", window.location.pathname);
+
+    // Show logout notification
+    toast.success("Logged out successfully", {
+      description: "Redirecting to landing page...",
+      duration: 3000
+    });
   };
 
   const handleNavigate = (page: string, idParam?: string) => {
