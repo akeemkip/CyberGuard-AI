@@ -22,6 +22,7 @@ import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import courseService, { EnrolledCourse } from "../services/course.service";
+import userService from "../services/user.service";
 
 interface ProfilePageProps {
   onNavigate: (page: string) => void;
@@ -50,6 +51,7 @@ export function ProfilePage({ onNavigate, onLogout }: ProfilePageProps) {
         setCompletedCount(courses.filter(c => c.completedAt !== null).length);
       } catch (error) {
         console.error("Error fetching profile data:", error);
+        setMessage({ type: "error", text: "Failed to load enrolled courses. Please try refreshing the page." });
       } finally {
         setLoading(false);
       }
