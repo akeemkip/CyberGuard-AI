@@ -29,7 +29,8 @@ import {
   updatePhishingScenario,
   deletePhishingScenario,
   getPhishingPlatformStats,
-  getAllPhishingAttempts
+  getAllPhishingAttempts,
+  getAssessmentComparison
 } from '../controllers/admin.controller';
 import {
   getAllCourses,
@@ -57,6 +58,9 @@ router.get('/analytics/export/pdf', exportAnalyticsPDF);
 
 // GET /api/admin/analytics - Get comprehensive analytics data
 router.get('/analytics', getAnalytics);
+
+// GET /api/admin/analytics/assessment-comparison - Get assessment comparison report
+router.get('/analytics/assessment-comparison', getAssessmentComparison);
 
 // GET /api/admin/enrollments - Get all enrollments
 router.get('/enrollments', getAllEnrollments);

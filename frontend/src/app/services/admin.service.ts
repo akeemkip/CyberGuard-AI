@@ -830,6 +830,12 @@ const adminService = {
       responseType: 'blob'
     });
     return response.data;
+  },
+
+  // Get assessment comparison report
+  async getAssessmentComparison(): Promise<any> {
+    const response = await api.get('/admin/analytics/assessment-comparison');
+    return response.data;
   }
 };
 

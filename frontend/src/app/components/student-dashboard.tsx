@@ -20,7 +20,8 @@ import {
   Award,
   ClipboardCheck,
   Mail,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from "lucide-react";
 import {
   Dialog,
@@ -57,6 +58,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
   const [showNoCertificatesModal, setShowNoCertificatesModal] = useState(false);
   const [showSimulationLockedModal, setShowSimulationLockedModal] = useState(false);
+  const [showAssessmentLockedModal, setShowAssessmentLockedModal] = useState(false);
   const [hasCompletedPhishing, setHasCompletedPhishing] = useState(false);
   const [hasCertificates, setHasCertificates] = useState(false);
 
@@ -113,6 +115,14 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
       onNavigate("phishing-simulation");
     } else {
       setShowSimulationLockedModal(true);
+    }
+  };
+
+  const handleAssessmentClick = () => {
+    if (hasCompletedPhishing) {
+      onNavigate("assessments");
+    } else {
+      setShowAssessmentLockedModal(true);
     }
   };
 
@@ -280,7 +290,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
         {/* Quick Actions Tiles */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <button
-            onClick={() => onNavigate("assessments")}
+            onClick={handleAssessmentClick}
             className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-blue-200 dark:border-blue-800"
           >
             <div className="flex items-center gap-4">
@@ -289,9 +299,16 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
               </div>
               <div className="text-left">
                 <h3 className="font-semibold text-lg text-blue-900 dark:text-blue-100">Take Assessment</h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300">Test your knowledge</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  {hasCompletedPhishing ? "Test your knowledge" : "Complete phishing course first"}
+                </p>
               </div>
             </div>
+            {!hasCompletedPhishing && (
+              <div className="absolute top-4 right-4">
+                <Lock className="w-5 h-5 text-blue-400 dark:text-blue-600" />
+              </div>
+            )}
           </button>
 
           <button
@@ -625,6 +642,52 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 Start Phishing Course
               </Button>
               <Button variant="outline" onClick={() => setShowSimulationLockedModal(false)} className="flex-1">
+                Maybe Later
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assessment Locked Modal */}
+      <Dialog open={showAssessmentLockedModal} onOpenChange={setShowAssessmentLockedModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-blue-500" />
+              Complete Phishing Course First
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              To take the full assessment, you need to complete the <span className="font-semibold">Phishing Detection Fundamentals</span> course first. This ensures you have the core knowledge needed for the comprehensive assessment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 my-4">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Why This Requirement</h4>
+            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-500 mt-0.5">•</span>
+                <span>Build foundational cybersecurity knowledge</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-500 mt-0.5">•</span>
+                <span>Understand threat detection fundamentals</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-500 mt-0.5">•</span>
+                <span>Be prepared for the comprehensive assessment</span>
+              </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button
+                onClick={handleStartPhishingCourse}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                <Book className="w-4 h-4 mr-2" />
+                Start Phishing Course
+              </Button>
+              <Button variant="outline" onClick={() => setShowAssessmentLockedModal(false)} className="flex-1">
                 Maybe Later
               </Button>
             </div>

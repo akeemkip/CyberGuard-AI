@@ -2883,3 +2883,105 @@ export const getAllPhishingAttempts = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch attempts' });
   }
 };
+
+// Get assessment comparison report (intro vs full)
+export const getAssessmentComparison = async (req: Request, res: Response) => {
+  try {
+    // Get all students who have taken both assessments
+    const students = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+        introAssessmentAttempts: {
+          some: {}
+        }
+      },
+      include: {
+        introAssessmentAttempts: {
+          orderBy: { completedAt: 'desc' },
+          take: 1,
+          include: {
+            introAssessment: {
+              select: { title: true }
+            }
+          }
+        },
+        fullAssessmentAttempts: {
+          orderBy: { completedAt: 'desc' },
+          take: 1
+        }
+      }
+    });
+
+    // Calculate comparison data
+    const comparisonData = students
+      .filter(s => s.introAssessmentAttempts.length > 0)
+      .map(student => {
+        const introAttempt = student.introAssessmentAttempts[0];
+        const fullAttempt = student.fullAssessmentAttempts[0];
+
+        return {
+          studentId: student.id,
+          studentName: `${student.firstName} ${student.lastName}`,
+          email: student.email,
+          introScore: introAttempt.percentage,
+          fullScore: fullAttempt?.percentage || null,
+          improvement: fullAttempt
+            ? fullAttempt.percentage - introAttempt.percentage
+            : null,
+          introPassed: introAttempt.passed,
+          fullPassed: fullAttempt?.passed || null,
+          introCompletedAt: introAttempt.completedAt,
+          fullCompletedAt: fullAttempt?.completedAt || null
+        };
+      });
+
+    // Calculate summary statistics
+    const studentsWithBoth = comparisonData.filter(d => d.fullScore !== null);
+    const avgIntroScore = comparisonData.length > 0
+      ? Math.round(comparisonData.reduce((sum, d) => sum + d.introScore, 0) / comparisonData.length)
+      : 0;
+    const avgFullScore = studentsWithBoth.length > 0
+      ? Math.round(studentsWithBoth.reduce((sum, d) => sum + (d.fullScore || 0), 0) / studentsWithBoth.length)
+      : 0;
+    const avgImprovement = studentsWithBoth.length > 0
+      ? Math.round(studentsWithBoth.reduce((sum, d) => sum + (d.improvement || 0), 0) / studentsWithBoth.length)
+      : 0;
+
+    // Score distribution for chart
+    const scoreRanges = ['0-20', '21-40', '41-60', '61-80', '81-100'];
+    const introDistribution = scoreRanges.map(range => {
+      const [min, max] = range.split('-').map(Number);
+      return {
+        range,
+        count: comparisonData.filter(d => d.introScore >= min && d.introScore <= max).length
+      };
+    });
+    const fullDistribution = scoreRanges.map(range => {
+      const [min, max] = range.split('-').map(Number);
+      return {
+        range,
+        count: studentsWithBoth.filter(d => (d.fullScore || 0) >= min && (d.fullScore || 0) <= max).length
+      };
+    });
+
+    res.json({
+      summary: {
+        totalStudents: comparisonData.length,
+        studentsWithBothAssessments: studentsWithBoth.length,
+        avgIntroScore,
+        avgFullScore,
+        avgImprovement
+      },
+      students: comparisonData,
+      charts: {
+        scoreDistribution: {
+          intro: introDistribution,
+          full: fullDistribution
+        }
+      }
+    });
+  } catch (error) {
+    console.error('GetAssessmentComparison error:', error);
+    res.status(500).json({ error: 'Failed to fetch assessment comparison' });
+  }
+};

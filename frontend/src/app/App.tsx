@@ -33,11 +33,14 @@ import { SettingsPage } from "./components/settings-page";
 import { LabPlayer } from "./components/lab-player";
 import { PhishingSimulation } from "./components/phishing-simulation";
 import { AdminPhishingEdit } from "./components/admin-phishing-edit";
+import { WelcomePage } from "./components/welcome-page";
+import { IntroAssessmentPage } from "./components/intro-assessment-page";
+import { checkIntroAssessmentRequired } from "./services/assessment.service";
 
-type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "phishing-simulation" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-phishing-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "welcome" | "intro-assessment" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "phishing-simulation" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-phishing-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -46,7 +49,7 @@ const guestPages: Page[] = ["landing", "login", "register", "reset-password", "p
 const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Student-only pages (require STUDENT role - admins cannot access)
-const studentOnlyPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation"];
+const studentOnlyPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation"];
 
 // Guest pages that should persist on refresh (not landing - that's the default)
 const persistableGuestPages: Page[] = ["login", "register", "reset-password"];
@@ -175,28 +178,71 @@ function AppContent() {
 
         let targetPage: Page = defaultDashboard;
 
-        // If they had a saved protected page, go there; otherwise go to dashboard
-        if (savedPage && protectedPages.includes(savedPage)) {
-          // But make sure they can access the saved page based on their role
-          if (!isAdmin && adminOnlyPages.includes(savedPage)) {
-            console.log('[App] Saved page is admin-only, going to student dashboard instead');
-            targetPage = "student-dashboard";
-          } else if (isAdmin && studentOnlyPages.includes(savedPage)) {
-            console.log('[App] Saved page is student-only, going to admin dashboard instead');
-            targetPage = "admin-dashboard";
-          } else {
-            console.log('[App] Found saved protected page:', savedPage);
-            targetPage = savedPage;
-          }
-        } else {
-          console.log('[App] No saved page, going to default dashboard');
-          targetPage = defaultDashboard;
-        }
+        // Check if student needs intro assessment
+        if (!isAdmin) {
+          checkIntroAssessmentRequired()
+            .then((result) => {
+              if (result.required && !result.completed) {
+                console.log('[App] New user needs intro assessment');
+                setCurrentPage("welcome");
+                localStorage.setItem("currentPage", "welcome");
+                window.history.replaceState({ page: "welcome" }, "", window.location.pathname);
+              } else {
+                // If they had a saved protected page, go there; otherwise go to dashboard
+                if (savedPage && protectedPages.includes(savedPage)) {
+                  // But make sure they can access the saved page based on their role
+                  if (adminOnlyPages.includes(savedPage)) {
+                    console.log('[App] Saved page is admin-only, going to student dashboard instead');
+                    targetPage = "student-dashboard";
+                  } else {
+                    console.log('[App] Found saved protected page:', savedPage);
+                    targetPage = savedPage;
+                  }
+                } else {
+                  console.log('[App] No saved page, going to default dashboard');
+                  targetPage = defaultDashboard;
+                }
 
-        // Update both state and history
-        setCurrentPage(targetPage);
-        localStorage.setItem("currentPage", targetPage);
-        window.history.replaceState({ page: targetPage }, "", window.location.pathname);
+                // Update both state and history
+                setCurrentPage(targetPage);
+                localStorage.setItem("currentPage", targetPage);
+                window.history.replaceState({ page: targetPage }, "", window.location.pathname);
+              }
+            })
+            .catch((err) => {
+              console.error('[App] Error checking intro assessment:', err);
+              // On error, proceed to normal dashboard
+              if (savedPage && protectedPages.includes(savedPage)) {
+                if (adminOnlyPages.includes(savedPage)) {
+                  targetPage = "student-dashboard";
+                } else {
+                  targetPage = savedPage;
+                }
+              }
+              setCurrentPage(targetPage);
+              localStorage.setItem("currentPage", targetPage);
+              window.history.replaceState({ page: targetPage }, "", window.location.pathname);
+            });
+        } else {
+          // Admin user - go to admin dashboard or saved page
+          if (savedPage && protectedPages.includes(savedPage)) {
+            if (studentOnlyPages.includes(savedPage)) {
+              console.log('[App] Saved page is student-only, going to admin dashboard instead');
+              targetPage = "admin-dashboard";
+            } else {
+              console.log('[App] Found saved protected page:', savedPage);
+              targetPage = savedPage;
+            }
+          } else {
+            console.log('[App] No saved page, going to default dashboard');
+            targetPage = defaultDashboard;
+          }
+
+          // Update both state and history
+          setCurrentPage(targetPage);
+          localStorage.setItem("currentPage", targetPage);
+          window.history.replaceState({ page: targetPage }, "", window.location.pathname);
+        }
       } else {
         console.log('[App] Already on protected page, staying here');
       }
@@ -434,6 +480,19 @@ function AppContent() {
         return <TermsOfServicePage onNavigate={handleNavigate} />;
       case "cookie-policy":
         return <CookiePolicyPage onNavigate={handleNavigate} />;
+      case "welcome":
+        return (
+          <WelcomePage
+            onStartAssessment={() => handleNavigate("intro-assessment")}
+            userName={user?.firstName || "Student"}
+          />
+        );
+      case "intro-assessment":
+        return (
+          <IntroAssessmentPage
+            onComplete={() => handleNavigate("student-dashboard")}
+          />
+        );
       case "student-dashboard":
         return (
           <StudentDashboard

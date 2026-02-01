@@ -52,6 +52,8 @@ import {
   BarChart3,
   Table2,
   Brain,
+  Trophy,
+  Target,
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import adminService, {
@@ -90,6 +92,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(null);
+  const [assessmentComparisonData, setAssessmentComparisonData] = useState<any>(null);
 
   // Custom date range state
   const [showCustomDateDialog, setShowCustomDateDialog] = useState(false);
@@ -120,18 +123,29 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetch both dashboard stats and analytics data
-        const [dashboard, analytics] = await Promise.all([
-          adminService.getDashboardStats(),
-          adminService.getAnalytics(
-            dateRange,
-            reportType,
-            dateRange === "custom" ? appliedStartDate : undefined,
-            dateRange === "custom" ? appliedEndDate : undefined
-          )
-        ]);
-        setDashboardData(dashboard);
-        setAnalyticsData(analytics);
+
+        // For assessment comparison, fetch different data
+        if (reportType === "assessment-comparison") {
+          const [dashboard, comparison] = await Promise.all([
+            adminService.getDashboardStats(),
+            adminService.getAssessmentComparison()
+          ]);
+          setDashboardData(dashboard);
+          setAssessmentComparisonData(comparison);
+        } else {
+          // Fetch both dashboard stats and analytics data
+          const [dashboard, analytics] = await Promise.all([
+            adminService.getDashboardStats(),
+            adminService.getAnalytics(
+              dateRange,
+              reportType,
+              dateRange === "custom" ? appliedStartDate : undefined,
+              dateRange === "custom" ? appliedEndDate : undefined
+            )
+          ]);
+          setDashboardData(dashboard);
+          setAnalyticsData(analytics);
+        }
         setLastUpdated(new Date()); // Priority 5: Update timestamp
       } catch (error) {
         console.error("Error fetching analytics data:", error);
@@ -517,6 +531,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                     <SelectItem value="user">User Performance</SelectItem>
                     <SelectItem value="course">Course Analytics</SelectItem>
                     <SelectItem value="engagement">Engagement Metrics</SelectItem>
+                    <SelectItem value="assessment-comparison">Assessment Comparison</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1600,6 +1615,171 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                     <div className="text-3xl font-bold text-chart-3 mb-1">{stats?.totalEnrollments || 0}</div>
                     <p className="text-sm text-muted-foreground">Total Enrollments</p>
                   </div>
+                </div>
+              </Card>
+            </>
+          )}
+
+          {/* ASSESSMENT COMPARISON VIEW */}
+          {reportType === "assessment-comparison" && assessmentComparisonData && (
+            <>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-2">Assessment Comparison Report</h2>
+                <p className="text-sm text-muted-foreground">
+                  Compare intro assessment baseline scores with final assessment results to measure student improvement
+                </p>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid md:grid-cols-4 gap-6 mb-6">
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Trophy className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-sm">Total Students</h3>
+                  </div>
+                  <div className="text-3xl font-bold">{assessmentComparisonData.summary.totalStudents}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Completed intro assessment</p>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Target className="h-5 w-5 text-blue-500" />
+                    <h3 className="font-semibold text-sm">Avg Intro Score</h3>
+                  </div>
+                  <div className="text-3xl font-bold text-blue-600">{assessmentComparisonData.summary.avgIntroScore}%</div>
+                  <p className="text-xs text-muted-foreground mt-1">Baseline knowledge</p>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Trophy className="h-5 w-5 text-green-500" />
+                    <h3 className="font-semibold text-sm">Avg Final Score</h3>
+                  </div>
+                  <div className="text-3xl font-bold text-green-600">{assessmentComparisonData.summary.avgFullScore}%</div>
+                  <p className="text-xs text-muted-foreground mt-1">After training</p>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <TrendingUp className="h-5 w-5 text-purple-500" />
+                    <h3 className="font-semibold text-sm">Avg Improvement</h3>
+                  </div>
+                  <div className="text-3xl font-bold text-purple-600">+{assessmentComparisonData.summary.avgImprovement}%</div>
+                  <p className="text-xs text-muted-foreground mt-1">Score increase</p>
+                </Card>
+              </div>
+
+              {/* Score Distribution Chart */}
+              <Card className="p-6 mb-6">
+                <h3 className="font-semibold mb-4">Score Distribution: Intro vs Final</h3>
+                <div className="space-y-4">
+                  {assessmentComparisonData.charts.scoreDistribution.intro.map((range: any, index: number) => {
+                    const fullRange = assessmentComparisonData.charts.scoreDistribution.full[index];
+                    return (
+                      <div key={range.range}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{range.range}%</span>
+                          <span className="text-xs text-muted-foreground">
+                            Intro: {range.count} | Final: {fullRange.count}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <div className="h-8 bg-blue-100 dark:bg-blue-900/30 rounded overflow-hidden">
+                              <div
+                                className="h-full bg-blue-500 transition-all duration-500"
+                                style={{
+                                  width: `${assessmentComparisonData.summary.totalStudents > 0 ? (range.count / assessmentComparisonData.summary.totalStudents) * 100 : 0}%`
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded overflow-hidden">
+                              <div
+                                className="h-full bg-green-500 transition-all duration-500"
+                                style={{
+                                  width: `${assessmentComparisonData.summary.studentsWithBothAssessments > 0 ? (fullRange.count / assessmentComparisonData.summary.studentsWithBothAssessments) * 100 : 0}%`
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-4 mt-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <span>Intro Assessment</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span>Final Assessment</span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Student Progress Table */}
+              <Card className="p-6">
+                <h3 className="font-semibold mb-4">Individual Student Progress</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-3 text-sm font-semibold">Student</th>
+                        <th className="text-center p-3 text-sm font-semibold">Intro Score</th>
+                        <th className="text-center p-3 text-sm font-semibold">Final Score</th>
+                        <th className="text-center p-3 text-sm font-semibold">Improvement</th>
+                        <th className="text-center p-3 text-sm font-semibold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {assessmentComparisonData.students.map((student: any) => (
+                        <tr key={student.studentId} className="border-b hover:bg-muted/50">
+                          <td className="p-3">
+                            <div>
+                              <div className="font-medium">{student.studentName}</div>
+                              <div className="text-xs text-muted-foreground">{student.email}</div>
+                            </div>
+                          </td>
+                          <td className="text-center p-3">
+                            <Badge variant={student.introPassed ? "default" : "secondary"}>
+                              {student.introScore}%
+                            </Badge>
+                          </td>
+                          <td className="text-center p-3">
+                            {student.fullScore !== null ? (
+                              <Badge variant={student.fullPassed ? "default" : "secondary"}>
+                                {student.fullScore}%
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Not taken</span>
+                            )}
+                          </td>
+                          <td className="text-center p-3">
+                            {student.improvement !== null ? (
+                              <span className={`font-semibold ${student.improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {student.improvement >= 0 ? '+' : ''}{student.improvement}%
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className="text-center p-3">
+                            {student.fullScore === null ? (
+                              <Badge variant="outline">In Progress</Badge>
+                            ) : student.fullPassed ? (
+                              <Badge variant="default" className="bg-green-600">Passed</Badge>
+                            ) : (
+                              <Badge variant="destructive">Failed</Badge>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </Card>
             </>

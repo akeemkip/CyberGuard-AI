@@ -8,20 +8,21 @@ datasource db {
 }
 
 model Course {
-  id           String        @id @default(uuid())
-  title        String
-  description  String
-  thumbnail    String?
-  difficulty   String        @default("Beginner")
-  duration     String?
-  isPublished  Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  certificates Certificate[]
-  enrollments  Enrollment[]
-  labs         Lab[]
-  lessons      Lesson[]
-  modules      Module[]
+  id             String          @id @default(uuid())
+  title          String
+  description    String
+  thumbnail      String?
+  difficulty     String          @default("Beginner")
+  duration       String?
+  isPublished    Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  certificates   Certificate[]
+  enrollments    Enrollment[]
+  labs           Lab[]
+  lessons        Lesson[]
+  modules        Module[]
+  introQuestions IntroQuestion[]
 
   @@map("courses")
 }
@@ -123,29 +124,31 @@ model Quiz {
 }
 
 model User {
-  id                 String            @id @default(uuid())
-  email              String            @unique
-  password           String
-  firstName          String
-  lastName           String
-  role               Role              @default(STUDENT)
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  lastLoginAt        DateTime?
-  autoPlayVideos     Boolean           @default(true)
-  courseReminders    Boolean           @default(true)
-  emailNotifications Boolean           @default(true)
-  marketingEmails    Boolean           @default(false)
-  showProgress       Boolean           @default(true)
-  loginAttempts      Int               @default(0)
-  lastFailedLogin    DateTime?
-  accountLockedUntil DateTime?
-  certificates       Certificate[]
-  enrollments        Enrollment[]
-  labProgress        LabProgress[]
-  phishingAttempts   PhishingAttempt[]
-  progress           Progress[]
-  quizAttempts       QuizAttempt[]
+  id                       String                    @id @default(uuid())
+  email                    String                    @unique
+  password                 String
+  firstName                String
+  lastName                 String
+  role                     Role                      @default(STUDENT)
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  lastLoginAt              DateTime?
+  autoPlayVideos           Boolean                   @default(true)
+  courseReminders          Boolean                   @default(true)
+  emailNotifications       Boolean                   @default(true)
+  marketingEmails          Boolean                   @default(false)
+  showProgress             Boolean                   @default(true)
+  loginAttempts            Int                       @default(0)
+  lastFailedLogin          DateTime?
+  accountLockedUntil       DateTime?
+  certificates             Certificate[]
+  enrollments              Enrollment[]
+  labProgress              LabProgress[]
+  phishingAttempts         PhishingAttempt[]
+  progress                 Progress[]
+  quizAttempts             QuizAttempt[]
+  introAssessmentAttempts  IntroAssessmentAttempt[]
+  fullAssessmentAttempts   FullAssessmentAttempt[]
 
   @@map("users")
 }
@@ -346,4 +349,64 @@ model PhishingAttempt {
   scenario       PhishingScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
 
   @@map("phishing_attempts")
+}
+
+model IntroAssessment {
+  id           String                    @id @default(uuid())
+  title        String                    @default("Intro Skills Assessment")
+  description  String?
+  passingScore Int                       @default(50)
+  isActive     Boolean                   @default(true)
+  createdAt    DateTime                  @default(now())
+  questions    IntroQuestion[]
+  attempts     IntroAssessmentAttempt[]
+
+  @@map("intro_assessments")
+}
+
+model IntroQuestion {
+  id                String          @id @default(uuid())
+  introAssessmentId String
+  question          String
+  options           String[]
+  correctAnswer     Int
+  explanation       String?
+  courseId          String
+  order             Int
+  introAssessment   IntroAssessment @relation(fields: [introAssessmentId], references: [id], onDelete: Cascade)
+  course            Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("intro_questions")
+}
+
+model IntroAssessmentAttempt {
+  id                String          @id @default(uuid())
+  userId            String
+  introAssessmentId String
+  score             Int
+  totalQuestions    Int
+  percentage        Int
+  passed            Boolean
+  answers           Json
+  completedAt       DateTime        @default(now())
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  introAssessment   IntroAssessment @relation(fields: [introAssessmentId], references: [id], onDelete: Cascade)
+
+  @@map("intro_assessment_attempts")
+}
+
+model FullAssessmentAttempt {
+  id             String   @id @default(uuid())
+  userId         String
+  score          Int
+  totalQuestions Int
+  percentage     Int
+  passed         Boolean
+  timeSpent      Int?
+  timerExpired   Boolean  @default(false)
+  answers        Json
+  completedAt    DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("full_assessment_attempts")
 }

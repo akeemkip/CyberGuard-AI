@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
+import { submitFullAssessment } from "../services/assessment.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -569,7 +570,7 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
     }
   };
 
-  const handleSubmit = (isTimerExpired = false) => {
+  const handleSubmit = async (isTimerExpired = false) => {
     const results = shuffledQuestions.map((q) => ({
       questionId: q.id,
       userAnswer: answers[q.id] ?? -1,
@@ -578,14 +579,33 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
 
     const correctCount = results.filter((r) => r.isCorrect).length;
     const percentage = Math.round((correctCount / totalQuestions) * 100);
+    const passed = isTimerExpired ? false : percentage >= 70;
+    const timeSpent = ASSESSMENT_DURATION - timeRemaining;
 
     setResult({
       score: correctCount,
       totalQuestions,
       percentage,
-      passed: isTimerExpired ? false : percentage >= 70,
+      passed,
       answers: results
     });
+
+    // Persist to database
+    try {
+      await submitFullAssessment({
+        score: correctCount,
+        totalQuestions,
+        percentage,
+        passed,
+        timeSpent,
+        timerExpired: isTimerExpired,
+        answers: results
+      });
+      console.log("Assessment results saved to database");
+    } catch (error) {
+      console.error("Error saving assessment results:", error);
+      // Don't show error to user - assessment result is still displayed
+    }
 
     if (isTimerExpired) {
       toast.error("Assessment failed - Time expired!");
