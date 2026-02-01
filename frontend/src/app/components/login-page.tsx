@@ -147,6 +147,8 @@ export function LoginPage({
             </p>
           </div>
 
+          {/* Demo accounts - only shown in development */}
+          {import.meta.env.DEV && (
           <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground text-center mb-3">
               <strong>Demo Accounts</strong> - Click to auto-fill credentials
@@ -249,6 +251,7 @@ export function LoginPage({
               All student passwords: <strong>student123</strong>
             </p>
           </div>
+          )}
         </Card>
       </div>
     </div>

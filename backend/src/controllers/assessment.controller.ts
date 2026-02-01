@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../config/database';
 
 // Check if user needs to take intro assessment
 export const checkIntroAssessmentRequired = async (req: Request, res: Response) => {

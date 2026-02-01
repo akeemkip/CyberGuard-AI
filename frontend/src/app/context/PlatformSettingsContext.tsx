@@ -62,7 +62,8 @@ export function PlatformSettingsProvider({ children }: { children: ReactNode }) 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/settings/public');
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+        const response = await fetch(`${apiBaseUrl}/settings/public`);
         if (response.ok) {
           const data = await response.json();
           setSettings({ ...defaultSettings, ...data.settings });

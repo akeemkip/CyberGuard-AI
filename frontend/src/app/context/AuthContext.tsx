@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import authService, { User } from '../services/auth.service';
+import { fetchCsrfToken, clearCsrfToken } from '../utils/csrf';
 
 interface AuthContextType {
   user: User | null;
@@ -40,6 +41,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('[AuthContext] Login API success, user:', response.user);
       setUser(response.user);
       console.log('[AuthContext] User state updated, isAuthenticated will be:', !!response.user);
+
+      // Fetch CSRF token after successful login
+      try {
+        await fetchCsrfToken();
+        console.log('[AuthContext] CSRF token fetched successfully');
+      } catch (csrfError) {
+        console.warn('[AuthContext] Failed to fetch CSRF token:', csrfError);
+        // Don't fail the login if CSRF fetch fails
+      }
+
       return true;
     } catch (err: any) {
       const message = err.response?.data?.error || 'Login failed. Please try again.';
@@ -58,6 +69,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       const response = await authService.register({ email, password, firstName, lastName });
       setUser(response.user);
+
+      // Fetch CSRF token after successful registration
+      try {
+        await fetchCsrfToken();
+      } catch (csrfError) {
+        console.warn('[AuthContext] Failed to fetch CSRF token:', csrfError);
+      }
+
       return true;
     } catch (err: any) {
       const message = err.response?.data?.error || 'Registration failed. Please try again.';
@@ -70,6 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     authService.logout();
+    clearCsrfToken(); // Clear CSRF token on logout
     setUser(null);
   };
 

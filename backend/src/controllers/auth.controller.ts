@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { createPasswordSchema } from '../utils/validation';
+import { logger } from '../utils/logger';
 
 // Base validation schema (password validation is dynamic based on settings)
 const baseRegisterSchema = z.object({
@@ -21,7 +23,10 @@ const loginSchema = z.object({
 
 // Generate JWT token with dynamic session timeout from settings
 const generateToken = async (userId: string, role: string): Promise<string> => {
-  const secret = process.env.JWT_SECRET || 'fallback-secret';
+  if (!process.env.JWT_SECRET) {
+    throw new Error('CRITICAL: JWT_SECRET environment variable is not set');
+  }
+  const secret = process.env.JWT_SECRET;
 
   // Fetch session timeout from platform settings
   try {
@@ -49,22 +54,22 @@ const generateToken = async (userId: string, role: string): Promise<string> => {
 export const register = async (req: Request, res: Response) => {
   try {
     // Fetch minPasswordLength from platform settings
-    let minPasswordLength = 6; // Default
+    let minPasswordLength = 8; // Default changed from 6 to 8 for security
     try {
       const settings = await prisma.platformSettings.findUnique({
         where: { id: 'singleton' },
         select: { minPasswordLength: true }
       });
       if (settings?.minPasswordLength) {
-        minPasswordLength = settings.minPasswordLength;
+        minPasswordLength = Math.max(settings.minPasswordLength, 8); // Enforce minimum of 8
       }
     } catch (err) {
-      console.error('Failed to fetch password settings, using default:', err);
+      logger.error('Failed to fetch password settings, using default:', err);
     }
 
-    // Create dynamic schema with the correct password length
+    // Create dynamic schema with strong password requirements
     const registerSchema = baseRegisterSchema.extend({
-      password: z.string().min(minPasswordLength, `Password must be at least ${minPasswordLength} characters`)
+      password: createPasswordSchema(minPasswordLength)
     });
 
     const validatedData = registerSchema.parse(req.body);
@@ -112,7 +117,7 @@ export const register = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('Register error:', error);
+    logger.error('Register error:', error);
     res.status(500).json({ error: 'Failed to register user' });
   }
 };
@@ -142,7 +147,7 @@ export const login = async (req: Request, res: Response) => {
         maxLoginAttempts = settings.maxLoginAttempts;
       }
     } catch (err) {
-      console.error('Failed to fetch login attempt settings, using default:', err);
+      logger.error('Failed to fetch login attempt settings, using default:', err);
     }
 
     // Check if account is locked
@@ -218,7 +223,7 @@ export const login = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
     res.status(500).json({ error: 'Failed to login' });
   }
 };
@@ -244,7 +249,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('GetMe error:', error);
+    logger.error('GetMe error:', error);
     res.status(500).json({ error: 'Failed to get user info' });
   }
 };

@@ -722,7 +722,8 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       const formData = new FormData();
       formData.append("image", file);
 
-      const response = await fetch("http://localhost:3000/api/uploads/image", {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${apiBaseUrl}/uploads/image`, {
         method: "POST",
         body: formData,
       });

@@ -48,7 +48,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await fetch('http://localhost:3000/api/users/settings', {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+        const response = await fetch(`${apiBaseUrl}/users/settings`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -105,7 +106,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
 
     // Save to backend API only - no localStorage to avoid cross-user issues
-    const response = await fetch('http://localhost:3000/api/users/settings', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+    const response = await fetch(`${apiBaseUrl}/users/settings`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

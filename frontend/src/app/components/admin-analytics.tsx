@@ -180,7 +180,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
 
       // Fetch PDF file
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/admin/analytics/export/pdf?${params.toString()}`,
+        `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000'}/api/admin/analytics/export/pdf?${params.toString()}`,
         {
           method: 'GET',
           headers: {
@@ -237,7 +237,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
 
       // Fetch CSV file
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/admin/analytics/export/csv?${params.toString()}`,
+        `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000'}/api/admin/analytics/export/csv?${params.toString()}`,
         {
           method: 'GET',
           headers: {
