@@ -348,10 +348,19 @@ export const getUserStatistics = async (req: Request, res: Response) => {
       orderBy: { attemptedAt: 'desc' }
     });
 
-    const totalQuizzes = quizAttempts.length;
-    const passedQuizzes = quizAttempts.filter(a => a.passed).length;
+    // Get only latest attempt for each quiz (don't count retries in averages)
+    const quizAttemptsByQuiz = quizAttempts.reduce((acc, qa) => {
+      if (!acc[qa.quizId] || acc[qa.quizId].attemptedAt < qa.attemptedAt) {
+        acc[qa.quizId] = qa;
+      }
+      return acc;
+    }, {} as Record<string, typeof quizAttempts[0]>);
+
+    const latestAttempts = Object.values(quizAttemptsByQuiz);
+    const totalQuizzes = latestAttempts.length;
+    const passedQuizzes = latestAttempts.filter(a => a.passed).length;
     const averageQuizScore = totalQuizzes > 0
-      ? Math.round(quizAttempts.reduce((sum, a) => sum + a.score, 0) / totalQuizzes)
+      ? Math.round(latestAttempts.reduce((sum, a) => sum + a.score, 0) / totalQuizzes)
       : 0;
 
     // Get certificate stats
