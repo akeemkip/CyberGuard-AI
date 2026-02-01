@@ -97,11 +97,28 @@ export interface RecentActivity {
   time: string;
 }
 
+export interface PerformanceStudent {
+  id: string;
+  name: string;
+  email: string;
+  coursesCompleted: number;
+  totalCourses: number;
+  avgScore: number;
+  passRate: number;
+  performanceScore: number;
+}
+
+export interface PerformanceExtremes {
+  safeZone: PerformanceStudent | null;
+  highRisk: PerformanceStudent | null;
+}
+
 export interface AdminDashboardData {
   stats: AdminStats;
   enrollmentTrend: EnrollmentTrend[];
   completionData: CompletionData[];
   recentActivity: RecentActivity[];
+  performanceExtremes: PerformanceExtremes;
 }
 
 export interface Enrollment {

@@ -18,7 +18,9 @@ import {
   Minus,
   UserPlus,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  Shield
 } from "lucide-react";
 import adminService, { AdminDashboardData } from "../services/admin.service";
 import { useTheme } from "./theme-provider";
@@ -96,6 +98,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
   const enrollmentData = dashboardData?.enrollmentTrend || [];
   const completionData = dashboardData?.completionData || [];
   const recentActivity = dashboardData?.recentActivity || [];
+  const performanceExtremes = dashboardData?.performanceExtremes;
 
   // Calculate mock comparison data (in real app, this would come from backend)
   // NOTE: These comparison metrics are SIMULATED for demonstration purposes
@@ -291,6 +294,63 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
               }}
             />
           </div>
+
+          {/* Performance Alert Tiles */}
+          {performanceExtremes && (performanceExtremes.highRisk || performanceExtremes.safeZone) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* High Risk Student */}
+              {performanceExtremes.highRisk && (
+                <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/30 p-6 border border-red-200 dark:border-red-800 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-red-500/10 dark:bg-red-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <AlertTriangle className="w-7 h-7 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-red-900 dark:text-red-100 mb-1">High Risk</h3>
+                      <p className="text-sm text-red-700 dark:text-red-300">{performanceExtremes.highRisk.name}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                        {performanceExtremes.highRisk.coursesCompleted} of {performanceExtremes.highRisk.totalCourses} courses • {performanceExtremes.highRisk.avgScore}% avg
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 dark:text-red-400 hover:bg-red-500/10"
+                      onClick={() => onNavigate("admin-user-profile", performanceExtremes.highRisk!.id)}
+                    >
+                      View
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Safe Zone Student */}
+              {performanceExtremes.safeZone && (
+                <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30 p-6 border border-green-200 dark:border-green-800 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Shield className="w-7 h-7 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-green-900 dark:text-green-100 mb-1">Safe Zone</h3>
+                      <p className="text-sm text-green-700 dark:text-green-300">{performanceExtremes.safeZone.name}</p>
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        {performanceExtremes.safeZone.coursesCompleted} courses completed • {performanceExtremes.safeZone.avgScore}% avg score
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-green-600 dark:text-green-400 hover:bg-green-500/10"
+                      onClick={() => onNavigate("admin-user-profile", performanceExtremes.safeZone!.id)}
+                    >
+                      View
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Charts Row */}
           <div className="grid lg:grid-cols-2 gap-6 mb-8">

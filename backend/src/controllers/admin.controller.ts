@@ -140,6 +140,64 @@ export const getAdminStats = async (req: Request, res: Response) => {
       };
     });
 
+    // Calculate performance extremes (High Risk & Safe Zone students)
+    const students = await prisma.user.findMany({
+      where: { role: 'STUDENT' },
+      include: {
+        enrollments: {
+          include: {
+            course: true
+          }
+        },
+        quizAttempts: {
+          orderBy: {
+            attemptedAt: 'desc'
+          }
+        }
+      }
+    });
+
+    const performanceScores = students.map(student => {
+      // Get only latest attempt for each quiz
+      const quizAttemptsByQuiz = student.quizAttempts.reduce((acc, qa) => {
+        if (!acc[qa.quizId] || acc[qa.quizId].attemptedAt < qa.attemptedAt) {
+          acc[qa.quizId] = qa;
+        }
+        return acc;
+      }, {} as Record<string, typeof student.quizAttempts[0]>);
+
+      const latestAttempts = Object.values(quizAttemptsByQuiz);
+      const passed = latestAttempts.filter(qa => qa.passed).length;
+      const totalQuizzes = latestAttempts.length;
+      const avgScore = totalQuizzes > 0
+        ? Math.round(latestAttempts.reduce((sum, qa) => sum + qa.score, 0) / totalQuizzes)
+        : 0;
+      const passRate = totalQuizzes > 0 ? Math.round((passed / totalQuizzes) * 100) : 0;
+
+      const coursesCompleted = student.enrollments.filter(e => e.completedAt).length;
+      const totalCourses = student.enrollments.length;
+
+      // Performance score = passRate * 0.4 + avgScore * 0.4 + (coursesCompleted/totalCourses) * 20
+      const performanceScore = (passRate * 0.4) + (avgScore * 0.4) + ((coursesCompleted / (totalCourses || 1)) * 20);
+
+      return {
+        id: student.id,
+        name: `${student.firstName} ${student.lastName}`,
+        email: student.email,
+        coursesCompleted,
+        totalCourses,
+        avgScore,
+        passRate,
+        performanceScore
+      };
+    });
+
+    // Sort by performance
+    performanceScores.sort((a, b) => b.performanceScore - a.performanceScore);
+
+    const safeZoneStudent = performanceScores[0] || null;
+    const highRiskStudent = performanceScores[performanceScores.length - 1] || null;
+
     res.json({
       stats: {
         totalUsers,
@@ -156,7 +214,11 @@ export const getAdminStats = async (req: Request, res: Response) => {
       },
       enrollmentTrend,
       completionData,
-      recentActivity: formattedActivity
+      recentActivity: formattedActivity,
+      performanceExtremes: {
+        safeZone: safeZoneStudent,
+        highRisk: highRiskStudent
+      }
     });
   } catch (error) {
     console.error('GetAdminStats error:', error);

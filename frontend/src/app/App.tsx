@@ -45,6 +45,9 @@ const guestPages: Page[] = ["landing", "login", "register", "reset-password", "p
 // Admin-only pages (require ADMIN role)
 const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
+// Student-only pages (require STUDENT role - admins cannot access)
+const studentOnlyPages: Page[] = ["student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation"];
+
 // Guest pages that should persist on refresh (not landing - that's the default)
 const persistableGuestPages: Page[] = ["login", "register", "reset-password"];
 
@@ -156,23 +159,44 @@ function AppContent() {
         return;
       }
 
+      // Check if admin is trying to access student pages
+      if (isAdmin && studentOnlyPages.includes(currentPage)) {
+        console.log('[App] Admin user trying to access student page, redirecting to admin dashboard');
+        setCurrentPage("admin-dashboard");
+        localStorage.setItem("currentPage", "admin-dashboard");
+        window.history.replaceState({ page: "admin-dashboard" }, "", window.location.pathname);
+        setIsInitialized(true);
+        return;
+      }
+
       if (guestPages.includes(currentPage)) {
         // If on a guest page (landing, login, register), redirect to appropriate dashboard
         console.log('[App] On guest page, redirecting to dashboard:', defaultDashboard);
+
+        let targetPage: Page = defaultDashboard;
+
         // If they had a saved protected page, go there; otherwise go to dashboard
         if (savedPage && protectedPages.includes(savedPage)) {
           // But make sure they can access the saved page based on their role
           if (!isAdmin && adminOnlyPages.includes(savedPage)) {
             console.log('[App] Saved page is admin-only, going to student dashboard instead');
-            setCurrentPage("student-dashboard");
+            targetPage = "student-dashboard";
+          } else if (isAdmin && studentOnlyPages.includes(savedPage)) {
+            console.log('[App] Saved page is student-only, going to admin dashboard instead');
+            targetPage = "admin-dashboard";
           } else {
             console.log('[App] Found saved protected page:', savedPage);
-            setCurrentPage(savedPage);
+            targetPage = savedPage;
           }
         } else {
           console.log('[App] No saved page, going to default dashboard');
-          setCurrentPage(defaultDashboard);
+          targetPage = defaultDashboard;
         }
+
+        // Update both state and history
+        setCurrentPage(targetPage);
+        localStorage.setItem("currentPage", targetPage);
+        window.history.replaceState({ page: targetPage }, "", window.location.pathname);
       } else {
         console.log('[App] Already on protected page, staying here');
       }
@@ -300,27 +324,23 @@ function AppContent() {
     console.log('[App] 🔄 handleNavigate called:', { from: currentPage, to: page, idParam });
 
     const pageAsType = page as Page;
+    const isAdmin = user?.role === "ADMIN";
 
     // Security check: prevent non-admin users from navigating to admin pages
-    const isAdmin = user?.role === "ADMIN";
     if (!isAdmin && adminOnlyPages.includes(pageAsType)) {
       console.log('[App] ⛔ Non-admin user attempted to navigate to admin page:', page);
       return; // Block navigation
     }
 
-    // For transient pages, ensure we have a parent in history
-    // (only if we're not coming from the parent page itself)
-    if (transientPages.includes(pageAsType)) {
-      const parentPage = transientPageParents[pageAsType];
-      if (parentPage && currentPage !== parentPage && !transientPages.includes(currentPage)) {
-        // We're jumping directly to a transient page - add parent first for back button
-        console.log('[App] Adding parent to history before transient page:', parentPage);
-        window.history.pushState({ page: parentPage }, "", window.location.pathname);
-      }
+    // Security check: prevent admin users from navigating to student pages
+    if (isAdmin && studentOnlyPages.includes(pageAsType)) {
+      console.log('[App] ⛔ Admin user attempted to navigate to student page:', page);
+      return; // Block navigation
     }
 
     // Push to browser history for back button support
-    window.history.pushState({ page, idParam }, "", window.location.pathname);
+    // Store the current page as previousPage so we can reference it if needed
+    window.history.pushState({ page, idParam, previousPage: currentPage }, "", window.location.pathname);
     setCurrentPage(pageAsType);
 
     // Handle course ID for course player

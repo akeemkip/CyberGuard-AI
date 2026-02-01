@@ -149,38 +149,73 @@ export function LoginPage({
 
           <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-muted-foreground text-center mb-4">
-              Demo Accounts - Click to Login:
+              Demo Accounts - Click to Login (Password: student123)
             </p>
             <div className="space-y-2 text-xs">
               <div
-                className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
-                onClick={() => {
-                  setEmail("rajesh.singh@gmail.com");
-                  setPassword("student123");
-                }}
-              >
-                <div className="font-medium mb-1">Student Account - Rajesh Singh</div>
-                <div className="text-muted-foreground">Active learner with 4 enrollments, 2 completed courses</div>
-              </div>
-              <div
-                className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/50 transition-colors"
                 onClick={() => {
                   setEmail("priya.persaud@yahoo.com");
                   setPassword("student123");
                 }}
               >
-                <div className="font-medium mb-1">Student Account - Priya Persaud</div>
-                <div className="text-muted-foreground">Improving student, retook quiz and passed</div>
+                <div className="font-medium mb-1 text-green-900 dark:text-green-100">🏆 Priya Persaud - Excellent Performer</div>
+                <div className="text-green-700 dark:text-green-300">1 course completed • 96% avg score • All quizzes passed on first try</div>
               </div>
+
               <div
-                className="p-3 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
+                onClick={() => {
+                  setEmail("vishnu.bisram@outlook.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1 text-blue-900 dark:text-blue-100">🌟 Vishnu Bisram - Safe Zone</div>
+                <div className="text-blue-700 dark:text-blue-300">3 courses completed • 91% avg score • Top student</div>
+              </div>
+
+              <div
+                className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors"
+                onClick={() => {
+                  setEmail("rajesh.singh@gmail.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1 text-amber-900 dark:text-amber-100">📚 Rajesh Singh - Locked Simulation Demo</div>
+                <div className="text-amber-700 dark:text-amber-300">1 course completed • Phishing course not completed • Tests locked modals</div>
+              </div>
+
+              <div
+                className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors"
+                onClick={() => {
+                  setEmail("maya.ramdass@yahoo.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1 text-orange-900 dark:text-orange-100">📊 Maya Ramdass - Struggling Student</div>
+                <div className="text-orange-700 dark:text-orange-300">0 courses completed • Multiple quiz failures • Needs support</div>
+              </div>
+
+              <div
+                className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/50 transition-colors"
+                onClick={() => {
+                  setEmail("kavita.ramkissoon@outlook.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1 text-red-900 dark:text-red-100">⚠️  Kavita Ramkissoon - High Risk</div>
+                <div className="text-red-700 dark:text-red-300">0 courses completed • 3 failed quiz attempts • At-risk student</div>
+              </div>
+
+              <div
+                className="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-950/50 transition-colors"
                 onClick={() => {
                   setEmail("admin@cyberguard.com");
                   setPassword("admin123");
                 }}
               >
-                <div className="font-medium mb-1">Admin Account</div>
-                <div className="text-muted-foreground">Full administrative access</div>
+                <div className="font-medium mb-1 text-purple-900 dark:text-purple-100">👨‍💼 Admin Account</div>
+                <div className="text-purple-700 dark:text-purple-300">Full platform access • Manage users, courses, content, analytics</div>
               </div>
             </div>
           </div>

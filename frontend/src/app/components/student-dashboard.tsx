@@ -19,8 +19,17 @@ import {
   X,
   Award,
   ClipboardCheck,
-  Mail
+  Mail,
+  AlertCircle
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "./ui/dialog";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
 import { useSettings } from "../context/SettingsContext";
@@ -46,6 +55,10 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
   const [stats, setStats] = useState<UserStats | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
+  const [showNoCertificatesModal, setShowNoCertificatesModal] = useState(false);
+  const [showSimulationLockedModal, setShowSimulationLockedModal] = useState(false);
+  const [hasCompletedPhishing, setHasCompletedPhishing] = useState(false);
+  const [hasCertificates, setHasCertificates] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -60,6 +73,16 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
 
         setStats(statsData);
         setEnrolledCourses(enrolledData);
+
+        // Check if user has completed phishing course
+        const phishingEnrollment = enrolledData.find(e =>
+          e.course.title.toLowerCase().includes('phishing')
+        );
+        setHasCompletedPhishing(!!phishingEnrollment?.completedAt);
+
+        // Check if user has any certificates (completed courses)
+        const hasAnyCertificates = enrolledData.some(e => e.completedAt);
+        setHasCertificates(hasAnyCertificates);
 
         // Get recommended courses (courses user isn't enrolled in)
         const enrolledIds = new Set(enrolledData.map(e => e.courseId));
@@ -76,6 +99,37 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
   }, []);
 
   const displayName = user?.firstName || userEmail.split("@")[0];
+
+  const handleCertificatesClick = () => {
+    if (hasCertificates) {
+      onNavigate("certificates");
+    } else {
+      setShowNoCertificatesModal(true);
+    }
+  };
+
+  const handleSimulationClick = () => {
+    if (hasCompletedPhishing) {
+      onNavigate("phishing-simulation");
+    } else {
+      setShowSimulationLockedModal(true);
+    }
+  };
+
+  const handleStartPhishingCourse = () => {
+    setShowNoCertificatesModal(false);
+    setShowSimulationLockedModal(false);
+    // Find the phishing course and navigate to it
+    const phishingCourse = enrolledCourses.find(e =>
+      e.course.title.toLowerCase().includes('phishing')
+    );
+    if (phishingCourse) {
+      onNavigate("course-player", phishingCourse.courseId);
+    } else {
+      // If not enrolled, go to catalog
+      onNavigate("course-catalog");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -222,6 +276,65 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
             </Card>
           </div>
         )}
+
+        {/* Quick Actions Tiles */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <button
+            onClick={() => onNavigate("assessments")}
+            className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-blue-200 dark:border-blue-800"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <ClipboardCheck className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-lg text-blue-900 dark:text-blue-100">Take Assessment</h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300">Test your knowledge</p>
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={handleSimulationClick}
+            className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-purple-200 dark:border-purple-800"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Mail className="w-7 h-7 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-lg text-purple-900 dark:text-purple-100">Phishing Simulation</h3>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  {hasCompletedPhishing ? "Practice detection" : "Complete phishing course first"}
+                </p>
+              </div>
+            </div>
+            {!hasCompletedPhishing && (
+              <div className="absolute top-2 right-2">
+                <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
+                  <span className="text-white text-xs">🔒</span>
+                </div>
+              </div>
+            )}
+          </button>
+
+          <button
+            onClick={handleCertificatesClick}
+            className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-amber-200 dark:border-amber-800"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-amber-500/10 dark:bg-amber-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Award className="w-7 h-7 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-lg text-amber-900 dark:text-amber-100">View Certificates</h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  {hasCertificates ? `${stats?.coursesCompleted || 0} earned` : "Start earning today"}
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -436,48 +549,88 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 Start Chat
               </Button>
             </Card>
-
-            {/* Quick Actions */}
-            <Card className="p-6">
-              <h3 className="font-semibold mb-4">Quick Actions</h3>
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => onNavigate("course-catalog")}
-                >
-                  <Book className="w-4 h-4 mr-2" />
-                  Browse Courses
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => onNavigate("certificates")}
-                >
-                  <Award className="w-4 h-4 mr-2" />
-                  View Certificates
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => onNavigate("assessments")}
-                >
-                  <ClipboardCheck className="w-4 h-4 mr-2" />
-                  Take Assessment
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => onNavigate("phishing-simulation")}
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Phishing Simulation
-                </Button>
-              </div>
-            </Card>
           </div>
         </div>
       </div>
+
+      {/* No Certificates Modal */}
+      <Dialog open={showNoCertificatesModal} onOpenChange={setShowNoCertificatesModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-500" />
+              No Certificates Yet
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              You haven't earned any certificates yet. Complete courses to earn certificates that you can share with employers and on social media.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 my-4">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Recommended Starter Course</h4>
+            <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+              Start with our <span className="font-semibold">Phishing Detection Fundamentals</span> course to learn how to identify and protect against phishing attacks.
+            </p>
+            <Button
+              onClick={handleStartPhishingCourse}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              <Book className="w-4 h-4 mr-2" />
+              Start Phishing Course
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNoCertificatesModal(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Simulation Locked Modal */}
+      <Dialog open={showSimulationLockedModal} onOpenChange={setShowSimulationLockedModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-purple-500" />
+              Complete Phishing Course First
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              To access the phishing simulation, you need to complete the <span className="font-semibold">Phishing Detection Fundamentals</span> course first. This ensures you have the foundational knowledge to succeed in the simulation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4 my-4">
+            <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">Why This Matters</h4>
+            <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-purple-500 mt-0.5">•</span>
+                <span>Learn to identify common phishing indicators</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-500 mt-0.5">•</span>
+                <span>Understand attacker tactics and techniques</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-purple-500 mt-0.5">•</span>
+                <span>Practice in a safe, guided environment</span>
+              </li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button
+                onClick={handleStartPhishingCourse}
+                className="flex-1 bg-purple-600 hover:bg-purple-700"
+              >
+                <Book className="w-4 h-4 mr-2" />
+                Start Phishing Course
+              </Button>
+              <Button variant="outline" onClick={() => setShowSimulationLockedModal(false)} className="flex-1">
+                Maybe Later
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
