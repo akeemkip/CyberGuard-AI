@@ -978,24 +978,150 @@ export const updateLabNotes = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Helper function to calculate score server-side based on simulation type and answers
+const calculateLabScore = (labType: string, simulationConfig: any, answers: any): { score: number; passed: boolean; passingScore: number } => {
+  let score = 0;
+  const passingScore = 70; // Default passing score
+
+  switch (labType) {
+    case 'PHISHING_EMAIL': {
+      const config = simulationConfig as any;
+      if (!config.emails || !Array.isArray(config.emails)) {
+        throw new Error('Invalid phishing email configuration');
+      }
+
+      const totalEmails = config.emails.length;
+      let correctAnswers = 0;
+
+      config.emails.forEach((email: any) => {
+        const userAction = answers[email.id];
+        if (!userAction) return;
+
+        let isCorrect = false;
+        if (email.isPhishing) {
+          isCorrect = userAction === 'REPORTED' || userAction === 'DELETED';
+        } else {
+          isCorrect = userAction === 'MARKED_SAFE' || userAction === 'IGNORED';
+        }
+
+        if (isCorrect) correctAnswers++;
+      });
+
+      score = totalEmails > 0 ? Math.round((correctAnswers / totalEmails) * 100) : 0;
+      break;
+    }
+
+    case 'SUSPICIOUS_LINKS': {
+      const config = simulationConfig as any;
+      if (!config.links || !Array.isArray(config.links)) {
+        throw new Error('Invalid suspicious links configuration');
+      }
+
+      const totalLinks = config.links.length;
+      let correctAnswers = 0;
+
+      config.links.forEach((link: any, index: number) => {
+        const userAnswer = answers[`link-${index}`];
+        if (userAnswer === undefined) return;
+
+        const isCorrect = (link.isMalicious && userAnswer === true) || (!link.isMalicious && userAnswer === false);
+        if (isCorrect) correctAnswers++;
+      });
+
+      score = totalLinks > 0 ? Math.round((correctAnswers / totalLinks) * 100) : 0;
+      break;
+    }
+
+    case 'PASSWORD_STRENGTH': {
+      const config = simulationConfig as any;
+      if (!config.requirements) {
+        throw new Error('Invalid password strength configuration');
+      }
+
+      const password = answers.password || '';
+      const requirements = config.requirements;
+      const bannedPasswords = config.bannedPasswords || [];
+
+      // Check requirements
+      let metRequirements = 0;
+      let totalRequirements = 4; // minLength, uppercase, numbers, special
+
+      // Min length
+      if (password.length >= requirements.minLength) metRequirements++;
+
+      // Uppercase
+      if (!requirements.requireUppercase || /[A-Z]/.test(password)) metRequirements++;
+
+      // Numbers
+      if (!requirements.requireNumbers || /\d/.test(password)) metRequirements++;
+
+      // Special characters
+      if (!requirements.requireSpecial || /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) metRequirements++;
+
+      // Base score
+      score = Math.round((metRequirements / totalRequirements) * 100);
+
+      // Bonus for extra length
+      if (password.length >= requirements.minLength + 4) {
+        score = Math.min(100, score + 10);
+      }
+
+      // Penalty for banned passwords
+      if (bannedPasswords.includes(password.toLowerCase())) {
+        score = Math.max(0, score - 50);
+      }
+
+      break;
+    }
+
+    case 'SOCIAL_ENGINEERING': {
+      const config = simulationConfig as any;
+      if (!config.messages || !Array.isArray(config.messages)) {
+        throw new Error('Invalid social engineering configuration');
+      }
+
+      const totalMessages = config.messages.length;
+      let correctAnswers = 0;
+
+      config.messages.forEach((message: any) => {
+        const userResponse = answers[message.id];
+        if (!userResponse) return;
+
+        const correctResponse = message.responses?.find((r: any) => r.isCorrect);
+        if (correctResponse && userResponse === correctResponse.text) {
+          correctAnswers++;
+        }
+      });
+
+      score = totalMessages > 0 ? Math.round((correctAnswers / totalMessages) * 100) : 0;
+      break;
+    }
+
+    default:
+      throw new Error(`Unsupported lab type for score calculation: ${labType}`);
+  }
+
+  return {
+    score,
+    passed: score >= passingScore,
+    passingScore
+  };
+};
+
 // Submit lab simulation results (for interactive labs)
 export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
   try {
     const labId = req.params.id as string;
     const userId = req.userId!;
-    const { score, passed, answers, timeSpent } = req.body;
+    const { answers, timeSpent } = req.body;
 
     // Validate inputs
-    if (typeof score !== 'number' || score < 0 || score > 100) {
-      return res.status(400).json({ error: 'Score must be a number between 0 and 100' });
-    }
-
-    if (typeof passed !== 'boolean') {
-      return res.status(400).json({ error: 'Passed must be a boolean' });
-    }
-
     if (typeof timeSpent !== 'number' || timeSpent < 0) {
       return res.status(400).json({ error: 'Time spent must be a positive number' });
+    }
+
+    if (!answers || typeof answers !== 'object') {
+      return res.status(400).json({ error: 'Answers must be provided as an object' });
     }
 
     // Verify lab exists and is an interactive type
@@ -1011,6 +1137,10 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'This lab does not support simulation submission' });
     }
 
+    if (!lab.simulationConfig) {
+      return res.status(400).json({ error: 'Lab has no simulation configuration' });
+    }
+
     // Check enrollment
     const enrollment = await prisma.enrollment.findUnique({
       where: {
@@ -1020,6 +1150,19 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
 
     if (!enrollment) {
       return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    // Calculate score server-side (SECURITY FIX: Don't trust client-submitted scores)
+    let calculatedScore: number;
+    let passed: boolean;
+
+    try {
+      const result = calculateLabScore(lab.labType, lab.simulationConfig, answers);
+      calculatedScore = result.score;
+      passed = result.passed;
+    } catch (error) {
+      console.error('Score calculation error:', error);
+      return res.status(400).json({ error: 'Failed to calculate score. Invalid answers or configuration.' });
     }
 
     // Get existing progress to track attempts
@@ -1038,7 +1181,7 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
       },
       update: {
         status: passed ? 'COMPLETED' : 'IN_PROGRESS',
-        score,
+        score: calculatedScore,
         passed,
         answers: answers || {},
         attempts: currentAttempts + 1,
@@ -1049,7 +1192,7 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
         userId,
         labId,
         status: passed ? 'COMPLETED' : 'IN_PROGRESS',
-        score,
+        score: calculatedScore,
         passed,
         answers: answers || {},
         attempts: 1,
