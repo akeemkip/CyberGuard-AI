@@ -120,12 +120,12 @@ export const submitAttempt = async (req: AuthRequest, res: Response) => {
     // Determine if the user's action was correct
     // Correct actions:
     // - For phishing emails: REPORTED or DELETED
-    // - For legitimate emails: MARKED_SAFE
+    // - For legitimate emails: MARKED_SAFE or IGNORED
     let isCorrect = false;
     if (scenario.isPhishing) {
       isCorrect = action === 'REPORTED' || action === 'DELETED';
     } else {
-      isCorrect = action === 'MARKED_SAFE';
+      isCorrect = action === 'MARKED_SAFE' || action === 'IGNORED';
     }
 
     // CLICKED_LINK is always wrong (even for legitimate emails, we want to train caution)
