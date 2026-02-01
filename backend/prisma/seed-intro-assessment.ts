@@ -212,42 +212,74 @@ async function main() {
 
     console.log(`✅ Backfilled ${backfilledIntro} intro assessment attempts`);
 
-    // Backfill full assessment attempts for demo accounts
-    const demoAccounts = await prisma.user.findMany({
+    // Backfill full assessment attempts for students with completed courses
+    // This simulates students who have taken training and are now taking the final assessment
+    const studentsWithCompletedCourses = await prisma.user.findMany({
       where: {
-        OR: [
-          { email: { contains: 'demo', mode: 'insensitive' } },
-          { email: { contains: 'test', mode: 'insensitive' } },
-          { firstName: 'Demo' }
-        ],
-        role: 'STUDENT'
+        role: 'STUDENT',
+        enrollments: {
+          some: {
+            completedAt: { not: null }
+          }
+        },
+        introAssessmentAttempts: {
+          some: {}
+        }
       },
       include: {
-        introAssessmentAttempts: true,
-        fullAssessmentAttempts: true
+        introAssessmentAttempts: {
+          orderBy: { completedAt: 'desc' },
+          take: 1
+        },
+        fullAssessmentAttempts: true,
+        enrollments: {
+          where: { completedAt: { not: null } },
+          select: { completedAt: true }
+        }
       }
     });
 
-    console.log(`🎭 Found ${demoAccounts.length} demo accounts`);
+    console.log(`👥 Found ${studentsWithCompletedCourses.length} students with completed courses`);
 
     let backfilledFull = 0;
-    for (const demo of demoAccounts) {
+    for (const student of studentsWithCompletedCourses) {
       // Skip if already has full attempt
-      if (demo.fullAssessmentAttempts.length > 0) {
+      if (student.fullAssessmentAttempts.length > 0) {
         continue;
       }
 
-      // Get intro score if exists
-      const introScore = demo.introAssessmentAttempts[0]?.percentage || 50;
+      // Get intro score
+      const introScore = student.introAssessmentAttempts[0]?.percentage || 50;
 
-      // Full assessment should show improvement (+15% to +35%)
-      const improvement = Math.floor(Math.random() * 21) + 15;
+      // Full assessment should show improvement based on intro score
+      // Better intro scores = smaller improvement (ceiling effect)
+      // Lower intro scores = larger improvement (more room to grow)
+      let improvement;
+      if (introScore >= 80) {
+        improvement = Math.floor(Math.random() * 11) + 5; // +5% to +15%
+      } else if (introScore >= 60) {
+        improvement = Math.floor(Math.random() * 16) + 15; // +15% to +30%
+      } else {
+        improvement = Math.floor(Math.random() * 21) + 25; // +25% to +45%
+      }
+
       const finalPercentage = Math.min(95, introScore + improvement);
       const score = Math.round((finalPercentage / 100) * 30);
 
+      // Calculate completion date (after their last course completion)
+      const lastCourseCompletion = student.enrollments.reduce((latest, enrollment) => {
+        return enrollment.completedAt && (!latest || enrollment.completedAt > latest)
+          ? enrollment.completedAt
+          : latest;
+      }, null as Date | null);
+
+      const completedAt = lastCourseCompletion
+        ? new Date(lastCourseCompletion.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000) // 0-7 days after course completion
+        : new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000); // Random date in last 7 days
+
       await prisma.fullAssessmentAttempt.create({
         data: {
-          userId: demo.id,
+          userId: student.id,
           score,
           totalQuestions: 30,
           percentage: finalPercentage,
@@ -255,14 +287,14 @@ async function main() {
           timeSpent: Math.floor(Math.random() * 600) + 900, // 15-25 minutes
           timerExpired: false,
           answers: { simulated: true },
-          completedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // Random date in last 7 days
+          completedAt
         }
       });
 
       backfilledFull++;
     }
 
-    console.log(`✅ Backfilled ${backfilledFull} full assessment attempts`);
+    console.log(`✅ Backfilled ${backfilledFull} full assessment attempts for students with completed courses`);
     console.log('🎉 Seed completed successfully!');
 
   } catch (error) {
