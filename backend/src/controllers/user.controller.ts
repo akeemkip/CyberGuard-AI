@@ -170,6 +170,17 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 
     const validatedData = updateUserSchema.parse(req.body);
 
+    // Check if email is being changed and if new email is already in use
+    if (validatedData.email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: validatedData.email }
+      });
+
+      if (existingUser && existingUser.id !== id) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id },
       data: validatedData,
