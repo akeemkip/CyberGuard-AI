@@ -222,6 +222,9 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
           include: {
             lessons: {
               select: { id: true }
+            },
+            labs: {
+              select: { id: true }
             }
           }
         }
@@ -229,10 +232,11 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
       orderBy: { enrolledAt: 'desc' }
     });
 
-    // Get progress for each course
+    // Get progress for each course (includes both lessons AND labs)
     const coursesWithProgress = await Promise.all(
       enrollments.map(async (enrollment) => {
         const lessonIds = enrollment.course.lessons.map(l => l.id);
+        const labIds = enrollment.course.labs.map(l => l.id);
 
         const completedLessons = await prisma.progress.count({
           where: {
@@ -242,9 +246,21 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
           }
         });
 
+        const completedLabs = await prisma.labProgress.count({
+          where: {
+            userId,
+            labId: { in: labIds },
+            status: 'COMPLETED'
+          }
+        });
+
         const totalLessons = lessonIds.length;
-        const progressPercent = totalLessons > 0
-          ? Math.round((completedLessons / totalLessons) * 100)
+        const totalLabs = labIds.length;
+        const totalItems = totalLessons + totalLabs;
+        const completedItems = completedLessons + completedLabs;
+
+        const progressPercent = totalItems > 0
+          ? Math.round((completedItems / totalItems) * 100)
           : 0;
 
         return {
@@ -252,6 +268,8 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
           progress: {
             completedLessons,
             totalLessons,
+            completedLabs,
+            totalLabs,
             percentage: progressPercent
           }
         };
