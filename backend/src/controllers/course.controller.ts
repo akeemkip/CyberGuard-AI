@@ -412,6 +412,79 @@ export const submitQuizAttempt = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Helper function to check and mark course completion (considers both lessons AND labs)
+const checkAndCompleteCourse = async (userId: string, courseId: string): Promise<boolean> => {
+  // Get all lessons in the course
+  const courseLessons = await prisma.lesson.findMany({
+    where: { courseId },
+    select: { id: true }
+  });
+
+  // Get all labs in the course
+  const courseLabs = await prisma.lab.findMany({
+    where: { courseId },
+    select: { id: true }
+  });
+
+  // Count completed lessons
+  const completedLessons = await prisma.progress.count({
+    where: {
+      userId,
+      lessonId: { in: courseLessons.map(l => l.id) },
+      completed: true
+    }
+  });
+
+  // Count completed labs
+  const completedLabs = await prisma.labProgress.count({
+    where: {
+      userId,
+      labId: { in: courseLabs.map(l => l.id) },
+      status: 'COMPLETED'
+    }
+  });
+
+  // Course is complete if:
+  // - Has lessons: all lessons done
+  // - Has labs: all labs done
+  // - Has both: both requirements met
+  // - Has neither: not complete (empty course)
+  const lessonsComplete = courseLessons.length === 0 || completedLessons === courseLessons.length;
+  const labsComplete = courseLabs.length === 0 || completedLabs === courseLabs.length;
+  const hasContent = courseLessons.length > 0 || courseLabs.length > 0;
+
+  if (hasContent && lessonsComplete && labsComplete) {
+    // Mark enrollment as complete
+    await prisma.enrollment.update({
+      where: {
+        userId_courseId: { userId, courseId }
+      },
+      data: {
+        completedAt: new Date()
+      }
+    });
+
+    // Create or update certificate
+    await prisma.certificate.upsert({
+      where: {
+        userId_courseId: { userId, courseId }
+      },
+      create: {
+        userId,
+        courseId,
+        issuedAt: new Date()
+      },
+      update: {
+        issuedAt: new Date()
+      }
+    });
+
+    return true;
+  }
+
+  return false;
+};
+
 // Mark lesson as complete
 export const markLessonComplete = async (req: AuthRequest, res: Response) => {
   try {
@@ -444,52 +517,13 @@ export const markLessonComplete = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    // Check if all lessons in course are complete
-    const courseLessons = await prisma.lesson.findMany({
-      where: { courseId: lesson.courseId },
-      select: { id: true }
-    });
-
-    const completedLessons = await prisma.progress.count({
-      where: {
-        userId,
-        lessonId: { in: courseLessons.map(l => l.id) },
-        completed: true
-      }
-    });
-
-    // If all lessons complete AND course has lessons, mark course as complete
-    // (prevents marking empty courses as complete)
-    if (courseLessons.length > 0 && completedLessons === courseLessons.length) {
-      await prisma.enrollment.update({
-        where: {
-          userId_courseId: { userId, courseId: lesson.courseId }
-        },
-        data: {
-          completedAt: new Date()
-        }
-      });
-
-      // Create certificate for course completion
-      await prisma.certificate.upsert({
-        where: {
-          userId_courseId: { userId, courseId: lesson.courseId }
-        },
-        create: {
-          userId,
-          courseId: lesson.courseId,
-          issuedAt: new Date()
-        },
-        update: {
-          issuedAt: new Date() // Update issue date if certificate already exists
-        }
-      });
-    }
+    // Check if course should be marked complete (checks both lessons AND labs)
+    const courseComplete = await checkAndCompleteCourse(userId, lesson.courseId);
 
     res.json({
       message: 'Lesson marked as complete',
       progress,
-      courseComplete: completedLessons === courseLessons.length
+      courseComplete
     });
   } catch (error) {
     console.error('MarkLessonComplete error:', error);
@@ -883,6 +917,9 @@ export const completeLab = async (req: AuthRequest, res: Response) => {
       }
     });
 
+    // Check if course should be marked complete (checks both lessons AND labs)
+    const courseComplete = await checkAndCompleteCourse(userId, lab.courseId);
+
     res.json({
       message: isRetry ? 'Lab retried and completed' : 'Lab marked as complete',
       progress: {
@@ -891,7 +928,8 @@ export const completeLab = async (req: AuthRequest, res: Response) => {
         completedAt: progress.completedAt,
         attempts: progress.attempts
       },
-      isRetry
+      isRetry,
+      courseComplete
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -1202,6 +1240,12 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
       }
     });
 
+    // Check if course should be marked complete (only if lab was passed)
+    let courseComplete = false;
+    if (passed) {
+      courseComplete = await checkAndCompleteCourse(userId, lab.courseId);
+    }
+
     res.json({
       message: passed ? 'Lab completed successfully!' : 'Lab submitted. Keep practicing to improve your score.',
       progress: {
@@ -1210,7 +1254,8 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
         passed: progress.passed,
         attempts: progress.attempts,
         completedAt: progress.completedAt
-      }
+      },
+      courseComplete
     });
   } catch (error) {
     console.error('SubmitLabSimulation error:', error);
