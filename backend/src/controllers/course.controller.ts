@@ -356,16 +356,45 @@ export const submitQuizAttempt = async (req: AuthRequest, res: Response) => {
     const userId = req.userId!;
     const { answers } = req.body; // { questionId: selectedOptionIndex }
 
-    // Get quiz with questions and correct answers
+    // Get quiz with questions, correct answers, and lesson (for enrollment check)
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
       include: {
-        questions: true
+        questions: true,
+        lesson: {
+          select: { courseId: true }
+        }
       }
     });
 
     if (!quiz) {
       return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    // Validate quiz has questions (prevents division by zero)
+    if (quiz.questions.length === 0) {
+      return res.status(400).json({ error: 'Quiz has no questions' });
+    }
+
+    // Verify user is enrolled in the course
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: { userId, courseId: quiz.lesson.courseId }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Not enrolled in this course' });
+    }
+
+    // Validate all questions were answered
+    const answeredCount = Object.keys(answers || {}).length;
+    if (answeredCount !== quiz.questions.length) {
+      return res.status(400).json({
+        error: 'All questions must be answered',
+        expected: quiz.questions.length,
+        received: answeredCount
+      });
     }
 
     // Calculate score
