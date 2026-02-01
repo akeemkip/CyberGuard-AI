@@ -790,11 +790,33 @@ export const completeLab = async (req: AuthRequest, res: Response) => {
   try {
     const labId = req.params.id as string;
     const userId = req.userId!;
-    const { timeSpent, notes } = req.body;
+    const { timeSpent, notes, isRetry = false } = req.body;
 
     // Validate inputs
     if (typeof timeSpent !== 'number' || timeSpent < 0) {
       return res.status(400).json({ error: 'Valid time spent is required' });
+    }
+
+    // Get existing progress
+    const existingProgress = await prisma.labProgress.findUnique({
+      where: {
+        userId_labId: { userId, labId }
+      }
+    });
+
+    // If already completed and not a retry, return existing data
+    if (existingProgress?.status === 'COMPLETED' && !isRetry) {
+      return res.json({
+        message: 'Lab already completed',
+        progress: {
+          status: existingProgress.status,
+          timeSpent: existingProgress.timeSpent,
+          completedAt: existingProgress.completedAt,
+          score: existingProgress.score,
+          passed: existingProgress.passed
+        },
+        alreadyCompleted: true
+      });
     }
 
     // Verify lab exists
@@ -817,15 +839,21 @@ export const completeLab = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ error: 'Not enrolled in this course' });
     }
 
-    // Update progress
+    // Calculate accumulated time (add to existing if retry)
+    const totalTimeSpent = existingProgress
+      ? existingProgress.timeSpent + timeSpent
+      : timeSpent;
+
+    // Update or create progress with idempotency
     const progress = await prisma.labProgress.upsert({
       where: {
         userId_labId: { userId, labId }
       },
       update: {
         status: 'COMPLETED',
-        timeSpent,
-        notes: notes || null,
+        timeSpent: totalTimeSpent,
+        notes: notes || existingProgress?.notes,
+        attempts: existingProgress ? existingProgress.attempts + 1 : 1,
         completedAt: new Date()
       },
       create: {
@@ -834,21 +862,25 @@ export const completeLab = async (req: AuthRequest, res: Response) => {
         status: 'COMPLETED',
         timeSpent,
         notes: notes || null,
+        attempts: 1,
         startedAt: new Date(),
         completedAt: new Date()
       }
     });
 
     res.json({
-      message: 'Lab marked as complete',
+      message: isRetry ? 'Lab retried and completed' : 'Lab marked as complete',
       progress: {
         status: progress.status,
         timeSpent: progress.timeSpent,
-        completedAt: progress.completedAt
-      }
+        completedAt: progress.completedAt,
+        attempts: progress.attempts
+      },
+      isRetry
     });
-  } catch (error) {
-    console.error('CompleteLab error:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('CompleteLab error:', errorMessage);
     res.status(500).json({ error: 'Failed to complete lab' });
   }
 };

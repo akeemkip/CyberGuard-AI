@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -28,10 +28,91 @@ import { PhishingEmailSimulation } from "./lab-templates/PhishingEmailSimulation
 import { SuspiciousLinksSimulation } from "./lab-templates/SuspiciousLinksSimulation";
 import { PasswordStrengthSimulation } from "./lab-templates/PasswordStrengthSimulation";
 import { SocialEngineeringSimulation } from "./lab-templates/SocialEngineeringSimulation";
+import { SimulationErrorBoundary } from "./SimulationErrorBoundary";
 
 interface LabPlayerProps {
   labId?: string | null;
   onNavigate?: (page: string, idParam?: string) => void;
+}
+
+// Type guard functions for simulation configs
+function isPhishingEmailConfig(config: any): config is PhishingEmailConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.emailInterface &&
+    Array.isArray(config.emails) &&
+    config.emails.length > 0 &&
+    config.emails.every((email: any) =>
+      email.id &&
+      email.from &&
+      email.from.name &&
+      email.from.email &&
+      email.subject &&
+      email.body &&
+      typeof email.isPhishing === 'boolean' &&
+      Array.isArray(email.redFlags)
+    )
+  );
+}
+
+function isSuspiciousLinksConfig(config: any): config is SuspiciousLinksConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    Array.isArray(config.links) &&
+    config.links.length > 0 &&
+    config.links.every((link: any) =>
+      link.displayText &&
+      link.actualUrl &&
+      typeof link.isMalicious === 'boolean' &&
+      link.explanation
+    ) &&
+    config.scenario &&
+    config.instructions
+  );
+}
+
+function isPasswordStrengthConfig(config: any): config is PasswordStrengthConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.requirements &&
+    typeof config.requirements === 'object' &&
+    typeof config.requirements.minLength === 'number' &&
+    typeof config.requirements.requireUppercase === 'boolean' &&
+    typeof config.requirements.requireNumbers === 'boolean' &&
+    typeof config.requirements.requireSpecial === 'boolean' &&
+    Array.isArray(config.bannedPasswords) &&
+    Array.isArray(config.hints)
+  );
+}
+
+function isSocialEngineeringConfig(config: any): config is SocialEngineeringConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.context &&
+    config.attackerName &&
+    config.attackerRole &&
+    Array.isArray(config.messages) &&
+    config.messages.length > 0 &&
+    config.messages.every((msg: any) =>
+      msg.id &&
+      msg.attackerMessage &&
+      msg.tacticUsed &&
+      msg.tacticExplanation &&
+      Array.isArray(msg.responses) &&
+      msg.responses.every((resp: any) =>
+        resp.text &&
+        typeof resp.isCorrect === 'boolean' &&
+        resp.feedback
+      )
+    ) &&
+    config.instructions
+  );
 }
 
 export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
@@ -45,6 +126,16 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
   const [showHints, setShowHints] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  // Refs for auto-save functionality
+  const notesRef = useRef(notes);
+  const lastSavedNotesRef = useRef(notes);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Update notes ref when notes change
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
 
   // Load lab data
   useEffect(() => {
@@ -66,19 +157,44 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
     };
   }, [isTimerRunning]);
 
-  // Auto-save notes every 30 seconds when timer is running (for CONTENT labs)
+  // Debounced auto-save for CONTENT labs
   useEffect(() => {
-    let saveInterval: ReturnType<typeof setInterval> | undefined;
     const currentLabType = labData?.lab?.labType || 'CONTENT';
-    if (isTimerRunning && currentLabType === 'CONTENT' && labData?.progress && notes !== (labData.progress.notes || "")) {
-      saveInterval = setInterval(() => {
-        handleSaveNotes(false); // Silent save
-      }, 30000);
+
+    // Only auto-save for CONTENT labs when timer is running
+    if (currentLabType !== 'CONTENT' || !labData?.progress || !isTimerRunning) {
+      return;
     }
+
+    // Clear previous timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Only save if notes actually changed from last saved version
+    if (notes === lastSavedNotesRef.current) {
+      return;
+    }
+
+    // Debounce: save 3 seconds after user stops typing
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const timeSpentMinutes = Math.floor(elapsedTime / 60);
+        await courseService.updateLabNotes(labId!, notesRef.current, timeSpentMinutes);
+        lastSavedNotesRef.current = notesRef.current;
+        // Silent save - no toast notification
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        // Silent failure - user can manually save if needed
+      }
+    }, 3000);
+
     return () => {
-      if (saveInterval) clearInterval(saveInterval);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
     };
-  }, [isTimerRunning, notes, labData]);
+  }, [notes, isTimerRunning, labData, elapsedTime, labId]);
 
   const loadLabData = async () => {
     try {
@@ -289,36 +405,77 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
 
         {/* Simulation Content */}
         <div className="relative">
-          {labType === 'PHISHING_EMAIL' && lab.simulationConfig && (
-            <PhishingEmailSimulation
-              config={lab.simulationConfig as unknown as PhishingEmailConfig}
-              passingScore={lab.passingScore}
-              onComplete={handleSimulationComplete}
-            />
+          <SimulationErrorBoundary labType={labType}>
+            {labType === 'PHISHING_EMAIL' && lab.simulationConfig && (
+              isPhishingEmailConfig(lab.simulationConfig) ? (
+                <PhishingEmailSimulation
+                  config={lab.simulationConfig}
+                  passingScore={lab.passingScore}
+                  onComplete={handleSimulationComplete}
+                />
+              ) : (
+              <Card className="p-8 text-center border-red-500">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Invalid Configuration</h2>
+                <p className="text-muted-foreground">
+                  The phishing email simulation configuration is invalid. Please contact an administrator.
+                </p>
+              </Card>
+            )
           )}
 
           {labType === 'SUSPICIOUS_LINKS' && lab.simulationConfig && (
-            <SuspiciousLinksSimulation
-              config={lab.simulationConfig as unknown as SuspiciousLinksConfig}
-              passingScore={lab.passingScore}
-              onComplete={handleSimulationComplete}
-            />
+            isSuspiciousLinksConfig(lab.simulationConfig) ? (
+              <SuspiciousLinksSimulation
+                config={lab.simulationConfig}
+                passingScore={lab.passingScore}
+                onComplete={handleSimulationComplete}
+              />
+            ) : (
+              <Card className="p-8 text-center border-red-500">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Invalid Configuration</h2>
+                <p className="text-muted-foreground">
+                  The suspicious links simulation configuration is invalid. Please contact an administrator.
+                </p>
+              </Card>
+            )
           )}
 
           {labType === 'PASSWORD_STRENGTH' && lab.simulationConfig && (
-            <PasswordStrengthSimulation
-              config={lab.simulationConfig as unknown as PasswordStrengthConfig}
-              passingScore={lab.passingScore}
-              onComplete={handleSimulationComplete}
-            />
+            isPasswordStrengthConfig(lab.simulationConfig) ? (
+              <PasswordStrengthSimulation
+                config={lab.simulationConfig}
+                passingScore={lab.passingScore}
+                onComplete={handleSimulationComplete}
+              />
+            ) : (
+              <Card className="p-8 text-center border-red-500">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Invalid Configuration</h2>
+                <p className="text-muted-foreground">
+                  The password strength simulation configuration is invalid. Please contact an administrator.
+                </p>
+              </Card>
+            )
           )}
 
           {labType === 'SOCIAL_ENGINEERING' && lab.simulationConfig && (
-            <SocialEngineeringSimulation
-              config={lab.simulationConfig as unknown as SocialEngineeringConfig}
-              passingScore={lab.passingScore}
-              onComplete={handleSimulationComplete}
-            />
+            isSocialEngineeringConfig(lab.simulationConfig) ? (
+              <SocialEngineeringSimulation
+                config={lab.simulationConfig}
+                passingScore={lab.passingScore}
+                onComplete={handleSimulationComplete}
+              />
+            ) : (
+              <Card className="p-8 text-center border-red-500">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Invalid Configuration</h2>
+                <p className="text-muted-foreground">
+                  The social engineering simulation configuration is invalid. Please contact an administrator.
+                </p>
+              </Card>
+            )
           )}
 
           {labType !== 'PHISHING_EMAIL' && labType !== 'SUSPICIOUS_LINKS' && labType !== 'PASSWORD_STRENGTH' && labType !== 'SOCIAL_ENGINEERING' && (
@@ -332,6 +489,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
               </Card>
             </div>
           )}
+          </SimulationErrorBoundary>
         </div>
       </div>
     );

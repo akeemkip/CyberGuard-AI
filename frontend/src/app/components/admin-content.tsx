@@ -620,6 +620,23 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   };
 
   const handleDeleteCourse = async (courseId: string) => {
+    // Find course to get details for confirmation
+    const course = courses.find(c => c.id === courseId);
+    if (!course) return;
+
+    // Show confirmation with impact information
+    const confirmed = window.confirm(
+      `⚠️ DELETE COURSE: "${course.title}"\n\n` +
+      `This will permanently delete:\n` +
+      `• ${course._count?.lessons || 0} lesson(s)\n` +
+      `• ${course._count?.enrollments || 0} student enrollment(s)\n` +
+      `• All associated quizzes and progress data\n\n` +
+      `THIS CANNOT BE UNDONE!\n\n` +
+      `Are you absolutely sure you want to delete this course?`
+    );
+
+    if (!confirmed) return;
+
     // Store original courses for rollback on error
     const originalCourses = [...courses];
 

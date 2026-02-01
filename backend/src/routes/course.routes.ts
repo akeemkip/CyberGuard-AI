@@ -23,14 +23,23 @@ const router = Router();
 
 // Public routes
 router.get('/', getAllCourses);
-router.get('/:id', getCourseById);
+// /:id route with reserved path handling
+router.get('/:id', (req, res, next) => {
+  // Skip to protected routes if this is a reserved path
+  const reservedPaths = ['enrolled', 'quiz', 'lessons'];
+  if (reservedPaths.includes(req.params.id)) {
+    return next('route'); // Skip this route handler
+  }
+  return getCourseById(req, res);
+});
 
 // Protected routes (require authentication)
 router.use(authenticateToken);
 
 // Student routes
-router.post('/:id/enroll', enrollInCourse);
+// IMPORTANT: Specific routes must come before parameterized routes
 router.get('/enrolled/my-courses', getEnrolledCourses);
+router.post('/:id/enroll', enrollInCourse);
 router.get('/:id/progress', getCourseProgress);
 router.post('/lessons/:lessonId/complete', markLessonComplete);
 

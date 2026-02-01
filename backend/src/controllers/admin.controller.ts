@@ -63,20 +63,21 @@ export const getAdminStats = async (req: Request, res: Response) => {
       select: { enrolledAt: true }
     });
 
-    // Group by month
+    // Group by month (using UTC for consistency across timezones)
     const monthlyEnrollments: { [key: string]: number } = {};
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    // Initialize last 6 months
+    // Initialize last 6 months in UTC
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthKey = months[date.getMonth()];
+      date.setUTCMonth(date.getUTCMonth() - i);
+      const monthKey = months[date.getUTCMonth()];
       monthlyEnrollments[monthKey] = 0;
     }
 
+    // Group enrollments by UTC month
     recentEnrollments.forEach(e => {
-      const monthKey = months[e.enrolledAt.getMonth()];
+      const monthKey = months[e.enrolledAt.getUTCMonth()];
       if (monthlyEnrollments[monthKey] !== undefined) {
         monthlyEnrollments[monthKey]++;
       }
@@ -153,6 +154,11 @@ export const getAdminStats = async (req: Request, res: Response) => {
           orderBy: {
             attemptedAt: 'desc'
           }
+        },
+        phishingAttempts: {
+          select: {
+            isCorrect: true
+          }
         }
       }
     });
@@ -177,8 +183,21 @@ export const getAdminStats = async (req: Request, res: Response) => {
       const coursesCompleted = student.enrollments.filter(e => e.completedAt).length;
       const totalCourses = student.enrollments.length;
 
-      // Performance score = passRate * 0.4 + avgScore * 0.4 + (coursesCompleted/totalCourses) * 20
-      const performanceScore = (passRate * 0.4) + (avgScore * 0.4) + ((coursesCompleted / (totalCourses || 1)) * 20);
+      // Calculate phishing simulation accuracy
+      const phishingAttempts = student.phishingAttempts;
+      const phishingCorrect = phishingAttempts.filter(pa => pa.isCorrect).length;
+      const totalPhishing = phishingAttempts.length;
+      const phishingAccuracy = totalPhishing > 0
+        ? Math.round((phishingCorrect / totalPhishing) * 100)
+        : 50; // Neutral score if no attempts yet
+
+      // Updated performance score formula (includes phishing accuracy)
+      // 30% Quiz pass rate + 25% Quiz avg score + 15% Course completion + 30% Phishing accuracy
+      const performanceScore =
+        (passRate * 0.30) +
+        (avgScore * 0.25) +
+        ((coursesCompleted / (totalCourses || 1)) * 15) +
+        (phishingAccuracy * 0.30);
 
       return {
         id: student.id,

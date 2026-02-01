@@ -608,6 +608,40 @@ const adminService = {
   },
 
   // ============================================
+  // COURSE MANAGEMENT METHODS
+  // ============================================
+
+  // Get all courses (including unpublished)
+  async getAllCourses(): Promise<any[]> {
+    const response = await api.get<{ courses: any[] }>('/admin/courses');
+    return response.data.courses;
+  },
+
+  // Get course by ID
+  async getCourseById(courseId: string): Promise<any> {
+    const response = await api.get(`/admin/courses/${courseId}`);
+    return response.data;
+  },
+
+  // Create new course
+  async createCourse(data: any): Promise<{ message: string; course: any }> {
+    const response = await api.post<{ message: string; course: any }>('/admin/courses', data);
+    return response.data;
+  },
+
+  // Update course
+  async updateCourse(courseId: string, data: any): Promise<{ message: string; course: any }> {
+    const response = await api.put<{ message: string; course: any }>(`/admin/courses/${courseId}`, data);
+    return response.data;
+  },
+
+  // Delete course
+  async deleteCourse(courseId: string): Promise<{ message: string }> {
+    const response = await api.delete<{ message: string }>(`/admin/courses/${courseId}`);
+    return response.data;
+  },
+
+  // ============================================
   // QUIZ MANAGEMENT METHODS
   // ============================================
 

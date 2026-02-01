@@ -275,11 +275,121 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
         return false;
       }
 
-      if (labType === 'PHISHING_EMAIL') {
-        const config = simulationConfig as PhishingEmailConfig;
-        if (!config.emails || config.emails.length < 2) {
-          toast.error("Please add at least 2 emails to the simulation");
-          return false;
+      // Validate simulation config based on type
+      switch (labType) {
+        case 'PHISHING_EMAIL': {
+          const config = simulationConfig as PhishingEmailConfig;
+          if (!config.emails || config.emails.length < 2) {
+            toast.error("Please add at least 2 emails to the simulation");
+            return false;
+          }
+          // Validate each email has required fields
+          const invalidEmail = config.emails.find(
+            e => !e.from?.name || !e.from?.email || !e.subject || !e.body
+          );
+          if (invalidEmail) {
+            toast.error("All emails must have sender name, email, subject, and body");
+            return false;
+          }
+          // Ensure we have a mix of phishing and legitimate emails
+          const hasPhishing = config.emails.some(e => e.isPhishing);
+          const hasLegitimate = config.emails.some(e => !e.isPhishing);
+          if (!hasPhishing || !hasLegitimate) {
+            toast.error("Simulation must include both phishing and legitimate emails");
+            return false;
+          }
+          break;
+        }
+
+        case 'SUSPICIOUS_LINKS': {
+          const config = simulationConfig as SuspiciousLinksConfig;
+          if (!config.links || config.links.length < 3) {
+            toast.error("Please add at least 3 links to the simulation");
+            return false;
+          }
+          // Validate each link has required fields
+          const invalidLink = config.links.find(
+            l => !l.displayText || !l.actualUrl || !l.explanation
+          );
+          if (invalidLink) {
+            toast.error("All links must have display text, actual URL, and explanation");
+            return false;
+          }
+          // Ensure we have a mix of safe and malicious links
+          const hasMalicious = config.links.some(l => l.isMalicious);
+          const hasSafe = config.links.some(l => !l.isMalicious);
+          if (!hasMalicious || !hasSafe) {
+            toast.error("Simulation must include both safe and malicious links");
+            return false;
+          }
+          if (!config.scenario || !config.instructions) {
+            toast.error("Please provide scenario and instructions for the simulation");
+            return false;
+          }
+          break;
+        }
+
+        case 'PASSWORD_STRENGTH': {
+          const config = simulationConfig as PasswordStrengthConfig;
+          if (!config.requirements) {
+            toast.error("Please configure password requirements");
+            return false;
+          }
+          if (config.requirements.minLength < 1) {
+            toast.error("Minimum password length must be at least 1");
+            return false;
+          }
+          if (!config.scenario) {
+            toast.error("Please provide a scenario for the simulation");
+            return false;
+          }
+          if (!Array.isArray(config.bannedPasswords)) {
+            toast.error("Banned passwords must be an array");
+            return false;
+          }
+          if (!Array.isArray(config.hints) || config.hints.length === 0) {
+            toast.error("Please provide at least one hint for users");
+            return false;
+          }
+          break;
+        }
+
+        case 'SOCIAL_ENGINEERING': {
+          const config = simulationConfig as SocialEngineeringConfig;
+          if (!config.messages || config.messages.length < 2) {
+            toast.error("Please add at least 2 conversation messages");
+            return false;
+          }
+          // Validate each message has required fields
+          const invalidMessage = config.messages.find(
+            m => !m.id || !m.attackerMessage || !m.tacticUsed || !m.tacticExplanation || !Array.isArray(m.responses) || m.responses.length === 0
+          );
+          if (invalidMessage) {
+            toast.error("All messages must have ID, message text, tactic info, and response options");
+            return false;
+          }
+          // Validate responses
+          for (const msg of config.messages) {
+            const invalidResponse = msg.responses.find(
+              r => !r.text || typeof r.isCorrect !== 'boolean' || !r.feedback
+            );
+            if (invalidResponse) {
+              toast.error("All responses must have text, correct flag, and feedback");
+              return false;
+            }
+            // Ensure at least one correct and one incorrect response
+            const hasCorrect = msg.responses.some(r => r.isCorrect);
+            const hasIncorrect = msg.responses.some(r => !r.isCorrect);
+            if (!hasCorrect || !hasIncorrect) {
+              toast.error("Each message must have both correct and incorrect response options");
+              return false;
+            }
+          }
+          if (!config.scenario || !config.context || !config.attackerName || !config.attackerRole || !config.instructions) {
+            toast.error("Please provide all required fields: scenario, context, attacker info, and instructions");
+            return false;
+          }
+          break;
         }
       }
     }

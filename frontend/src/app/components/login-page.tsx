@@ -148,65 +148,92 @@ export function LoginPage({
           </div>
 
           <div className="mt-8 pt-6 border-t border-border">
-            <p className="text-xs text-muted-foreground text-center mb-4">
-              Demo Accounts - Click to Login (Password: student123)
+            <p className="text-xs text-muted-foreground text-center mb-3">
+              <strong>Demo Accounts</strong> - Click to auto-fill credentials
             </p>
             <div className="space-y-2 text-xs">
+              {/* Excellent Phishing Performers */}
               <div
                 className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/50 transition-colors"
                 onClick={() => {
-                  setEmail("priya.persaud@yahoo.com");
+                  setEmail("student@example.com");
                   setPassword("student123");
                 }}
               >
-                <div className="font-medium mb-1 text-green-900 dark:text-green-100">🏆 Priya Persaud - Excellent Performer</div>
-                <div className="text-green-700 dark:text-green-300">1 course completed • 96% avg score • All quizzes passed on first try</div>
+                <div className="font-medium mb-1 text-green-900 dark:text-green-100">🌟 John Doe - Perfect Score</div>
+                <div className="text-green-700 dark:text-green-300">Phishing: 8/8 attempts (100%) • Avg response: 22s • Course completed</div>
               </div>
 
               <div
-                className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
-                onClick={() => {
-                  setEmail("vishnu.bisram@outlook.com");
-                  setPassword("student123");
-                }}
-              >
-                <div className="font-medium mb-1 text-blue-900 dark:text-blue-100">🌟 Vishnu Bisram - Safe Zone</div>
-                <div className="text-blue-700 dark:text-blue-300">3 courses completed • 91% avg score • Top student</div>
-              </div>
-
-              <div
-                className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors"
+                className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
                 onClick={() => {
                   setEmail("rajesh.singh@gmail.com");
                   setPassword("student123");
                 }}
               >
-                <div className="font-medium mb-1 text-amber-900 dark:text-amber-100">📚 Rajesh Singh - Locked Simulation Demo</div>
-                <div className="text-amber-700 dark:text-amber-300">1 course completed • Phishing course not completed • Tests locked modals</div>
+                <div className="font-medium mb-1 text-emerald-900 dark:text-emerald-100">🏆 Rajesh Singh - Top Performer</div>
+                <div className="text-emerald-700 dark:text-emerald-300">Phishing: 7/7 attempts (100%) • Avg response: 10s • Course completed</div>
               </div>
 
+              {/* Good Performers */}
               <div
-                className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors"
+                className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-950/50 transition-colors"
                 onClick={() => {
-                  setEmail("maya.ramdass@yahoo.com");
+                  setEmail("priya.persaud@yahoo.com");
                   setPassword("student123");
                 }}
               >
-                <div className="font-medium mb-1 text-orange-900 dark:text-orange-100">📊 Maya Ramdass - Struggling Student</div>
-                <div className="text-orange-700 dark:text-orange-300">0 courses completed • Multiple quiz failures • Needs support</div>
+                <div className="font-medium mb-1 text-blue-900 dark:text-blue-100">⭐ Priya Persaud - Good Student</div>
+                <div className="text-blue-700 dark:text-blue-300">Phishing: 5/6 attempts (83.3%) • Course completed • Above average</div>
+              </div>
+
+              <div
+                className="p-3 bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 rounded-lg cursor-pointer hover:bg-cyan-100 dark:hover:bg-cyan-950/50 transition-colors"
+                onClick={() => {
+                  setEmail("kumar.ramnauth@outlook.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1 text-cyan-900 dark:text-cyan-100">📘 Kumar Ramnauth - Solid Performance</div>
+                <div className="text-cyan-700 dark:text-cyan-300">Phishing: 6/7 attempts (85.7%) • Course completed • Reliable</div>
+              </div>
+
+              {/* Poor Performers */}
+              <div
+                className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-lg cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors"
+                onClick={() => {
+                  setEmail("anita.khan@gmail.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1 text-orange-900 dark:text-orange-100">⚠️ Anita Khan - Needs Improvement</div>
+                <div className="text-orange-700 dark:text-orange-300">Phishing: 3/7 attempts (42.9%) • High click rate • Needs training</div>
               </div>
 
               <div
                 className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/50 transition-colors"
                 onClick={() => {
-                  setEmail("kavita.ramkissoon@outlook.com");
+                  setEmail("simran.samaroo@outlook.com");
                   setPassword("student123");
                 }}
               >
-                <div className="font-medium mb-1 text-red-900 dark:text-red-100">⚠️  Kavita Ramkissoon - High Risk</div>
-                <div className="text-red-700 dark:text-red-300">0 courses completed • 3 failed quiz attempts • At-risk student</div>
+                <div className="font-medium mb-1 text-red-900 dark:text-red-100">🚨 Simran Samaroo - High Risk</div>
+                <div className="text-red-700 dark:text-red-300">Phishing: 3/8 attempts (37.5%) • Clicked malicious links • At-risk</div>
               </div>
 
+              {/* Fresh Account */}
+              <div
+                className="p-3 bg-slate-50 dark:bg-slate-950/30 border border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-950/50 transition-colors"
+                onClick={() => {
+                  setEmail("arjun.jaipaul@yahoo.com");
+                  setPassword("student123");
+                }}
+              >
+                <div className="font-medium mb-1 text-slate-900 dark:text-slate-100">🆕 Arjun Jaipaul - Fresh Account</div>
+                <div className="text-slate-700 dark:text-slate-300">No phishing attempts • No course completion • Clean slate</div>
+              </div>
+
+              {/* Admin Account */}
               <div
                 className="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-950/50 transition-colors"
                 onClick={() => {
@@ -214,10 +241,13 @@ export function LoginPage({
                   setPassword("admin123");
                 }}
               >
-                <div className="font-medium mb-1 text-purple-900 dark:text-purple-100">👨‍💼 Admin Account</div>
-                <div className="text-purple-700 dark:text-purple-300">Full platform access • Manage users, courses, content, analytics</div>
+                <div className="font-medium mb-1 text-purple-900 dark:text-purple-100">👨‍💼 Admin Account (Password: admin123)</div>
+                <div className="text-purple-700 dark:text-purple-300">Full platform access • Manage users, courses, phishing data, analytics</div>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              All student passwords: <strong>student123</strong>
+            </p>
           </div>
         </Card>
       </div>

@@ -61,9 +61,10 @@ export const uploadImage = async (req: Request, res: Response) => {
       size: req.file.size,
       mimetype: req.file.mimetype
     });
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Failed to upload file' });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Upload error:', errorMessage);
+    res.status(500).json({ error: 'Failed to upload file', message: errorMessage });
   }
 };
 
@@ -89,8 +90,9 @@ export const deleteImage = async (req: Request, res: Response) => {
     fs.unlinkSync(filePath);
 
     res.json({ message: 'File deleted successfully' });
-  } catch (error: any) {
-    console.error('Delete error:', error);
-    res.status(500).json({ error: 'Failed to delete file' });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Delete error:', errorMessage);
+    res.status(500).json({ error: 'Failed to delete file', message: errorMessage });
   }
 };

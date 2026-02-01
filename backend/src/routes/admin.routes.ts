@@ -31,6 +31,13 @@ import {
   getPhishingPlatformStats,
   getAllPhishingAttempts
 } from '../controllers/admin.controller';
+import {
+  getAllCourses,
+  getCourseById,
+  createCourse,
+  updateCourse,
+  deleteCourse
+} from '../controllers/course.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -56,6 +63,22 @@ router.get('/enrollments', getAllEnrollments);
 
 // GET /api/admin/users/:userId/statistics - Get detailed user statistics
 router.get('/users/:userId/statistics', getUserStatistics);
+
+// Course Management Routes
+// GET /api/admin/courses - Get all courses (including unpublished)
+router.get('/courses', getAllCourses);
+
+// GET /api/admin/courses/:id - Get course by ID
+router.get('/courses/:id', getCourseById);
+
+// POST /api/admin/courses - Create new course
+router.post('/courses', createCourse);
+
+// PUT /api/admin/courses/:id - Update course
+router.put('/courses/:id', updateCourse);
+
+// DELETE /api/admin/courses/:id - Delete course
+router.delete('/courses/:id', deleteCourse);
 
 // Quiz Management Routes
 // GET /api/admin/quizzes - Get all quizzes with statistics
