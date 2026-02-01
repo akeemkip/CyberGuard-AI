@@ -469,6 +469,21 @@ export const markLessonComplete = async (req: AuthRequest, res: Response) => {
           completedAt: new Date()
         }
       });
+
+      // Create certificate for course completion
+      await prisma.certificate.upsert({
+        where: {
+          userId_courseId: { userId, courseId: lesson.courseId }
+        },
+        create: {
+          userId,
+          courseId: lesson.courseId,
+          issuedAt: new Date()
+        },
+        update: {
+          issuedAt: new Date() // Update issue date if certificate already exists
+        }
+      });
     }
 
     res.json({
