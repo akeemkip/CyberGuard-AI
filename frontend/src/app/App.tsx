@@ -306,24 +306,27 @@ function AppContent() {
   }, [isInitialized]);
 
   const handleLogout = () => {
-    logout();
-    setCurrentPage("landing");
-    localStorage.removeItem("currentPage");
-    localStorage.removeItem("selectedCourseId");
-    localStorage.removeItem("selectedUserId");
-    localStorage.removeItem("selectedLessonId");
-    localStorage.removeItem("selectedQuizId");
-    localStorage.removeItem("selectedLabId");
-    localStorage.removeItem("selectedPhishingScenarioId");
-    localStorage.removeItem("adminContentTab");
-    localStorage.removeItem("adminSettingsTab");
-    window.history.pushState({ page: "landing" }, "", window.location.pathname);
-
-    // Show logout notification
+    // Show logout notification FIRST
     toast.success("Logged out successfully", {
       description: "Redirecting to landing page...",
-      duration: 3000
+      duration: 2000
     });
+
+    // Delay the actual logout and redirect to allow notification to be seen
+    setTimeout(() => {
+      logout();
+      setCurrentPage("landing");
+      localStorage.removeItem("currentPage");
+      localStorage.removeItem("selectedCourseId");
+      localStorage.removeItem("selectedUserId");
+      localStorage.removeItem("selectedLessonId");
+      localStorage.removeItem("selectedQuizId");
+      localStorage.removeItem("selectedLabId");
+      localStorage.removeItem("selectedPhishingScenarioId");
+      localStorage.removeItem("adminContentTab");
+      localStorage.removeItem("adminSettingsTab");
+      window.history.pushState({ page: "landing" }, "", window.location.pathname);
+    }, 800); // 800ms delay - enough to see the notification before redirect
   };
 
   const handleNavigate = (page: string, idParam?: string) => {
