@@ -7,6 +7,10 @@ async function main() {
   console.log('🌱 Starting seed...');
 
   // Clear existing data
+  await prisma.introAssessmentAttempt.deleteMany();
+  await prisma.introQuestion.deleteMany();
+  await prisma.introAssessment.deleteMany();
+  await prisma.fullAssessmentAttempt.deleteMany();
   await prisma.quizAttempt.deleteMany();
   await prisma.question.deleteMany();
   await prisma.quiz.deleteMany();
@@ -2711,6 +2715,122 @@ For each finding:
   }
 
   console.log('✅ Added realistic study data for all students');
+
+  // ============================================
+  // CREATE INTRO ASSESSMENT
+  // ============================================
+
+  const introAssessment = await prisma.introAssessment.create({
+    data: {
+      title: 'Cybersecurity Skills Assessment',
+      description: 'This assessment will help us understand your current cybersecurity knowledge and recommend the best learning path for you.',
+      passingScore: 50,
+      isActive: true
+    }
+  });
+
+  // Create intro assessment questions - one from each course topic
+  await prisma.introQuestion.createMany({
+    data: [
+      // Cybersecurity Fundamentals questions
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'What is the primary purpose of a firewall?',
+        options: ['To speed up internet connection', 'To monitor and control network traffic based on security rules', 'To store passwords securely', 'To encrypt all files on a computer'],
+        correctAnswer: 1,
+        explanation: 'A firewall monitors and controls incoming and outgoing network traffic based on predetermined security rules, acting as a barrier between trusted and untrusted networks.',
+        courseId: courses[0].id,
+        order: 0
+      },
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'Which of the following is an example of two-factor authentication (2FA)?',
+        options: ['Using only a password', 'Using a password and a fingerprint', 'Using two different passwords', 'Using the same password on two devices'],
+        correctAnswer: 1,
+        explanation: 'Two-factor authentication requires two different types of verification - something you know (password) and something you have/are (fingerprint, token, etc.).',
+        courseId: courses[0].id,
+        order: 1
+      },
+      // Phishing & Social Engineering questions
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'What is phishing?',
+        options: ['A type of fishing sport', 'An attempt to trick people into revealing sensitive information', 'A network security tool', 'A type of computer virus'],
+        correctAnswer: 1,
+        explanation: 'Phishing is a social engineering attack where attackers impersonate legitimate entities to trick victims into revealing sensitive information like passwords or credit card numbers.',
+        courseId: courses[1].id,
+        order: 2
+      },
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'Which of these is a common sign of a phishing email?',
+        options: ['Personalized greeting with your full name', 'Urgent language demanding immediate action', 'Links that match the official company domain', 'Professional grammar and spelling'],
+        correctAnswer: 1,
+        explanation: 'Phishing emails often create urgency to pressure victims into acting quickly without thinking, using phrases like "Act now!" or "Your account will be suspended!"',
+        courseId: courses[1].id,
+        order: 3
+      },
+      // Password Security questions
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'Which password is the most secure?',
+        options: ['password123', 'MyDog2020', 'P@$$w0rd!', 'Tr0ub4dor&3Horse!Battery'],
+        correctAnswer: 3,
+        explanation: 'Longer passphrases with a mix of characters are more secure than short passwords, even with special characters. Length is the most important factor in password strength.',
+        courseId: courses[2].id,
+        order: 4
+      },
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'What is the best practice for managing multiple passwords?',
+        options: ['Use the same password everywhere', 'Write them on a sticky note', 'Use a password manager', 'Use simple variations of one password'],
+        correctAnswer: 2,
+        explanation: 'Password managers securely store and generate unique, complex passwords for each account, eliminating the need to remember multiple passwords.',
+        courseId: courses[2].id,
+        order: 5
+      },
+      // Safe Browsing questions
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'What does HTTPS indicate about a website?',
+        options: ['The website is fast', 'The connection is encrypted', 'The website is government-approved', 'The website has no viruses'],
+        correctAnswer: 1,
+        explanation: 'HTTPS (Hypertext Transfer Protocol Secure) indicates that the connection between your browser and the website is encrypted, protecting data in transit.',
+        courseId: courses[3].id,
+        order: 6
+      },
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'What should you do before clicking a link in an email?',
+        options: ['Click it immediately to not miss out', 'Hover over it to check the actual URL', 'Forward it to friends first', 'Reply to ask if it\'s safe'],
+        correctAnswer: 1,
+        explanation: 'Hovering over a link reveals the actual URL it leads to, which may be different from the displayed text. This helps identify malicious links disguised as legitimate ones.',
+        courseId: courses[3].id,
+        order: 7
+      },
+      // Network Security questions
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'Why is using public Wi-Fi risky?',
+        options: ['It\'s always slow', 'Anyone on the network could potentially intercept your data', 'It uses too much battery', 'It only works for browsing'],
+        correctAnswer: 1,
+        explanation: 'Public Wi-Fi networks are often unencrypted, allowing attackers on the same network to potentially intercept sensitive data like passwords and personal information.',
+        courseId: courses[4].id,
+        order: 8
+      },
+      {
+        introAssessmentId: introAssessment.id,
+        question: 'What is a VPN used for?',
+        options: ['To make internet faster', 'To create an encrypted tunnel for your internet traffic', 'To block all advertisements', 'To store files in the cloud'],
+        correctAnswer: 1,
+        explanation: 'A VPN (Virtual Private Network) encrypts your internet traffic and routes it through a secure server, protecting your data and privacy, especially on untrusted networks.',
+        courseId: courses[4].id,
+        order: 9
+      }
+    ]
+  });
+
+  console.log('✅ Created intro assessment with 10 questions');
 
   console.log('\n🎉 Seed completed successfully!\n');
   console.log('Test accounts:');
