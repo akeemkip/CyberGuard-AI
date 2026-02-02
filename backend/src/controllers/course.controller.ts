@@ -108,19 +108,24 @@ export const getCourseById = async (req: Request, res: Response) => {
 // Create course (admin only)
 export const createCourse = async (req: Request, res: Response) => {
   try {
+    console.log('CreateCourse request body:', JSON.stringify(req.body).substring(0, 500));
     const validatedData = createCourseSchema.parse(req.body);
+    console.log('Validated data:', JSON.stringify(validatedData).substring(0, 500));
 
     const course = await prisma.course.create({
       data: validatedData
     });
 
     res.status(201).json({ message: 'Course created successfully', course });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
     console.error('CreateCourse error:', error);
-    res.status(500).json({ error: 'Failed to create course' });
+    console.error('Error name:', error?.name);
+    console.error('Error message:', error?.message);
+    console.error('Error code:', error?.code);
+    res.status(500).json({ error: 'Failed to create course', details: error?.message });
   }
 };
 

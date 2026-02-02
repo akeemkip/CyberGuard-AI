@@ -1284,7 +1284,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                       <Input
                         id="title"
                         placeholder="e.g., Advanced Cybersecurity Fundamentals"
-                        value={newCourse.title}
+                        value={newCourse.title || ""}
                         onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
                         className="bg-input-background"
                       />
@@ -1295,7 +1295,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         id="description"
                         placeholder="Describe what students will learn..."
                         rows={4}
-                        value={newCourse.description}
+                        value={newCourse.description || ""}
                         onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
                         className="bg-input-background"
                       />
@@ -1327,9 +1327,10 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                       {imageUploadMode === "url" ? (
                         <>
                           <Input
+                            key="thumbnail-url"
                             id="thumbnail"
                             placeholder="e.g., https://images.unsplash.com/photo-..."
-                            value={newCourse.thumbnail}
+                            value={newCourse.thumbnail || ""}
                             onChange={(e) => setNewCourse({ ...newCourse, thumbnail: e.target.value })}
                             className="bg-input-background"
                           />
@@ -1340,6 +1341,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                       ) : (
                         <>
                           <Input
+                            key="thumbnail-file"
                             id="thumbnail-upload"
                             type="file"
                             accept="image/*"
@@ -1386,7 +1388,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         <Input
                           id="duration"
                           placeholder="e.g., 2 hours"
-                          value={newCourse.duration}
+                          value={newCourse.duration || ""}
                           onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value })}
                           className="bg-input-background"
                         />
@@ -1396,7 +1398,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                       <input
                         type="checkbox"
                         id="isPublished"
-                        checked={newCourse.isPublished}
+                        checked={newCourse.isPublished ?? false}
                         onChange={(e) => setNewCourse({ ...newCourse, isPublished: e.target.checked })}
                         className="w-4 h-4"
                       />
@@ -1568,7 +1570,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         <Label htmlFor="edit-title">Course Title</Label>
                         <Input
                           id="edit-title"
-                          value={editingCourse.title}
+                          value={editingCourse.title || ""}
                           onChange={(e) => setEditingCourse({ ...editingCourse, title: e.target.value })}
                           className="bg-input-background"
                         />
@@ -1578,7 +1580,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         <Textarea
                           id="edit-description"
                           rows={4}
-                          value={editingCourse.description}
+                          value={editingCourse.description || ""}
                           onChange={(e) => setEditingCourse({ ...editingCourse, description: e.target.value })}
                           className="bg-input-background"
                         />
@@ -1610,6 +1612,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         {imageUploadMode === "url" ? (
                           <>
                             <Input
+                              key="edit-thumbnail-url"
                               id="edit-thumbnail"
                               placeholder="e.g., https://images.unsplash.com/photo-..."
                               value={editingCourse.thumbnail || ""}
@@ -1623,6 +1626,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         ) : (
                           <>
                             <Input
+                              key="edit-thumbnail-file"
                               id="edit-thumbnail-upload"
                               type="file"
                               accept="image/*"
@@ -1679,7 +1683,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         <input
                           type="checkbox"
                           id="edit-isPublished"
-                          checked={editingCourse.isPublished}
+                          checked={editingCourse.isPublished ?? false}
                           onChange={(e) => setEditingCourse({ ...editingCourse, isPublished: e.target.checked })}
                           className="w-4 h-4"
                         />

@@ -55,7 +55,7 @@ app.use(cors({
   origin: allowedOrigins,
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));  // Increased limit for base64 image uploads
 app.use(cookieParser());
 
 // Sanitize request body to prevent XSS attacks
@@ -107,6 +107,11 @@ app.use((req, res) => {
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.error('Unhandled error', { error: err.message, stack: err.stack });
+
+  // Check for body-parser errors (payload too large)
+  if (err.message?.includes('request entity too large')) {
+    return res.status(413).json({ error: 'Request payload too large. Maximum size is 10MB.' });
+  }
 
   // Don't expose error details in production
   const errorMessage = process.env.NODE_ENV === 'production'
