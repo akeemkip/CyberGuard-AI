@@ -270,14 +270,18 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
     const allLabIds = enrollments.flatMap(e => e.course.labs.map(l => l.id));
 
     const [completedLessonRows, completedLabRows] = await Promise.all([
-      prisma.progress.findMany({
-        where: { userId, lessonId: { in: allLessonIds }, completed: true },
-        select: { lessonId: true }
-      }),
-      prisma.labProgress.findMany({
-        where: { userId, labId: { in: allLabIds }, status: 'COMPLETED' },
-        select: { labId: true }
-      })
+      allLessonIds.length > 0
+        ? prisma.progress.findMany({
+            where: { userId, lessonId: { in: allLessonIds }, completed: true },
+            select: { lessonId: true }
+          })
+        : Promise.resolve([]),
+      allLabIds.length > 0
+        ? prisma.labProgress.findMany({
+            where: { userId, labId: { in: allLabIds }, status: 'COMPLETED' },
+            select: { labId: true }
+          })
+        : Promise.resolve([])
     ]);
 
     const completedLessonSet = new Set(completedLessonRows.map(r => r.lessonId));
@@ -1464,6 +1468,9 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
     });
 
     const currentAttempts = existingProgress?.attempts || 0;
+    const totalTimeSpent = existingProgress
+      ? existingProgress.timeSpent + (timeSpent || 0)
+      : (timeSpent || 0);
 
     // Update or create progress with simulation results
     const progress = await prisma.labProgress.upsert({
@@ -1476,7 +1483,7 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
         passed,
         answers: answers || {},
         attempts: currentAttempts + 1,
-        timeSpent,
+        timeSpent: totalTimeSpent,
         completedAt: passed ? new Date() : null
       },
       create: {
@@ -1487,7 +1494,7 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
         passed,
         answers: answers || {},
         attempts: 1,
-        timeSpent,
+        timeSpent: timeSpent || 0,
         startedAt: new Date(),
         completedAt: passed ? new Date() : null
       }

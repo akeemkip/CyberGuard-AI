@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getCsrfToken } from '../utils/csrf';
+import { getCsrfToken, fetchCsrfToken } from '../utils/csrf';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
@@ -29,13 +29,17 @@ api.interceptors.request.use(
     const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
 
     if (isStateChanging && !isAuthEndpoint && token) {
-      try {
-        const csrfToken = await getCsrfToken();
-        if (csrfToken) {
-          config.headers['X-CSRF-Token'] = csrfToken;
-        }
-      } catch (error) {
-        console.error('Failed to get CSRF token:', error);
+      let csrfToken = await getCsrfToken();
+
+      // Retry once if token fetch failed (e.g., expired token)
+      if (!csrfToken) {
+        csrfToken = await fetchCsrfToken();
+      }
+
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      } else {
+        return Promise.reject(new Error('Unable to obtain CSRF token. Please refresh the page and try again.'));
       }
     }
 
@@ -56,10 +60,8 @@ api.interceptors.response.use(
       const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
 
       if (!isAuthEndpoint) {
-        // Token expired or invalid on protected route - clear storage and redirect
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/';
+        // Dispatch event so React can handle logout gracefully (via AuthContext)
+        window.dispatchEvent(new CustomEvent('auth:session-expired'));
       }
     }
     return Promise.reject(error);

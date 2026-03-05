@@ -294,6 +294,22 @@ function AppContent() {
     }
   }, [currentPage, isInitialized]);
 
+  // Handle session expiry (401 from API interceptor)
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      toast.error("Session expired", {
+        description: "Please log in again.",
+        duration: 3000
+      });
+      logout();
+      setCurrentPage("login");
+      localStorage.removeItem("currentPage");
+    };
+
+    window.addEventListener('auth:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('auth:session-expired', handleSessionExpired);
+  }, [logout]);
+
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -374,7 +390,7 @@ function AppContent() {
     }
 
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [isInitialized]);
+  }, [isInitialized, user, currentPage, selectedCourseId, selectedUserId, selectedLessonId, selectedQuizId, selectedLabId]);
 
   const handleLogout = () => {
     // Show logout notification FIRST

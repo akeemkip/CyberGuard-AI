@@ -429,7 +429,11 @@ export const rollbackSettingsChange = async (req: AuthRequest, res: Response) =>
     if (typeof (currentSettings as any)[fieldName] === 'boolean') {
       updateData[fieldName] = oldValue === 'true';
     } else if (typeof (currentSettings as any)[fieldName] === 'number') {
-      updateData[fieldName] = parseInt(oldValue);
+      const parsed = parseInt(oldValue);
+      if (isNaN(parsed)) {
+        return res.status(400).json({ error: `Cannot rollback: invalid numeric value "${oldValue}" for field "${fieldName}"` });
+      }
+      updateData[fieldName] = parsed;
     } else {
       updateData[fieldName] = oldValue;
     }

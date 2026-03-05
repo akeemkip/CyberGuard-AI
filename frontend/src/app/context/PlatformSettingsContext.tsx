@@ -219,7 +219,7 @@ export function PlatformSettingsProvider({ children }: { children: ReactNode }) 
 
   return (
     <PlatformSettingsContext.Provider value={{ settings, isLoading }}>
-      {!isLoading && children}
+      {children}
     </PlatformSettingsContext.Provider>
   );
 }
