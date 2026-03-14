@@ -676,7 +676,7 @@ function AppContent() {
           />
         );
       default:
-        return <LandingPage onNavigate={setCurrentPage} />;
+        return <LandingPage onNavigate={handleNavigate} />;
     }
   };
 
