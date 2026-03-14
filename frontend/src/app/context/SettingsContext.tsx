@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import api from '../services/api';
 
 interface Settings {
   emailNotifications: boolean;
@@ -45,30 +46,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-        const response = await fetch(`${apiBaseUrl}/users/settings`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const merged = { ...defaultSettings, ...data.settings };
-          setSettings(merged);
-          setSavedSettings(merged);
-          setHasUnsavedChanges(false);
-        } else {
-          // Reset to defaults on error
-          setSettings(defaultSettings);
-          setSavedSettings(defaultSettings);
-        }
+        const response = await api.get('/users/settings');
+        const merged = { ...defaultSettings, ...response.data.settings };
+        setSettings(merged);
+        setSavedSettings(merged);
+        setHasUnsavedChanges(false);
       } catch (error) {
         console.error('Failed to fetch settings:', error);
-        // Reset to defaults on error
         setSettings(defaultSettings);
         setSavedSettings(defaultSettings);
       }
@@ -100,25 +84,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Not authenticated');
-    }
-
-    // Save to backend API only - no localStorage to avoid cross-user issues
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-    const response = await fetch(`${apiBaseUrl}/users/settings`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(settings)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to save settings');
-    }
+    await api.put('/users/settings', settings);
 
     setSavedSettings(settings);
     setHasUnsavedChanges(false);
