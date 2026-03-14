@@ -7,20 +7,20 @@ import { logger } from '../utils/logger';
 
 // Validation schemas
 const createCourseSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  thumbnail: z.string().optional(),
-  difficulty: z.string().optional(),
-  duration: z.string().optional(),
+  title: z.string().trim().min(1, 'Title is required'),
+  description: z.string().trim().min(1, 'Description is required'),
+  thumbnail: z.string().trim().optional(),
+  difficulty: z.string().trim().optional(),
+  duration: z.string().trim().optional(),
   isPublished: z.boolean().optional()
 });
 
 const updateCourseSchema = createCourseSchema.partial();
 
 const createLessonSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  content: z.string().min(1, 'Content is required'),
-  videoUrl: z.string().optional(),
+  title: z.string().trim().min(1, 'Title is required'),
+  content: z.string().trim().min(1, 'Content is required'),
+  videoUrl: z.string().trim().optional(),
   order: z.number().int().positive()
 });
 
@@ -210,19 +210,27 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    // Fire-and-forget enrollment email
-    const settings = await prisma.platformSettings.findUnique({
+    // Send enrollment email (non-blocking — doesn't delay the response)
+    const emailSettings = await prisma.platformSettings.findUnique({
       where: { id: PLATFORM_SETTINGS_ID },
       select: { enableEmailNotifications: true, enableEnrollmentEmails: true }
     });
-    if (settings?.enableEmailNotifications && settings?.enableEnrollmentEmails) {
+    if (emailSettings?.enableEmailNotifications && emailSettings?.enableEnrollmentEmails) {
       const student = await prisma.user.findUnique({
         where: { id: userId },
         select: { email: true, firstName: true }
       });
       if (student) {
-        sendEnrollmentEmail(student.email, student.firstName || 'Student', course.title)
-          .catch(err => logger.error('Enrollment email failed', err));
+        try {
+          const result = await sendEnrollmentEmail(student.email, student.firstName || 'Student', course.title);
+          if (result.success) {
+            logger.info(`Enrollment email sent to ${student.email} for course "${course.title}"`);
+          } else {
+            logger.error(`Enrollment email failed for ${student.email}, course "${course.title}": ${result.error}`);
+          }
+        } catch (err) {
+          logger.error(`Enrollment email error for ${student.email}, course "${course.title}":`, err);
+        }
       }
     }
 
@@ -430,14 +438,45 @@ export const submitQuizAttempt = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ error: 'Not enrolled in this course' });
     }
 
-    // Validate all questions were answered
-    const answeredCount = Object.keys(answers || {}).length;
-    if (answeredCount !== quiz.questions.length) {
+    // Validate answers is a non-null object
+    if (!answers || typeof answers !== 'object' || Array.isArray(answers)) {
+      return res.status(400).json({ error: 'Answers must be an object mapping question IDs to selected option indexes' });
+    }
+
+    // Validate all questions were answered with valid keys
+    const questionIds = new Set(quiz.questions.map(q => q.id));
+    const answerKeys = Object.keys(answers);
+
+    if (answerKeys.length !== quiz.questions.length) {
       return res.status(400).json({
         error: 'All questions must be answered',
         expected: quiz.questions.length,
-        received: answeredCount
+        received: answerKeys.length
       });
+    }
+
+    const invalidKeys = answerKeys.filter(key => !questionIds.has(key));
+    if (invalidKeys.length > 0) {
+      return res.status(400).json({
+        error: 'Answers contain invalid question IDs',
+        invalidIds: invalidKeys
+      });
+    }
+
+    // Validate answer values are integers within option bounds
+    for (const q of quiz.questions) {
+      const answer = answers[q.id];
+      if (typeof answer !== 'number' || !Number.isInteger(answer) || answer < 0) {
+        return res.status(400).json({
+          error: `Invalid answer for question ${q.id}: must be a non-negative integer`
+        });
+      }
+      const optionCount = Array.isArray(q.options) ? (q.options as unknown[]).length : 0;
+      if (optionCount > 0 && answer >= optionCount) {
+        return res.status(400).json({
+          error: `Invalid answer for question ${q.id}: index ${answer} is out of range (${optionCount} options available)`
+        });
+      }
     }
 
     // Calculate score
@@ -486,8 +525,9 @@ export const submitQuizAttempt = async (req: AuthRequest, res: Response) => {
 
 // Helper function to check and mark course completion (considers both lessons AND labs)
 // Wrapped in a transaction to prevent race conditions from concurrent lesson/lab completions
+// Returns completion status. Email is sent separately after the transaction succeeds.
 const checkAndCompleteCourse = async (userId: string, courseId: string): Promise<boolean> => {
-  return prisma.$transaction(async (tx) => {
+  const completed = await prisma.$transaction(async (tx) => {
     // Get all lessons in the course
     const courseLessons = await tx.lesson.findMany({
       where: { courseId },
@@ -528,6 +568,17 @@ const checkAndCompleteCourse = async (userId: string, courseId: string): Promise
     const hasContent = courseLessons.length > 0 || courseLabs.length > 0;
 
     if (hasContent && lessonsComplete && labsComplete) {
+      // Check if already completed (guards against concurrent requests)
+      const enrollment = await tx.enrollment.findUnique({
+        where: { userId_courseId: { userId, courseId } },
+        select: { completedAt: true }
+      });
+
+      if (enrollment?.completedAt) {
+        // Another concurrent request already completed this course
+        return false;
+      }
+
       // Mark enrollment as complete
       await tx.enrollment.update({
         where: {
@@ -553,46 +604,67 @@ const checkAndCompleteCourse = async (userId: string, courseId: string): Promise
         }
       });
 
-      // Fire-and-forget completion email (outside transaction scope to avoid blocking)
-      const emailSettings = await tx.platformSettings.findUnique({
-        where: { id: PLATFORM_SETTINGS_ID },
-        select: { enableEmailNotifications: true, enableCompletionEmails: true }
-      });
-      if (emailSettings?.enableEmailNotifications && emailSettings?.enableCompletionEmails) {
-        const student = await tx.user.findUnique({
-          where: { id: userId },
-          select: { email: true, firstName: true }
-        });
-        const course = await tx.course.findUnique({
-          where: { id: courseId },
-          select: { title: true }
-        });
-        if (student && course) {
-          // Send after transaction completes with retry
-          setImmediate(async () => {
-            const maxRetries = 2;
-            for (let attempt = 0; attempt <= maxRetries; attempt++) {
-              try {
-                await sendCompletionEmail(student.email, student.firstName || 'Student', course.title);
-                return;
-              } catch (err) {
-                if (attempt === maxRetries) {
-                  logger.error(`Completion email failed after ${maxRetries + 1} attempts`, err);
-                } else {
-                  logger.warn(`Completion email attempt ${attempt + 1} failed, retrying...`);
-                  await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-                }
-              }
-            }
-          });
-        }
-      }
-
       return true;
     }
 
     return false;
   });
+
+  // Send completion email AFTER transaction succeeds (not inside it)
+  if (completed) {
+    await sendCourseCompletionNotification(userId, courseId);
+  }
+
+  return completed;
+};
+
+// Send course completion email with retry logic
+// Separated from the transaction to avoid blocking DB and ensure email failures
+// don't roll back the completion. Logs failures with full context for debugging.
+const sendCourseCompletionNotification = async (userId: string, courseId: string): Promise<void> => {
+  try {
+    const emailSettings = await prisma.platformSettings.findUnique({
+      where: { id: PLATFORM_SETTINGS_ID },
+      select: { enableEmailNotifications: true, enableCompletionEmails: true }
+    });
+
+    if (!emailSettings?.enableEmailNotifications || !emailSettings?.enableCompletionEmails) {
+      return;
+    }
+
+    const [student, course] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, firstName: true }
+      }),
+      prisma.course.findUnique({
+        where: { id: courseId },
+        select: { title: true }
+      })
+    ]);
+
+    if (!student || !course) {
+      logger.warn(`Completion email skipped: missing data for userId=${userId}, courseId=${courseId}`);
+      return;
+    }
+
+    const maxRetries = 2;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const result = await sendCompletionEmail(student.email, student.firstName || 'Student', course.title);
+      if (result.success) {
+        logger.info(`Completion email sent to ${student.email} for course "${course.title}"`);
+        return;
+      }
+      if (attempt < maxRetries) {
+        logger.warn(`Completion email attempt ${attempt + 1} failed for ${student.email}: ${result.error}. Retrying...`);
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+      } else {
+        logger.error(`Completion email failed after ${maxRetries + 1} attempts for ${student.email}, course "${course.title}": ${result.error}`);
+      }
+    }
+  } catch (err) {
+    logger.error(`Completion email error for userId=${userId}, courseId=${courseId}:`, err);
+  }
 };
 
 // Mark lesson as complete

@@ -361,7 +361,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
               <h1 className="text-2xl font-bold">User Management</h1>
               <p className="text-muted-foreground">Manage users, roles, and permissions</p>
             </div>
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
           </div>
@@ -614,6 +614,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                             size="icon"
                             onClick={() => onNavigate("admin-user-profile", user.id)}
                             title="View Profile"
+                            aria-label="View user profile"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -630,6 +631,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                               setShowEditDialog(true);
                             }}
                             title="Edit User"
+                            aria-label="Edit user"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -639,6 +641,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                               size="icon"
                               onClick={() => handleUnlockAccount(user.id)}
                               title="Unlock Account"
+                              aria-label="Unlock account"
                               className="text-green-600 hover:text-green-700 dark:text-green-400"
                             >
                               <Unlock className="w-4 h-4" />
@@ -653,6 +656,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                                   size="icon"
                                   disabled={user.email === userEmail}
                                   title={user.email === userEmail ? "Cannot demote yourself" : "Demote to Student"}
+                                  aria-label="Demote to student"
                                 >
                                   <UserCog className="w-4 h-4" />
                                 </Button>
@@ -683,6 +687,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                               size="icon"
                               onClick={() => handleChangeRole(user.id, "ADMIN")}
                               title="Promote to Admin"
+                              aria-label="Promote to admin"
                             >
                               <UserCog className="w-4 h-4" />
                             </Button>
@@ -694,6 +699,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                                 size="icon"
                                 disabled={user.role === "ADMIN"}
                                 title={user.role === "ADMIN" ? "Cannot delete admin" : "Delete User"}
+                                aria-label="Delete user"
                                 className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="w-4 h-4" />

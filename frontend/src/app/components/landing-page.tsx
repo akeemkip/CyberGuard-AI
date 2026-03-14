@@ -37,17 +37,17 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
             <button onClick={() => scrollToSection("pricing")} className="text-muted-foreground hover:text-foreground transition-colors">Pricing</button>
             <Button variant="outline" onClick={() => onNavigate("login")}>Log In</Button>
             <Button onClick={() => onNavigate("register")}>Get Started</Button>
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
           </nav>
 
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-2 md:hidden">
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}>
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
           </div>

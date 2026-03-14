@@ -137,7 +137,7 @@ export const uploadImage = async (req: Request, res: Response) => {
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     logger.error('Upload error:', errorMessage);
-    res.status(500).json({ error: 'Failed to upload file', message: errorMessage });
+    res.status(500).json({ error: 'Failed to upload file' });
   }
 };
 
@@ -166,6 +166,6 @@ export const deleteImage = async (req: Request, res: Response) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     logger.error('Delete error:', errorMessage);
-    res.status(500).json({ error: 'Failed to delete file', message: errorMessage });
+    res.status(500).json({ error: 'Failed to delete file' });
   }
 };

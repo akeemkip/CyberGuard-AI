@@ -74,6 +74,7 @@ model Lesson {
   quiz      Quiz?
 
   @@index([courseId])
+  @@index([moduleId])
   @@map("lessons")
 }
 
@@ -201,6 +202,7 @@ model Lab {
   module           Module?       @relation(fields: [moduleId], references: [id], onDelete: SetNull)
 
   @@index([courseId])
+  @@index([moduleId])
   @@map("labs")
 }
 
@@ -276,7 +278,7 @@ model PlatformSettings {
   // Security
   requireEmailVerification Boolean  @default(false)
   minPasswordLength        Int      @default(8)
-  sessionTimeout           Int      @default(7)
+  sessionTimeout           Int      @default(7) // Days
   enableTwoFactor          Boolean  @default(false)
   maxLoginAttempts         Int      @default(5)
 
@@ -358,6 +360,7 @@ model PhishingScenario {
   attempts         PhishingAttempt[]
 
   @@index([isActive])
+  @@index([category])
   @@map("phishing_scenarios")
 }
 
@@ -403,6 +406,8 @@ model IntroQuestion {
   introAssessment   IntroAssessment @relation(fields: [introAssessmentId], references: [id], onDelete: Cascade)
   course            Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
+  @@index([introAssessmentId])
+  @@index([courseId])
   @@map("intro_questions")
 }
 
@@ -436,5 +441,6 @@ model FullAssessmentAttempt {
   completedAt    DateTime @default(now())
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("full_assessment_attempts")
 }

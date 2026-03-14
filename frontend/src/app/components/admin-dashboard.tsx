@@ -197,7 +197,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
                 <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
             </div>

@@ -90,12 +90,15 @@ export function PhishingEmailSimulation({
     setShowFeedback(null);
   };
 
-  // Select first email on mount
+  // Select first email on mount or when config changes
   useEffect(() => {
-    if (config.emails.length > 0 && !selectedEmailId) {
+    if (config.emails.length > 0) {
       setSelectedEmailId(config.emails[0].id);
+      setAnswers({});
+      setShowResults(false);
+      setShowFeedback(null);
     }
-  }, [config.emails]);
+  }, [config]);
 
   if (showResults) {
     return (

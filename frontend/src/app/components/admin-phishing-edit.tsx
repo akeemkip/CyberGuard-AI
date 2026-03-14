@@ -63,6 +63,7 @@ export function AdminPhishingEdit({
   onLogout,
 }: AdminPhishingEditProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
 
@@ -96,6 +97,7 @@ export function AdminPhishingEdit({
 
     try {
       setIsLoading(true);
+      setLoadError(null);
       const data = await phishingService.getScenarioById(scenarioId);
       setTitle(data.title);
       setDescription(data.description);
@@ -112,8 +114,7 @@ export function AdminPhishingEdit({
       setLegitimateReason(data.legitimateReason || "");
     } catch (error) {
       console.error("Error fetching scenario:", error);
-      toast.error("Failed to load scenario");
-      onNavigate("admin-content");
+      setLoadError("Failed to load scenario. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -219,6 +220,26 @@ export function AdminPhishingEdit({
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="p-8 max-w-md text-center">
+          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Error Loading Scenario</h2>
+          <p className="text-muted-foreground mb-4">{loadError}</p>
+          <div className="flex gap-3 justify-center">
+            <Button variant="outline" onClick={() => onNavigate("admin-content")}>
+              Back to Content
+            </Button>
+            <Button onClick={() => fetchScenario()}>
+              Try Again
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -235,7 +256,7 @@ export function AdminPhishingEdit({
         <header className="border-b border-border bg-card/50 backdrop-blur-sm">
           <div className="px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => onNavigate("admin-content")}>
+              <Button variant="ghost" size="icon" onClick={() => onNavigate("admin-content")} aria-label="Back to content management">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>

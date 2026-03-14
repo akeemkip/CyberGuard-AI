@@ -144,7 +144,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
         }
 
         // Load labs for this course
-        loadCourseLabs(courseId);
+        loadCourseLabs(courseId, () => cancelled);
       } catch (err) {
         if (cancelled) return;
         console.error("Failed to fetch course:", err);
@@ -159,16 +159,18 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   }, [courseId]);
 
   // Load labs for course
-  const loadCourseLabs = async (courseId: string) => {
+  const loadCourseLabs = async (courseId: string, isCancelled?: () => boolean) => {
     try {
       setLoadingLabs(true);
       const courseLabs = await courseService.getCourseLabs(courseId);
+      if (isCancelled?.()) return;
       setLabs(courseLabs);
     } catch (err) {
+      if (isCancelled?.()) return;
       console.error("Error loading labs:", err);
-      // Don't show error toast, labs are optional
+      toast.error("Failed to load labs. They may be unavailable for this course.");
     } finally {
-      setLoadingLabs(false);
+      if (!isCancelled?.()) setLoadingLabs(false);
     }
   };
 
@@ -181,19 +183,24 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
   // Load quiz when lesson changes (if lesson has a quiz)
   useEffect(() => {
+    let cancelled = false;
+
     if (currentLesson?.quiz?.id) {
-      loadQuiz(currentLesson.quiz.id);
+      loadQuiz(currentLesson.quiz.id, () => cancelled);
     } else {
       setQuiz(null);
       setQuizAnswers({});
       setQuizResult(null);
     }
+
+    return () => { cancelled = true; };
   }, [currentLesson?.id]);
 
-  const loadQuiz = async (quizId: string) => {
+  const loadQuiz = async (quizId: string, isCancelled?: () => boolean) => {
     try {
       setLoadingQuiz(true);
       const quizData = await courseService.getQuiz(quizId);
+      if (isCancelled?.()) return;
       setQuiz(quizData);
       // Shuffle the answer options for each question
       const shuffled = quizData.questions.map(shuffleQuizQuestion);
@@ -201,9 +208,11 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
       setQuizAnswers({});
       setQuizResult(null);
     } catch (err) {
+      if (isCancelled?.()) return;
       console.error("Failed to load quiz:", err);
+      toast.error("Failed to load quiz. Please try changing lessons and coming back.");
     } finally {
-      setLoadingQuiz(false);
+      if (!isCancelled?.()) setLoadingQuiz(false);
     }
   };
 
@@ -255,10 +264,15 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
       const result = await courseService.submitQuizAttempt(quiz.id, originalAnswers);
       setQuizResult(result);
 
-      // If passed, mark lesson complete
+      // If passed, mark lesson complete (non-critical — quiz is already recorded)
       if (result.summary.passed && !isLessonCompleted) {
         toast.success(`Quiz passed with ${result.summary.score}%! 🎉`);
-        await handleMarkComplete();
+        try {
+          await handleMarkComplete();
+        } catch (markErr) {
+          console.error("Failed to auto-mark lesson complete after quiz pass:", markErr);
+          // Quiz was submitted successfully, just lesson marking failed
+        }
       } else if (!result.summary.passed) {
         toast.error(`Quiz failed with ${result.summary.score}%. Try again!`);
       }
@@ -465,7 +479,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                 variant="ghost"
                 size="icon"
                 onClick={() => onNavigate("student-dashboard")}
-                aria-label="Back to dashboard"
+                aria-label="Back to courses"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>

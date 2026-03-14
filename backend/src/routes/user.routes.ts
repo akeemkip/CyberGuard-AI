@@ -9,6 +9,7 @@ import {
   getUserStats,
   getUserSettings,
   updateUserSettings,
+  changePassword,
   unlockUserAccount
 } from '../controllers/user.controller';
 import { authenticateToken, requireAdmin } from '../middleware/auth.middleware';
@@ -32,6 +33,9 @@ router.get('/settings', getUserSettings);
 
 // PUT /api/users/settings - Update current user's settings
 router.put('/settings', updateUserSettings);
+
+// PUT /api/users/password - Change current user's password
+router.put('/password', changePassword);
 
 // GET /api/users/:id - Get user by ID
 router.get('/:id', getUserById);

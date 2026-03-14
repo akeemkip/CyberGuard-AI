@@ -30,7 +30,7 @@ export function ResetPasswordPage({ onNavigate }: { onNavigate: (page: string) =
             </div>
             <span className="text-xl font-semibold">CyberGuard AI</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
             {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </Button>
         </div>

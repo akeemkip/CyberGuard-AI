@@ -3,47 +3,56 @@ import crypto from 'crypto';
 import { AuthRequest } from './auth.middleware';
 import { logger } from '../utils/logger';
 
-// Store for CSRF tokens (in production, use Redis or database)
-const tokenStore = new Map<string, { token: string; expiresAt: number }>();
-
-// Clean up expired tokens every hour
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of tokenStore.entries()) {
-    if (value.expiresAt < now) {
-      tokenStore.delete(key);
-    }
-  }
-}, 60 * 60 * 1000);
+const CSRF_SECRET = process.env.JWT_SECRET || 'csrf-fallback-secret';
+const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
- * Generate a CSRF token for a user session
+ * Generate an HMAC-signed CSRF token for a user.
+ * Token format: base64(timestamp.hmac)
+ * No server-side storage needed — the token is self-verifying.
  */
 export const generateCsrfToken = (userId: string): string => {
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 hours
-
-  tokenStore.set(userId, { token, expiresAt });
-
-  return token;
+  const timestamp = Date.now().toString();
+  const signature = crypto
+    .createHmac('sha256', CSRF_SECRET)
+    .update(`${userId}.${timestamp}`)
+    .digest('hex');
+  // Encode as base64 so the token is a single opaque string
+  return Buffer.from(`${timestamp}.${signature}`).toString('base64');
 };
 
 /**
- * Validate CSRF token from request
+ * Validate an HMAC-signed CSRF token.
+ * Recomputes the signature and checks expiry — no storage lookup needed.
  */
 const validateCsrfToken = (userId: string, token: string): boolean => {
-  const stored = tokenStore.get(userId);
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf8');
+    const dotIndex = decoded.indexOf('.');
+    if (dotIndex === -1) return false;
 
-  if (!stored) {
+    const timestamp = decoded.substring(0, dotIndex);
+    const signature = decoded.substring(dotIndex + 1);
+
+    // Check expiry
+    const tokenAge = Date.now() - parseInt(timestamp, 10);
+    if (isNaN(tokenAge) || tokenAge > TOKEN_MAX_AGE_MS || tokenAge < 0) {
+      return false;
+    }
+
+    // Recompute and compare signature
+    const expectedSignature = crypto
+      .createHmac('sha256', CSRF_SECRET)
+      .update(`${userId}.${timestamp}`)
+      .digest('hex');
+
+    return crypto.timingSafeEqual(
+      Buffer.from(signature, 'hex'),
+      Buffer.from(expectedSignature, 'hex')
+    );
+  } catch {
     return false;
   }
-
-  if (stored.expiresAt < Date.now()) {
-    tokenStore.delete(userId);
-    return false;
-  }
-
-  return stored.token === token;
 };
 
 /**
@@ -81,10 +90,7 @@ export const csrfProtection = (req: AuthRequest, res: Response, next: NextFuncti
       path: req.path,
       method: req.method
     });
-    return res.status(403).json({
-      error: 'CSRF token required',
-      message: 'CSRF token missing from request header'
-    });
+    return res.status(403).json({ error: 'CSRF token missing from request header' });
   }
 
   if (!csrfTokenFromCookie) {
@@ -93,10 +99,7 @@ export const csrfProtection = (req: AuthRequest, res: Response, next: NextFuncti
       path: req.path,
       method: req.method
     });
-    return res.status(403).json({
-      error: 'CSRF token required',
-      message: 'CSRF token missing from cookie'
-    });
+    return res.status(403).json({ error: 'CSRF token missing from cookie' });
   }
 
   // Validate that header and cookie match (double-submit pattern)
@@ -106,23 +109,17 @@ export const csrfProtection = (req: AuthRequest, res: Response, next: NextFuncti
       path: req.path,
       method: req.method
     });
-    return res.status(403).json({
-      error: 'Invalid CSRF token',
-      message: 'CSRF token mismatch'
-    });
+    return res.status(403).json({ error: 'CSRF token mismatch' });
   }
 
-  // Validate token from server-side store
+  // Validate token signature and expiry
   if (!validateCsrfToken(userId, csrfTokenFromHeader)) {
     logger.warn('CSRF token validation failed', {
       userId,
       path: req.path,
       method: req.method
     });
-    return res.status(403).json({
-      error: 'Invalid CSRF token',
-      message: 'CSRF token is invalid or expired'
-    });
+    return res.status(403).json({ error: 'CSRF token is invalid or expired' });
   }
 
   // Additional security: Verify Origin/Referer header
@@ -146,10 +143,7 @@ export const csrfProtection = (req: AuthRequest, res: Response, next: NextFuncti
         origin,
         path: req.path
       });
-      return res.status(403).json({
-        error: 'Invalid origin',
-        message: 'Request origin not allowed'
-      });
+      return res.status(403).json({ error: 'Request origin not allowed' });
     }
   }
 

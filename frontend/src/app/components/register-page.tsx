@@ -103,7 +103,7 @@ export function RegisterPage({
             <PlatformLogo className="w-10 h-10" iconClassName="w-6 h-6" />
             <span className="text-xl font-semibold">{platformSettings.platformName}</span>
           </div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
             {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </Button>
         </div>
@@ -218,7 +218,28 @@ export function RegisterPage({
                       </p>
                     </div>
                   )}
-                  <p className="text-xs text-muted-foreground">Use {minPasswordLength}+ characters with uppercase, numbers & symbols for a stronger password</p>
+                  {formData.password.length > 0 && (
+                    <ul className="text-xs space-y-0.5 mt-1">
+                      <li className={formData.password.length >= minPasswordLength ? "text-green-500" : "text-muted-foreground"}>
+                        {formData.password.length >= minPasswordLength ? "✓" : "○"} At least {minPasswordLength} characters
+                      </li>
+                      <li className={/[A-Z]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}>
+                        {/[A-Z]/.test(formData.password) ? "✓" : "○"} Uppercase letter
+                      </li>
+                      <li className={/[a-z]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}>
+                        {/[a-z]/.test(formData.password) ? "✓" : "○"} Lowercase letter
+                      </li>
+                      <li className={/\d/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}>
+                        {/\d/.test(formData.password) ? "✓" : "○"} Number
+                      </li>
+                      <li className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? "text-green-500" : "text-muted-foreground"}>
+                        {/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? "✓" : "○"} Special character
+                      </li>
+                    </ul>
+                  )}
+                  {formData.password.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Use {minPasswordLength}+ characters with uppercase, numbers & symbols for a stronger password</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

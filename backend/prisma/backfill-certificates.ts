@@ -47,13 +47,13 @@ async function main() {
       if (existing) {
         console.log(`⏭️  Skipped: ${enrollment.user.firstName} ${enrollment.user.lastName} - ${enrollment.course.title} (already exists)`);
         skipped++;
-      } else {
+      } else if (enrollment.completedAt) {
         // Create certificate
         await prisma.certificate.create({
           data: {
             userId: enrollment.userId,
             courseId: enrollment.courseId,
-            issuedAt: enrollment.completedAt! // Use course completion date as certificate issue date
+            issuedAt: enrollment.completedAt
           }
         });
 

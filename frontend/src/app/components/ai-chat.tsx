@@ -87,18 +87,21 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
 
       // Fallback to keyword matching if API fails
       const lowerMessage = userMessage.toLowerCase();
+      let fallback: string;
 
       if (lowerMessage.includes("phish")) {
-        return aiResponses.phishing;
+        fallback = aiResponses.phishing;
       } else if (lowerMessage.includes("password") || lowerMessage.includes("credential")) {
-        return aiResponses.password;
+        fallback = aiResponses.password;
       } else if (lowerMessage.includes("social engineering") || lowerMessage.includes("manipulation")) {
-        return aiResponses.social;
+        fallback = aiResponses.social;
       } else if (lowerMessage.includes("click") && lowerMessage.includes("link")) {
-        return aiResponses.link;
+        fallback = aiResponses.link;
       } else {
-        return aiResponses.default;
+        fallback = aiResponses.default;
       }
+
+      return `⚠️ *AI assistant is temporarily unavailable. Here's a quick reference answer:*\n\n${fallback}`;
     }
   };
 
@@ -154,6 +157,7 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
               variant="ghost"
               size="icon"
               onClick={() => onNavigate("student-dashboard")}
+              aria-label="Back to dashboard"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -168,7 +172,7 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
             <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />

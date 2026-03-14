@@ -117,6 +117,7 @@ export function ProfilePage({ onNavigate, onLogout }: ProfilePageProps) {
               variant="ghost"
               size="icon"
               onClick={() => onNavigate("student-dashboard")}
+              aria-label="Back to dashboard"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -131,7 +132,7 @@ export function ProfilePage({ onNavigate, onLogout }: ProfilePageProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
             <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />

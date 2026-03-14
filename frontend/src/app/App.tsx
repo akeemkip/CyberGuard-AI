@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Toaster, toast } from "sonner";
+import { devLog } from "./utils/logger";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { SettingsProvider } from "./context/SettingsContext";
@@ -125,21 +126,23 @@ function AppContent() {
 
   // Log all page changes
   useEffect(() => {
-    console.log('[App] 📄 Current page changed to:', currentPage);
+    devLog('[App] 📄 Current page changed to:', currentPage);
   }, [currentPage]);
 
   // On initial mount, clean up any stale transient page from localStorage
   useEffect(() => {
     const savedPage = localStorage.getItem("currentPage") as Page | null;
     if (savedPage && transientPages.includes(savedPage)) {
-      console.log('[App] Cleaning up stale transient page from localStorage:', savedPage);
+      devLog('[App] Cleaning up stale transient page from localStorage:', savedPage);
       localStorage.removeItem("currentPage");
     }
   }, []);
 
   // Handle initial page load and auth state changes
   useEffect(() => {
-    console.log('[App] Navigation useEffect triggered:', {
+    let cancelled = false;
+
+    devLog('[App] Navigation useEffect triggered:', {
       isInitializing,
       isAuthenticated,
       user: user?.email,
@@ -148,52 +151,51 @@ function AppContent() {
     });
 
     if (isInitializing) {
-      console.log('[App] Waiting for auth to initialize...');
-      return; // Wait for auth to initialize
+      devLog('[App] Waiting for auth to initialize...');
+      return () => { cancelled = true; };
     }
 
     const savedPage = localStorage.getItem("currentPage") as Page | null;
 
     if (isAuthenticated && user) {
       // User is logged in
-      console.log('[App] User is authenticated, role:', user.role);
+      devLog('[App] User is authenticated, role:', user.role);
       const isAdmin = user.role === "ADMIN";
       const defaultDashboard = isAdmin ? "admin-dashboard" : "student-dashboard";
 
       // Check if user is trying to access admin pages without admin role
       if (!isAdmin && adminOnlyPages.includes(currentPage)) {
-        console.log('[App] Non-admin user trying to access admin page, redirecting to student dashboard');
+        devLog('[App] Non-admin user trying to access admin page, redirecting to student dashboard');
         setCurrentPage("student-dashboard");
         localStorage.setItem("currentPage", "student-dashboard");
         window.history.replaceState({ page: "student-dashboard" }, "", window.location.pathname);
         setIsInitialized(true);
-        return;
+        return () => { cancelled = true; };
       }
 
       // Check if admin is trying to access student pages
       if (isAdmin && studentOnlyPages.includes(currentPage)) {
-        console.log('[App] Admin user trying to access student page, redirecting to admin dashboard');
+        devLog('[App] Admin user trying to access student page, redirecting to admin dashboard');
         setCurrentPage("admin-dashboard");
         localStorage.setItem("currentPage", "admin-dashboard");
         window.history.replaceState({ page: "admin-dashboard" }, "", window.location.pathname);
         setIsInitialized(true);
-        return;
+        return () => { cancelled = true; };
       }
 
       if (guestPages.includes(currentPage)) {
         // If on a guest page (landing, login, register), redirect to appropriate dashboard
-        console.log('[App] On guest page, redirecting to dashboard:', defaultDashboard);
+        devLog('[App] On guest page, redirecting to dashboard:', defaultDashboard);
 
         let targetPage: Page = defaultDashboard;
 
         // Check if student needs intro assessment
         if (!isAdmin) {
-          let cancelled = false;
           checkIntroAssessmentRequired()
             .then((result) => {
               if (cancelled) return;
               if (result.required && !result.completed) {
-                console.log('[App] New user needs intro assessment');
+                devLog('[App] New user needs intro assessment');
                 setCurrentPage("welcome");
                 localStorage.setItem("currentPage", "welcome");
                 window.history.replaceState({ page: "welcome" }, "", window.location.pathname);
@@ -202,14 +204,14 @@ function AppContent() {
                 if (savedPage && protectedPages.includes(savedPage)) {
                   // But make sure they can access the saved page based on their role
                   if (adminOnlyPages.includes(savedPage)) {
-                    console.log('[App] Saved page is admin-only, going to student dashboard instead');
+                    devLog('[App] Saved page is admin-only, going to student dashboard instead');
                     targetPage = "student-dashboard";
                   } else {
-                    console.log('[App] Found saved protected page:', savedPage);
+                    devLog('[App] Found saved protected page:', savedPage);
                     targetPage = savedPage;
                   }
                 } else {
-                  console.log('[App] No saved page, going to default dashboard');
+                  devLog('[App] No saved page, going to default dashboard');
                   targetPage = defaultDashboard;
                 }
 
@@ -218,6 +220,7 @@ function AppContent() {
                 localStorage.setItem("currentPage", targetPage);
                 window.history.replaceState({ page: targetPage }, "", window.location.pathname);
               }
+              setIsInitialized(true);
             })
             .catch((err) => {
               if (cancelled) return;
@@ -233,20 +236,21 @@ function AppContent() {
               setCurrentPage(targetPage);
               localStorage.setItem("currentPage", targetPage);
               window.history.replaceState({ page: targetPage }, "", window.location.pathname);
+              setIsInitialized(true);
             });
           return () => { cancelled = true; };
         } else {
           // Admin user - go to admin dashboard or saved page
           if (savedPage && protectedPages.includes(savedPage)) {
             if (studentOnlyPages.includes(savedPage)) {
-              console.log('[App] Saved page is student-only, going to admin dashboard instead');
+              devLog('[App] Saved page is student-only, going to admin dashboard instead');
               targetPage = "admin-dashboard";
             } else {
-              console.log('[App] Found saved protected page:', savedPage);
+              devLog('[App] Found saved protected page:', savedPage);
               targetPage = savedPage;
             }
           } else {
-            console.log('[App] No saved page, going to default dashboard');
+            devLog('[App] No saved page, going to default dashboard');
             targetPage = defaultDashboard;
           }
 
@@ -256,25 +260,26 @@ function AppContent() {
           window.history.replaceState({ page: targetPage }, "", window.location.pathname);
         }
       } else {
-        console.log('[App] Already on protected page, staying here');
+        devLog('[App] Already on protected page, staying here');
       }
       // If already on a protected page, stay there
     } else {
       // User is NOT logged in
-      console.log('[App] User is NOT authenticated');
+      devLog('[App] User is NOT authenticated');
       if (protectedPages.includes(currentPage)) {
         // If on a protected page, redirect to landing
-        console.log('[App] On protected page while not authenticated, redirecting to landing');
+        devLog('[App] On protected page while not authenticated, redirecting to landing');
         setCurrentPage("landing");
         localStorage.removeItem("currentPage");
         localStorage.removeItem("selectedCourseId");
       } else if (guestPages.includes(currentPage)) {
         // On a guest page (login, register, etc.) - stay here
-        console.log('[App] On guest page, staying here');
+        devLog('[App] On guest page, staying here');
       }
     }
 
     setIsInitialized(true);
+    return () => { cancelled = true; };
   }, [isAuthenticated, user, isInitializing]);
 
   // Save current page to localStorage whenever it changes (protected pages + persistable guest pages)
@@ -292,7 +297,7 @@ function AppContent() {
   // Handle browser back/forward buttons
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
-      console.log('[App] popstate event triggered:', event.state);
+      devLog('[App] popstate event triggered:', event.state);
       window.scrollTo({ top: 0, behavior: "instant" });
       if (event.state?.page) {
         const targetPage = event.state.page as Page;
@@ -300,14 +305,14 @@ function AppContent() {
         // Security check: prevent non-admin users from navigating to admin pages via history
         const isAdmin = user?.role === "ADMIN";
         if (!isAdmin && adminOnlyPages.includes(targetPage)) {
-          console.log('[App] ⛔ Non-admin user attempted to navigate to admin page via history:', targetPage);
+          devLog('[App] ⛔ Non-admin user attempted to navigate to admin page via history:', targetPage);
           // Redirect to student dashboard instead
           window.history.replaceState({ page: "student-dashboard" }, "", window.location.pathname);
           setCurrentPage("student-dashboard");
           return;
         }
 
-        console.log('[App] History state has page, navigating to:', event.state.page);
+        devLog('[App] History state has page, navigating to:', event.state.page);
         setCurrentPage(targetPage);
         if (event.state.idParam) {
           const page = event.state.page as Page;
@@ -329,12 +334,12 @@ function AppContent() {
         }
       } else {
         // No state - only redirect to landing if not on a guest page
-        console.log('[App] ⚠️ No history state found');
+        devLog('[App] ⚠️ No history state found');
         if (!guestPages.includes(currentPage)) {
-          console.log('[App] Not on guest page, redirecting to landing');
+          devLog('[App] Not on guest page, redirecting to landing');
           setCurrentPage("landing");
         } else {
-          console.log('[App] On guest page, staying here (popstate without state)');
+          devLog('[App] On guest page, staying here (popstate without state)');
         }
       }
     };
@@ -344,13 +349,13 @@ function AppContent() {
     // Set initial history state
     if (isInitialized && !window.history.state?.page) {
       const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId || selectedLabId;
-      console.log('[App] Setting initial history state:', { page: currentPage, idParam });
+      devLog('[App] Setting initial history state:', { page: currentPage, idParam });
 
       // For transient pages, first push the parent page so back button works
       if (transientPages.includes(currentPage)) {
         const parentPage = transientPageParents[currentPage];
         if (parentPage) {
-          console.log('[App] Transient page detected, adding parent to history:', parentPage);
+          devLog('[App] Transient page detected, adding parent to history:', parentPage);
           window.history.replaceState({ page: parentPage }, "", window.location.pathname);
           window.history.pushState({ page: currentPage, idParam }, "", window.location.pathname);
         } else {
@@ -389,7 +394,7 @@ function AppContent() {
   };
 
   const handleNavigate = (page: string, idParam?: string) => {
-    console.log('[App] 🔄 handleNavigate called:', { from: currentPage, to: page, idParam });
+    devLog('[App] 🔄 handleNavigate called:', { from: currentPage, to: page, idParam });
     window.scrollTo({ top: 0, behavior: "instant" });
 
     const pageAsType = page as Page;
@@ -397,13 +402,13 @@ function AppContent() {
 
     // Security check: prevent non-admin users from navigating to admin pages
     if (!isAdmin && adminOnlyPages.includes(pageAsType)) {
-      console.log('[App] ⛔ Non-admin user attempted to navigate to admin page:', page);
+      devLog('[App] ⛔ Non-admin user attempted to navigate to admin page:', page);
       return; // Block navigation
     }
 
     // Security check: prevent admin users from navigating to student pages
     if (isAdmin && studentOnlyPages.includes(pageAsType)) {
-      console.log('[App] ⛔ Admin user attempted to navigate to student page:', page);
+      devLog('[App] ⛔ Admin user attempted to navigate to student page:', page);
       return; // Block navigation
     }
 

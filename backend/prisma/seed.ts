@@ -25,6 +25,14 @@ async function main() {
 
   console.log('✅ Cleared existing data');
 
+  // Ensure PlatformSettings singleton exists
+  await prisma.platformSettings.upsert({
+    where: { id: 'singleton' },
+    update: {},
+    create: { id: 'singleton' }
+  });
+  console.log('✅ Ensured platform settings exist');
+
   // Create Admin User
   const adminPassword = await bcrypt.hash('admin123', 10);
   const admin = await prisma.user.create({

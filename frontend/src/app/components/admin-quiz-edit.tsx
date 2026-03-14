@@ -478,7 +478,7 @@ export function AdminQuizEdit({ quizId, userEmail, onNavigate, onLogout }: Admin
         <header className="border-b border-border bg-card/50 backdrop-blur-sm">
           <div className="px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={handleCancel}>
+              <Button variant="ghost" size="icon" onClick={handleCancel} aria-label="Cancel and go back">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
@@ -505,7 +505,7 @@ export function AdminQuizEdit({ quizId, userEmail, onNavigate, onLogout }: Admin
                   </>
                 )}
               </Button>
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
             </div>

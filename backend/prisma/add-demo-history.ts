@@ -6,11 +6,13 @@ const prisma = new PrismaClient();
  * This script adds historical learning data to an existing user.
  * It does NOT delete any existing data - it only adds new records.
  *
- * Usage: npx ts-node prisma/add-demo-history.ts
+ * Usage: npx ts-node prisma/add-demo-history.ts [email]
+ * Example: npx ts-node prisma/add-demo-history.ts student@example.com
+ * Defaults to student@example.com if no email provided
  */
 
 async function main() {
-  const userEmail = 'akeemkippins.gy@gmail.com';
+  const userEmail = process.argv[2] || 'student@example.com';
 
   console.log(`\n📊 Adding historical data for ${userEmail}...\n`);
 

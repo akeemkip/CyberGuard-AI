@@ -535,6 +535,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       setCourses(coursesWithLessons);
     } catch (error) {
       console.error("Error fetching courses:", error);
+      toast.error("Failed to load courses. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -1420,7 +1421,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
             </div>

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { toast } from 'sonner';
 import authService, { User } from '../services/auth.service';
 import { fetchCsrfToken, clearCsrfToken } from '../utils/csrf';
+import { devLog } from '../utils/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -35,18 +36,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log('[AuthContext] Starting login...');
+      devLog('[AuthContext] Starting login...');
       setError(null);
       setIsLoading(true);
       const response = await authService.login({ email, password });
-      console.log('[AuthContext] Login API success, user:', response.user);
+      devLog('[AuthContext] Login API success, user:', response.user);
       setUser(response.user);
-      console.log('[AuthContext] User state updated, isAuthenticated will be:', !!response.user);
+      devLog('[AuthContext] User state updated, isAuthenticated will be:', !!response.user);
 
       // Fetch CSRF token after successful login
       try {
         await fetchCsrfToken();
-        console.log('[AuthContext] CSRF token fetched successfully');
+        devLog('[AuthContext] CSRF token fetched successfully');
       } catch (csrfError) {
         console.warn('[AuthContext] Failed to fetch CSRF token:', csrfError);
         toast.warning('Security token could not be loaded. Some actions may fail.');
@@ -60,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     } finally {
       setIsLoading(false);
-      console.log('[AuthContext] Login complete, isLoading now false');
+      devLog('[AuthContext] Login complete, isLoading now false');
     }
   };
 

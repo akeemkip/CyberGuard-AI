@@ -86,6 +86,7 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
     const transporter = await createTransporter();
 
     if (!transporter) {
+      logger.warn(`Email not sent to ${options.to} (subject: "${options.subject}"): SMTP not configured`);
       return { success: false, error: 'SMTP not configured. Please configure SMTP settings first.' };
     }
 

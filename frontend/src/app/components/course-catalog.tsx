@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -84,12 +84,12 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
     }
   };
 
-  const filteredCourses = courses.filter((course) => {
+  const filteredCourses = useMemo(() => courses.filter((course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDifficulty = selectedDifficulty === "All" || course.difficulty === selectedDifficulty;
     return matchesSearch && matchesDifficulty;
-  });
+  }), [courses, searchQuery, selectedDifficulty]);
 
   const displayName = user?.firstName || userEmail.split("@")[0];
 
@@ -115,6 +115,7 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
               size="icon"
               className="md:hidden"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -141,7 +142,7 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
             </button>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
             <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />
@@ -161,7 +162,7 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
                 </div>
                 <span className="font-semibold">CyberGuard AI</span>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(false)}>
+              <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(false)} aria-label="Close menu">
                 <X className="w-5 h-5" />
               </Button>
             </div>

@@ -58,7 +58,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
   // Timer for response time tracking
   const startTimeRef = useRef<number>(0);
 
-  const fetchScenario = async () => {
+  const fetchScenario = async (isCancelled?: () => boolean) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -69,6 +69,8 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
         phishingService.getNextScenario(),
         phishingService.getStats(),
       ]);
+
+      if (isCancelled?.()) return;
 
       setProgress(scenarioResponse.progress);
       setStats(statsData);
@@ -82,6 +84,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
         setIsCompleted(false);
       }
     } catch (err: any) {
+      if (isCancelled?.()) return;
       if (err.response?.status === 401) {
         setError("Your session has expired. Please log in again.");
       } else if (err.response?.status === 404) {
@@ -93,7 +96,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
       }
       console.error("Error fetching scenario:", err);
     } finally {
-      setIsLoading(false);
+      if (!isCancelled?.()) setIsLoading(false);
     }
   };
 
@@ -104,7 +107,9 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
   };
 
   useEffect(() => {
-    fetchScenario();
+    let cancelled = false;
+    fetchScenario(() => cancelled);
+    return () => { cancelled = true; };
   }, []);
 
   const handleAction = async (action: PhishingAction) => {
@@ -112,6 +117,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
 
     try {
       setIsSubmitting(true);
+      setError(null);
       const responseTimeMs = Date.now() - startTimeRef.current;
 
       const attemptResult = await phishingService.submitAttempt(
@@ -122,9 +128,14 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
 
       setResult(attemptResult);
 
-      // Refresh stats after submission
-      const newStats = await phishingService.getStats();
-      setStats(newStats);
+      // Refresh stats after submission (non-critical — don't fail the whole action)
+      try {
+        const newStats = await phishingService.getStats();
+        setStats(newStats);
+      } catch (statsErr) {
+        console.error("Error refreshing stats:", statsErr);
+        // Stats refresh failed but the answer was submitted successfully — don't show error
+      }
     } catch (err) {
       console.error("Error submitting attempt:", err);
       setError("Failed to submit your answer. Please try again.");

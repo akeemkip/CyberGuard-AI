@@ -142,7 +142,7 @@ async function main() {
 
     if (lessonWithQuiz && lessonWithQuiz.quiz) {
       // First attempt - might fail for lower performers
-      const firstAttemptScore = profile.quizScore - Math.floor(Math.random() * 10);
+      const firstAttemptScore = Math.max(0, profile.quizScore - Math.floor(Math.random() * 10));
       const firstAttemptPassed = firstAttemptScore >= 70;
 
       await prisma.quizAttempt.create({

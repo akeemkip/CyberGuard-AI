@@ -497,6 +497,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                         size="icon"
                         onClick={handleManualRefresh}
                         disabled={isRefreshing}
+                        aria-label="Refresh data"
                       >
                         <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                       </Button>
@@ -514,7 +515,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                   <FileText className="w-4 h-4 mr-2" />
                   Export PDF
                 </Button>
-                <Button variant="ghost" size="icon" onClick={toggleTheme}>
+                <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                   {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                 </Button>
               </div>

@@ -20,6 +20,7 @@ export function TermsOfServicePage({ onNavigate }: TermsOfServicePageProps) {
               variant="ghost"
               size="icon"
               onClick={() => window.history.back()}
+              aria-label="Go back"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -30,7 +31,7 @@ export function TermsOfServicePage({ onNavigate }: TermsOfServicePageProps) {
               <span className="text-xl font-semibold">CyberGuard AI</span>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
             {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </Button>
         </div>

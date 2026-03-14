@@ -114,7 +114,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   logger.error('Unhandled error', { error: err.message, stack: err.stack });
 
   // Check for body-parser errors (payload too large)
-  if (err.message?.includes('request entity too large')) {
+  if ((err as any).status === 413 || (err as any).type === 'entity.too.large') {
     return res.status(413).json({ error: 'Request payload too large. Maximum size is 10MB.' });
   }
 

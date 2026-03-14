@@ -910,6 +910,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
                             variant="outline"
                             size="icon"
                             onClick={() => handleRemoveObjective(index)}
+                            aria-label="Remove objective"
                           >
                             &times;
                           </Button>

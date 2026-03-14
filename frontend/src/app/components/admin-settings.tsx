@@ -1441,7 +1441,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                   </>
                 )}
               </Button>
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
             </div>
@@ -2138,6 +2138,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                                 setSettings(prev => ({ ...prev, hasSmtpPassword: false }));
                               }}
                               title="Clear SMTP password"
+                              aria-label="Clear SMTP password"
                             >
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
@@ -2382,6 +2383,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                           size="icon"
                           onClick={() => handleChange("logoUrl", "")}
                           title="Clear logo"
+                          aria-label="Clear logo"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -2457,6 +2459,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                           size="icon"
                           onClick={() => handleChange("favicon", "")}
                           title="Clear favicon"
+                          aria-label="Clear favicon"
                         >
                           <X className="w-4 h-4" />
                         </Button>
