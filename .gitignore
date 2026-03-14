@@ -40,6 +40,10 @@ coverage/
 prisma/*.db
 prisma/*.db-journal
 
+# Claude Code (keep .claude/rules/ tracked, ignore local memory/settings)
+.claude/projects/
+.claude/settings.*
+
 # Misc
 *.tsbuildinfo
 .cache/

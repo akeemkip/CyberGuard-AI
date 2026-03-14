@@ -133,3 +133,20 @@ VITE_API_BASE_URL=http://localhost:3000/api
 - **Components**: kebab-case files (`student-dashboard.tsx`), PascalCase exports (`StudentDashboard`)
 - **Services**: kebab-case with `.service.ts` suffix
 - **UI primitives**: `components/ui/` directory (shadcn/ui pattern)
+
+## Do NOT
+- Use React Router — routing is custom state-based in `App.tsx` (see `.claude/rules/navigation.md`)
+- Use `prisma migrate` — this project uses `prisma db push` (no migration files)
+- Create shared type packages between frontend/backend — they are fully independent
+- Create separate Axios instances — always use the centralized one from `services/api.ts`
+- Skip CSRF protection on mutation endpoints unless explicitly exempted
+- Add `dangerouslySetInnerHTML` without sanitization
+- Mock the database in tests — use real Prisma client with test database
+
+## Testing
+- **Framework**: Jest + ts-jest + supertest
+- **Config**: `backend/jest.config.js`, setup in `backend/src/__tests__/setup.ts`
+- **Pattern**: Integration tests with real Prisma client (not mocked)
+- **Test data**: Use timestamp-based emails (`test-${Date.now()}@example.com`) to avoid collisions
+- **Cleanup**: `afterAll()` with `deleteMany` on test records
+- **Coverage is minimal** — only `auth.test.ts` exists currently
