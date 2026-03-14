@@ -481,6 +481,8 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   const [phishingAttempts, setPhishingAttempts] = useState<any[]>([]);
   const [showPhishingAttempts, setShowPhishingAttempts] = useState(false);
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
+  const [attemptsTotal, setAttemptsTotal] = useState(0);
+  const [isLoadingMoreAttempts, setIsLoadingMoreAttempts] = useState(false);
 
   useEffect(() => {
     // Restore tab from browser history state if available (for back button navigation)
@@ -1167,11 +1169,26 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       setIsLoadingAttempts(true);
       const response = await phishingService.getAllAttempts(20, 0);
       setPhishingAttempts(response.attempts);
+      setAttemptsTotal(response.total);
     } catch (error) {
       console.error("Error fetching phishing attempts:", error);
       toast.error("Failed to load attempts. Please try again.");
     } finally {
       setIsLoadingAttempts(false);
+    }
+  };
+
+  const loadMoreAttempts = async () => {
+    try {
+      setIsLoadingMoreAttempts(true);
+      const response = await phishingService.getAllAttempts(20, phishingAttempts.length);
+      setPhishingAttempts(prev => [...prev, ...response.attempts]);
+      setAttemptsTotal(response.total);
+    } catch (error) {
+      console.error("Error loading more attempts:", error);
+      toast.error("Failed to load more attempts.");
+    } finally {
+      setIsLoadingMoreAttempts(false);
     }
   };
 
@@ -2648,8 +2665,8 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-primary" />
                     <h3 className="font-semibold">Recent User Attempts</h3>
-                    {phishingAttempts.length > 0 && (
-                      <Badge variant="secondary">{phishingAttempts.length}</Badge>
+                    {attemptsTotal > 0 && (
+                      <Badge variant="secondary">{attemptsTotal}</Badge>
                     )}
                   </div>
                   <Button variant="ghost" size="sm">
@@ -2666,7 +2683,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                     ) : phishingAttempts.length === 0 ? (
                       <p className="text-center text-muted-foreground py-4">No attempts yet</p>
                     ) : (
-                      <div className="space-y-2 max-h-80 overflow-y-auto">
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
                         {phishingAttempts.map((attempt) => (
                           <div
                             key={attempt.id}
@@ -2706,6 +2723,21 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                           </div>
                         ))}
                       </div>
+                      {phishingAttempts.length < attemptsTotal && (
+                        <div className="text-center pt-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={loadMoreAttempts}
+                            disabled={isLoadingMoreAttempts}
+                          >
+                            {isLoadingMoreAttempts ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : null}
+                            Load More ({phishingAttempts.length} of {attemptsTotal})
+                          </Button>
+                        </div>
+                      )}
                     )}
                   </div>
                 )}
