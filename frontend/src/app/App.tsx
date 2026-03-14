@@ -45,7 +45,7 @@ type Page = "landing" | "login" | "register" | "register-success" | "reset-passw
 const protectedPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
-const guestPages: Page[] = ["landing", "login", "register", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
+const guestPages: Page[] = ["landing", "login", "register", "register-success", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
 
 // Admin-only pages (require ADMIN role)
 const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
@@ -302,13 +302,18 @@ function AppContent() {
       if (event.state?.page) {
         const targetPage = event.state.page as Page;
 
-        // Security check: prevent non-admin users from navigating to admin pages via history
+        // Security checks: prevent role-based access violations via browser history
         const isAdmin = user?.role === "ADMIN";
         if (!isAdmin && adminOnlyPages.includes(targetPage)) {
           devLog('[App] ⛔ Non-admin user attempted to navigate to admin page via history:', targetPage);
-          // Redirect to student dashboard instead
           window.history.replaceState({ page: "student-dashboard" }, "", window.location.pathname);
           setCurrentPage("student-dashboard");
+          return;
+        }
+        if (isAdmin && studentOnlyPages.includes(targetPage)) {
+          devLog('[App] ⛔ Admin user attempted to navigate to student page via history:', targetPage);
+          window.history.replaceState({ page: "admin-dashboard" }, "", window.location.pathname);
+          setCurrentPage("admin-dashboard");
           return;
         }
 
@@ -326,6 +331,8 @@ function AppContent() {
             setSelectedQuizId(event.state.idParam);
           } else if (page === "lab-player" || page === "admin-lab-edit") {
             setSelectedLabId(event.state.idParam);
+          } else if (page === "admin-phishing-edit") {
+            setSelectedPhishingScenarioId(event.state.idParam);
           }
         }
         // Legacy support for old courseId format
