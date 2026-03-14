@@ -40,12 +40,18 @@ import adminService, {
   SuspiciousLinksConfig,
   PasswordStrengthConfig,
   SocialEngineeringConfig,
+  SecurityAlertsConfig,
+  WifiSafetyConfig,
+  IncidentResponseConfig,
 } from "../services/admin.service";
 import courseService from "../services/course.service";
 import { PhishingEmailEditor } from "./lab-template-editors/PhishingEmailEditor";
 import { SuspiciousLinksEditor } from "./lab-template-editors/SuspiciousLinksEditor";
 import { PasswordStrengthEditor } from "./lab-template-editors/PasswordStrengthEditor";
 import { SocialEngineeringEditor } from "./lab-template-editors/SocialEngineeringEditor";
+import { SecurityAlertsEditor } from "./lab-template-editors/SecurityAlertsEditor";
+import { WifiSafetyEditor } from "./lab-template-editors/WifiSafetyEditor";
+import { IncidentResponseEditor } from "./lab-template-editors/IncidentResponseEditor";
 
 interface AdminLabEditProps {
   labId?: string | null;
@@ -139,7 +145,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
   const [hints, setHints] = useState("");
 
   // Simulation config for interactive labs
-  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | SocialEngineeringConfig | null>(null);
+  const [simulationConfig, setSimulationConfig] = useState<PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | SocialEngineeringConfig | SecurityAlertsConfig | WifiSafetyConfig | IncidentResponseConfig | null>(null);
 
   // UI state
   const [courses, setCourses] = useState<Course[]>([]);
@@ -391,6 +397,103 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
           }
           break;
         }
+
+        case 'SECURITY_ALERTS': {
+          const config = simulationConfig as SecurityAlertsConfig;
+          if (!config.alerts || config.alerts.length < 3) {
+            toast.error("Please add at least 3 security alerts");
+            return false;
+          }
+          // Validate each alert has required fields
+          const invalidAlert = config.alerts.find(
+            a => !a.id || !a.alertType || !a.title || !a.message || !a.source || typeof a.isLegitimate !== 'boolean' || !a.explanation
+          );
+          if (invalidAlert) {
+            toast.error("All alerts must have type, title, message, source, legitimate flag, and explanation");
+            return false;
+          }
+          // Ensure we have a mix of fake and legitimate alerts
+          const hasLegitimate = config.alerts.some(a => a.isLegitimate);
+          const hasFake = config.alerts.some(a => !a.isLegitimate);
+          if (!hasLegitimate || !hasFake) {
+            toast.error("Simulation must include both legitimate and fake alerts");
+            return false;
+          }
+          if (!config.scenario || !config.instructions) {
+            toast.error("Please provide scenario and instructions for the simulation");
+            return false;
+          }
+          break;
+        }
+
+        case 'WIFI_SAFETY': {
+          const config = simulationConfig as WifiSafetyConfig;
+          if (!config.networks || config.networks.length < 3) {
+            toast.error("Please add at least 3 WiFi networks");
+            return false;
+          }
+          // Validate each network has required fields
+          const invalidNetwork = config.networks.find(
+            n => !n.id || !n.ssid || !n.signalStrength || !n.securityType || typeof n.isHidden !== 'boolean' || typeof n.requiresPassword !== 'boolean' || typeof n.isSafe !== 'boolean' || !n.explanation
+          );
+          if (invalidNetwork) {
+            toast.error("All networks must have SSID, signal strength, security type, and other required fields");
+            return false;
+          }
+          // Ensure we have a mix of safe and unsafe networks
+          const hasSafe = config.networks.some(n => n.isSafe);
+          const hasUnsafe = config.networks.some(n => !n.isSafe);
+          if (!hasSafe || !hasUnsafe) {
+            toast.error("Simulation must include both safe and unsafe networks");
+            return false;
+          }
+          if (!config.scenario || !config.instructions || !config.location) {
+            toast.error("Please provide scenario, location, and instructions for the simulation");
+            return false;
+          }
+          break;
+        }
+
+        case 'INCIDENT_RESPONSE': {
+          const config = simulationConfig as IncidentResponseConfig;
+          if (!config.steps || config.steps.length < 2) {
+            toast.error("Please add at least 2 incident response steps");
+            return false;
+          }
+          // Validate each step has required fields
+          const invalidStep = config.steps.find(
+            s => !s.id || !s.situation || !Array.isArray(s.options) || s.options.length === 0
+          );
+          if (invalidStep) {
+            toast.error("All steps must have ID, situation description, and response options");
+            return false;
+          }
+          // Validate options
+          for (const step of config.steps) {
+            if (step.options.length < 2) {
+              toast.error("Each step must have at least 2 response options");
+              return false;
+            }
+            const invalidOption = step.options.find(
+              o => !o.text || typeof o.isCorrect !== 'boolean' || !o.feedback
+            );
+            if (invalidOption) {
+              toast.error("All options must have text, correct flag, and feedback");
+              return false;
+            }
+            // Ensure at least one correct option
+            const hasCorrect = step.options.some(o => o.isCorrect);
+            if (!hasCorrect) {
+              toast.error("Each step must have at least one correct response option");
+              return false;
+            }
+          }
+          if (!config.scenario) {
+            toast.error("Please provide a scenario for the simulation");
+            return false;
+          }
+          break;
+        }
       }
     }
 
@@ -443,7 +546,7 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
     }
   };
 
-  const getDefaultConfig = (type: LabType): PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | SocialEngineeringConfig | null => {
+  const getDefaultConfig = (type: LabType): PhishingEmailConfig | SuspiciousLinksConfig | PasswordStrengthConfig | SocialEngineeringConfig | SecurityAlertsConfig | WifiSafetyConfig | IncidentResponseConfig | null => {
     if (type === 'PHISHING_EMAIL') {
       return {
         emailInterface: 'gmail',
@@ -481,6 +584,27 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
         attackerRole: '',
         messages: [],
         instructions: 'Read each message carefully and choose the most appropriate response. Watch out for social engineering tactics.',
+      };
+    }
+    if (type === 'SECURITY_ALERTS') {
+      return {
+        scenario: '',
+        instructions: 'Review each security alert and determine if it\'s legitimate or fake. Look for red flags like poor grammar, suspicious sources, or unusual requests.',
+        alerts: [],
+      };
+    }
+    if (type === 'WIFI_SAFETY') {
+      return {
+        scenario: '',
+        instructions: 'Evaluate each WiFi network and determine if it\'s safe to connect. Consider the security type, encryption, and other factors.',
+        location: '',
+        networks: [],
+      };
+    }
+    if (type === 'INCIDENT_RESPONSE') {
+      return {
+        scenario: '',
+        steps: [],
       };
     }
     return null;
@@ -846,6 +970,24 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
               // Social Engineering Editor
               <SocialEngineeringEditor
                 config={simulationConfig as SocialEngineeringConfig | null}
+                onChange={setSimulationConfig}
+              />
+            ) : labType === 'SECURITY_ALERTS' ? (
+              // Security Alerts Editor
+              <SecurityAlertsEditor
+                config={simulationConfig as SecurityAlertsConfig | null}
+                onChange={setSimulationConfig}
+              />
+            ) : labType === 'WIFI_SAFETY' ? (
+              // WiFi Safety Editor
+              <WifiSafetyEditor
+                config={simulationConfig as WifiSafetyConfig | null}
+                onChange={setSimulationConfig}
+              />
+            ) : labType === 'INCIDENT_RESPONSE' ? (
+              // Incident Response Editor
+              <IncidentResponseEditor
+                config={simulationConfig as IncidentResponseConfig | null}
                 onChange={setSimulationConfig}
               />
             ) : (

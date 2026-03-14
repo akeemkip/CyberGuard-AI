@@ -23,11 +23,14 @@ import {
   AlertTriangle
 } from "lucide-react";
 import courseService, { LabDetails } from "../services/course.service";
-import { PhishingEmailConfig, SuspiciousLinksConfig, PasswordStrengthConfig, SocialEngineeringConfig } from "../services/admin.service";
+import { PhishingEmailConfig, SuspiciousLinksConfig, PasswordStrengthConfig, SocialEngineeringConfig, SecurityAlertsConfig, WifiSafetyConfig, IncidentResponseConfig } from "../services/admin.service";
 import { PhishingEmailSimulation } from "./lab-templates/PhishingEmailSimulation";
 import { SuspiciousLinksSimulation } from "./lab-templates/SuspiciousLinksSimulation";
 import { PasswordStrengthSimulation } from "./lab-templates/PasswordStrengthSimulation";
 import { SocialEngineeringSimulation } from "./lab-templates/SocialEngineeringSimulation";
+import { SecurityAlertsSimulation } from "./lab-templates/SecurityAlertsSimulation";
+import { WifiSafetySimulation } from "./lab-templates/WifiSafetySimulation";
+import { IncidentResponseSimulation } from "./lab-templates/IncidentResponseSimulation";
 import { SimulationErrorBoundary } from "./SimulationErrorBoundary";
 
 interface LabPlayerProps {
@@ -112,6 +115,69 @@ function isSocialEngineeringConfig(config: any): config is SocialEngineeringConf
       )
     ) &&
     config.instructions
+  );
+}
+
+function isSecurityAlertsConfig(config: any): config is SecurityAlertsConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.instructions &&
+    Array.isArray(config.alerts) &&
+    config.alerts.length > 0 &&
+    config.alerts.every((alert: any) =>
+      alert.id &&
+      alert.alertType &&
+      alert.title &&
+      alert.message &&
+      alert.source &&
+      typeof alert.isLegitimate === 'boolean' &&
+      alert.explanation
+    )
+  );
+}
+
+function isWifiSafetyConfig(config: any): config is WifiSafetyConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.instructions &&
+    config.location &&
+    Array.isArray(config.networks) &&
+    config.networks.length > 0 &&
+    config.networks.every((network: any) =>
+      network.id &&
+      network.ssid &&
+      network.signalStrength &&
+      network.securityType &&
+      typeof network.isHidden === 'boolean' &&
+      typeof network.requiresPassword === 'boolean' &&
+      typeof network.isSafe === 'boolean' &&
+      network.explanation
+    )
+  );
+}
+
+function isIncidentResponseConfig(config: any): config is IncidentResponseConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    Array.isArray(config.steps) &&
+    config.steps.length > 0 &&
+    config.steps.every((step: any) =>
+      step.id &&
+      step.situation &&
+      Array.isArray(step.options) &&
+      step.options.length > 0 &&
+      step.options.every((option: any) =>
+        option.text &&
+        typeof option.isCorrect === 'boolean' &&
+        option.feedback
+      )
+    )
   );
 }
 
@@ -478,7 +544,61 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
             )
           )}
 
-          {labType !== 'PHISHING_EMAIL' && labType !== 'SUSPICIOUS_LINKS' && labType !== 'PASSWORD_STRENGTH' && labType !== 'SOCIAL_ENGINEERING' && (
+          {labType === 'SECURITY_ALERTS' && lab.simulationConfig && (
+            isSecurityAlertsConfig(lab.simulationConfig) ? (
+              <SecurityAlertsSimulation
+                config={lab.simulationConfig}
+                passingScore={lab.passingScore}
+                onComplete={handleSimulationComplete}
+              />
+            ) : (
+              <Card className="p-8 text-center border-red-500">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Invalid Configuration</h2>
+                <p className="text-muted-foreground">
+                  The security alerts simulation configuration is invalid. Please contact an administrator.
+                </p>
+              </Card>
+            )
+          )}
+
+          {labType === 'WIFI_SAFETY' && lab.simulationConfig && (
+            isWifiSafetyConfig(lab.simulationConfig) ? (
+              <WifiSafetySimulation
+                config={lab.simulationConfig}
+                passingScore={lab.passingScore}
+                onComplete={handleSimulationComplete}
+              />
+            ) : (
+              <Card className="p-8 text-center border-red-500">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Invalid Configuration</h2>
+                <p className="text-muted-foreground">
+                  The WiFi safety simulation configuration is invalid. Please contact an administrator.
+                </p>
+              </Card>
+            )
+          )}
+
+          {labType === 'INCIDENT_RESPONSE' && lab.simulationConfig && (
+            isIncidentResponseConfig(lab.simulationConfig) ? (
+              <IncidentResponseSimulation
+                config={lab.simulationConfig}
+                passingScore={lab.passingScore}
+                onComplete={handleSimulationComplete}
+              />
+            ) : (
+              <Card className="p-8 text-center border-red-500">
+                <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                <h2 className="text-xl font-semibold mb-2 text-red-700">Invalid Configuration</h2>
+                <p className="text-muted-foreground">
+                  The incident response simulation configuration is invalid. Please contact an administrator.
+                </p>
+              </Card>
+            )
+          )}
+
+          {labType !== 'PHISHING_EMAIL' && labType !== 'SUSPICIOUS_LINKS' && labType !== 'PASSWORD_STRENGTH' && labType !== 'SOCIAL_ENGINEERING' && labType !== 'SECURITY_ALERTS' && labType !== 'WIFI_SAFETY' && labType !== 'INCIDENT_RESPONSE' && (
             <div className="container mx-auto px-4 py-8">
               <Card className="p-8 text-center">
                 <Mail className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />

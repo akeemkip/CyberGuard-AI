@@ -417,6 +417,41 @@ export interface IncidentResponseConfig {
   }>;
 }
 
+// Security Alerts Simulation Config
+export interface SecurityAlertsConfig {
+  scenario: string;
+  instructions: string;
+  alerts: Array<{
+    id: string;
+    alertType: 'virus_warning' | 'system_update' | 'browser_notification' | 'tech_support' | 'prize_winner' | 'login_warning' | 'subscription_expired';
+    title: string;
+    message: string;
+    source: string;
+    buttonText?: string;
+    isLegitimate: boolean;
+    explanation: string;
+    redFlags?: string[];
+  }>;
+}
+
+// WiFi Safety Simulation Config
+export interface WifiSafetyConfig {
+  scenario: string;
+  instructions: string;
+  location: string;
+  networks: Array<{
+    id: string;
+    ssid: string;
+    signalStrength: 'weak' | 'medium' | 'strong';
+    securityType: 'open' | 'WEP' | 'WPA' | 'WPA2' | 'WPA3';
+    isHidden: boolean;
+    requiresPassword: boolean;
+    isSafe: boolean;
+    explanation: string;
+    redFlags?: string[];
+  }>;
+}
+
 // Union type for all simulation configs
 export type SimulationConfig =
   | PhishingEmailConfig
@@ -424,6 +459,8 @@ export type SimulationConfig =
   | PasswordStrengthConfig
   | SocialEngineeringConfig
   | IncidentResponseConfig
+  | SecurityAlertsConfig
+  | WifiSafetyConfig
   | Record<string, unknown>;
 
 export interface LabWithStats {
