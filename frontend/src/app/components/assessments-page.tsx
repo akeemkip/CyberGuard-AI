@@ -254,7 +254,7 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => onNavigate("student-dashboard")}>
+              <Button variant="ghost" size="icon" onClick={() => onNavigate("student-dashboard")} aria-label="Back to dashboard">
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <div className="flex items-center gap-2">
@@ -265,7 +265,7 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
               <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />
@@ -344,7 +344,7 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => onNavigate("student-dashboard")}>
+              <Button variant="ghost" size="icon" onClick={() => onNavigate("student-dashboard")} aria-label="Back to dashboard">
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <div className="flex items-center gap-2">
@@ -355,7 +355,7 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
               <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />
@@ -524,7 +524,7 @@ export function AssessmentsPage({ onNavigate, onLogout }: AssessmentsPageProps) 
                   </span>
                 </div>
               </Card>
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
               <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />

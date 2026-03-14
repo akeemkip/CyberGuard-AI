@@ -299,6 +299,7 @@ const courseService = {
   // Start lab (mark as in progress)
   async startLab(labId: string): Promise<{ status: string; startedAt: string }> {
     const response = await api.post<{ progress: { status: string; startedAt: string } }>(`/labs/${labId}/start`);
+    if (!response.data?.progress) throw new Error('Invalid response: missing progress data');
     return response.data.progress;
   },
 
@@ -308,6 +309,7 @@ const courseService = {
       `/labs/${labId}/complete`,
       { timeSpent, notes }
     );
+    if (!response.data?.progress) throw new Error('Invalid response: missing progress data');
     return response.data.progress;
   },
 
@@ -317,6 +319,7 @@ const courseService = {
       `/labs/${labId}/notes`,
       { notes, timeSpent }
     );
+    if (!response.data?.progress) throw new Error('Invalid response: missing progress data');
     return response.data.progress;
   },
 

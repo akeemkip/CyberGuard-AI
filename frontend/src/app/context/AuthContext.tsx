@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { toast } from 'sonner';
 import authService, { User } from '../services/auth.service';
 import { fetchCsrfToken, clearCsrfToken } from '../utils/csrf';
 
@@ -48,7 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('[AuthContext] CSRF token fetched successfully');
       } catch (csrfError) {
         console.warn('[AuthContext] Failed to fetch CSRF token:', csrfError);
-        // Don't fail the login if CSRF fetch fails
+        toast.warning('Security token could not be loaded. Some actions may fail.');
       }
 
       return true;
@@ -75,6 +76,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await fetchCsrfToken();
       } catch (csrfError) {
         console.warn('[AuthContext] Failed to fetch CSRF token:', csrfError);
+        toast.warning('Security token could not be loaded. Some actions may fail.');
       }
 
       return true;

@@ -120,6 +120,8 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
       return;
     }
 
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -129,6 +131,8 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
           courseService.getCourseById(courseId),
           courseService.getCourseProgress(courseId)
         ]);
+
+        if (cancelled) return;
 
         setCourse(courseData);
         setProgress(progressData);
@@ -142,14 +146,16 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
         // Load labs for this course
         loadCourseLabs(courseId);
       } catch (err) {
+        if (cancelled) return;
         console.error("Failed to fetch course:", err);
         setError("Failed to load course. Please try again.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchData();
+    return () => { cancelled = true; };
   }, [courseId]);
 
   // Load labs for course
@@ -459,6 +465,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                 variant="ghost"
                 size="icon"
                 onClick={() => onNavigate("student-dashboard")}
+                aria-label="Back to dashboard"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
@@ -475,7 +482,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
                 {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </Button>
               <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />
@@ -773,6 +780,8 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                             <button
                               onClick={() => toggleModuleCollapse(module.id)}
                               className="w-full px-4 py-3 bg-muted hover:bg-muted/70 transition-colors flex items-center justify-between"
+                              aria-expanded={!isCollapsed}
+                              aria-label={`${module.title} - ${completedCount} of ${moduleLessons.length} completed`}
                             >
                               <div className="flex-1 text-left">
                                 <div className="font-medium text-sm">{module.title}</div>

@@ -150,6 +150,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
         setLastUpdated(new Date()); // Priority 5: Update timestamp
       } catch (error) {
         console.error("Error fetching analytics data:", error);
+        toast.error("Failed to load analytics data");
       } finally {
         setIsLoading(false);
       }

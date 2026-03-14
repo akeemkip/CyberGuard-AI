@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../config/database';
+import prisma, { PLATFORM_SETTINGS_ID } from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { encrypt, decrypt, isEncrypted } from '../utils/encryption';
 import { logger } from '../utils/logger';
@@ -30,7 +30,7 @@ const defaultPublicSettings = {
 export const getPublicSettings = async (req: Request, res: Response) => {
   try {
     const settings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' },
+      where: { id: PLATFORM_SETTINGS_ID },
       select: {
         platformName: true,
         primaryColor: true,
@@ -61,13 +61,13 @@ export const getPlatformSettings = async (req: Request, res: Response) => {
   try {
     // Try to get existing settings
     let settings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' }
+      where: { id: PLATFORM_SETTINGS_ID }
     });
 
     // If no settings exist, create default settings
     if (!settings) {
       settings = await prisma.platformSettings.create({
-        data: { id: 'singleton' }
+        data: { id: PLATFORM_SETTINGS_ID }
       });
     }
 
@@ -165,7 +165,7 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
 
     // Get current settings for audit logging
     const currentSettings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' }
+      where: { id: PLATFORM_SETTINGS_ID }
     });
 
     // Determine password update behavior
@@ -236,10 +236,10 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
 
     // Upsert settings (update if exists, create if not)
     const settings = await prisma.platformSettings.upsert({
-      where: { id: 'singleton' },
+      where: { id: PLATFORM_SETTINGS_ID },
       update: updateData,
       create: {
-        id: 'singleton',
+        id: PLATFORM_SETTINGS_ID,
         // General
         platformName: platformName || 'CyberGuard AI',
         platformDescription: platformDescription || 'Advanced cybersecurity training platform',
@@ -413,7 +413,7 @@ export const rollbackSettingsChange = async (req: AuthRequest, res: Response) =>
 
     // Get current settings
     const currentSettings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' }
+      where: { id: PLATFORM_SETTINGS_ID }
     });
 
     if (!currentSettings) {
@@ -436,7 +436,7 @@ export const rollbackSettingsChange = async (req: AuthRequest, res: Response) =>
 
     // Update settings
     await prisma.platformSettings.update({
-      where: { id: 'singleton' },
+      where: { id: PLATFORM_SETTINGS_ID },
       data: updateData
     });
 

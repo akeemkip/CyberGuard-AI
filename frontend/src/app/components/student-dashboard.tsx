@@ -163,6 +163,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
               size="icon"
               className="md:hidden"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
+              aria-label={showMobileMenu ? "Close menu" : "Open menu"}
             >
               <Menu className="w-5 h-5" />
             </Button>
@@ -187,7 +188,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
             </button>
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
             <UserProfileDropdown onLogout={onLogout} onNavigate={onNavigate} />
@@ -205,7 +206,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 <PlatformLogo className="w-8 h-8" iconClassName="w-5 h-5" />
                 <span className="font-semibold">{platformSettings.platformName}</span>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(false)}>
+              <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(false)} aria-label="Close menu">
                 <X className="w-5 h-5" />
               </Button>
             </div>

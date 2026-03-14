@@ -194,8 +194,10 @@ function AppContent() {
 
         // Check if student needs intro assessment
         if (!isAdmin) {
+          let cancelled = false;
           checkIntroAssessmentRequired()
             .then((result) => {
+              if (cancelled) return;
               if (result.required && !result.completed) {
                 console.log('[App] New user needs intro assessment');
                 setCurrentPage("welcome");
@@ -224,6 +226,7 @@ function AppContent() {
               }
             })
             .catch((err) => {
+              if (cancelled) return;
               console.error('[App] Error checking intro assessment:', err);
               // On error, proceed to normal dashboard
               if (savedPage && protectedPages.includes(savedPage)) {
@@ -237,6 +240,7 @@ function AppContent() {
               localStorage.setItem("currentPage", targetPage);
               window.history.replaceState({ page: targetPage }, "", window.location.pathname);
             });
+          return () => { cancelled = true; };
         } else {
           // Admin user - go to admin dashboard or saved page
           if (savedPage && protectedPages.includes(savedPage)) {

@@ -59,6 +59,7 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
         setEnrolledCourseIds(new Set(enrolledCourses.map(e => e.courseId)));
       } catch (error) {
         console.error("Error fetching courses:", error);
+        toast.error("Failed to load courses");
       } finally {
         setIsLoading(false);
       }

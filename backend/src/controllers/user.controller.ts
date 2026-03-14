@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import prisma from '../config/database';
@@ -34,7 +34,7 @@ const updateSettingsSchema = z.object({
 });
 
 // Create user (admin only)
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: AuthRequest, res: Response) => {
   try {
     const validatedData = createUserSchema.parse(req.body);
 
@@ -88,7 +88,7 @@ export const createUser = async (req: Request, res: Response) => {
 };
 
 // Get all users (admin only)
-export const getAllUsers = async (req: Request, res: Response) => {
+export const getAllUsers = async (req: AuthRequest, res: Response) => {
   try {
     const users = await prisma.user.findMany({
       select: {
@@ -207,7 +207,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 };
 
 // Change user role (admin only)
-export const changeUserRole = async (req: Request, res: Response) => {
+export const changeUserRole = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const validatedData = changeRoleSchema.parse(req.body);
@@ -244,9 +244,18 @@ export const changeUserRole = async (req: Request, res: Response) => {
 };
 
 // Delete user (admin only)
-export const deleteUser = async (req: Request, res: Response) => {
+export const deleteUser = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
+
+    if (id === req.userId) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     await prisma.user.delete({
       where: { id }
@@ -388,7 +397,7 @@ export const updateUserSettings = async (req: AuthRequest, res: Response) => {
 };
 
 // Unlock user account (admin only)
-export const unlockUserAccount = async (req: Request, res: Response) => {
+export const unlockUserAccount = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.params.id as string;
 

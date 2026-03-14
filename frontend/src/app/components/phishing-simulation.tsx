@@ -82,8 +82,12 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
         setIsCompleted(false);
       }
     } catch (err: any) {
-      if (err.response?.status === 404) {
+      if (err.response?.status === 401) {
+        setError("Your session has expired. Please log in again.");
+      } else if (err.response?.status === 404) {
         setError("No scenarios available. Please check back later.");
+      } else if (err.response?.status >= 500) {
+        setError("Server error. Please try again later.");
       } else {
         setError("Failed to load scenario. Please try again.");
       }
@@ -154,6 +158,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
               variant="ghost"
               size="icon"
               onClick={() => onNavigate("student-dashboard")}
+              aria-label="Back to dashboard"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -186,7 +191,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
                 </div>
               </div>
             )}
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
           </div>

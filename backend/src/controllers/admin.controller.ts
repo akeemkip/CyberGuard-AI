@@ -37,16 +37,17 @@ export const getAdminStats = async (req: Request, res: Response) => {
       where: { completed: true }
     });
 
-    // Get quiz stats
-    const quizAttempts = await prisma.quizAttempt.findMany({
-      select: { score: true, passed: true }
-    });
+    // Get quiz stats using aggregate instead of fetching all records
+    const [quizAgg, quizzesPassed, totalQuizAttempts] = await Promise.all([
+      prisma.quizAttempt.aggregate({
+        _avg: { score: true },
+        _count: true
+      }),
+      prisma.quizAttempt.count({ where: { passed: true } }),
+      prisma.quizAttempt.count()
+    ]);
 
-    const avgQuizScore = quizAttempts.length > 0
-      ? Math.round(quizAttempts.reduce((sum, a) => sum + a.score, 0) / quizAttempts.length)
-      : 0;
-
-    const quizzesPassed = quizAttempts.filter(a => a.passed).length;
+    const avgQuizScore = Math.round(quizAgg._avg.score ?? 0);
 
     // Calculate average completion rate
     const avgCompletionRate = totalEnrollments > 0
@@ -68,9 +69,10 @@ export const getAdminStats = async (req: Request, res: Response) => {
     const monthlyEnrollments: { [key: string]: number } = {};
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    // Initialize last 6 months in UTC
+    // Initialize last 6 months in UTC (use day 1 to avoid month overflow)
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
+      date.setUTCDate(1);
       date.setUTCMonth(date.getUTCMonth() - i);
       const monthKey = months[date.getUTCMonth()];
       monthlyEnrollments[monthKey] = 0;
@@ -227,7 +229,7 @@ export const getAdminStats = async (req: Request, res: Response) => {
         completedEnrollments,
         avgCompletionRate,
         avgQuizScore,
-        quizzesTaken: quizAttempts.length,
+        quizzesTaken: totalQuizAttempts,
         quizzesPassed,
         totalLessons,
         completedLessonProgress
@@ -701,6 +703,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
     const engagement = [];
     for (let i = monthsToShow - 1; i >= 0; i--) {
       const date = new Date();
+      date.setDate(1);
       date.setMonth(date.getMonth() - i);
       const monthName = months[date.getMonth()];
 

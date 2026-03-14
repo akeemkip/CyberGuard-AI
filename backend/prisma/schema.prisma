@@ -12,7 +12,7 @@ model Course {
   title          String
   description    String
   thumbnail      String?
-  difficulty     String          @default("Beginner")
+  difficulty     Difficulty      @default(Beginner)
   duration       String?
   isPublished    Boolean         @default(false)
   createdAt      DateTime        @default(now())
@@ -54,6 +54,7 @@ model Module {
   lessons     Lesson[]
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
+  @@index([courseId])
   @@map("modules")
 }
 
@@ -72,6 +73,7 @@ model Lesson {
   progress  Progress[]
   quiz      Quiz?
 
+  @@index([courseId])
   @@map("lessons")
 }
 
@@ -85,6 +87,7 @@ model Progress {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+  @@index([userId])
   @@index([completedAt])
   @@map("progress")
 }
@@ -98,6 +101,7 @@ model Question {
   order         Int
   quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
+  @@index([quizId])
   @@map("questions")
 }
 
@@ -111,6 +115,7 @@ model QuizAttempt {
   quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@index([attemptedAt])
   @@map("quiz_attempts")
 }
@@ -180,7 +185,7 @@ model Lab {
   objectives       String[]
   resources        String?
   hints            String?
-  difficulty       String        @default("Beginner")
+  difficulty       Difficulty    @default(Beginner)
   estimatedTime    Int?
   order            Int
   courseId         String
@@ -195,6 +200,7 @@ model Lab {
   course           Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   module           Module?       @relation(fields: [moduleId], references: [id], onDelete: SetNull)
 
+  @@index([courseId])
   @@map("labs")
 }
 
@@ -217,6 +223,8 @@ model LabProgress {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, labId])
+  @@index([userId])
+  @@index([labId])
   @@map("lab_progress")
 }
 
@@ -242,6 +250,12 @@ enum LabType {
   INCIDENT_RESPONSE
 }
 
+enum Difficulty {
+  Beginner
+  Intermediate
+  Advanced
+}
+
 enum PhishingAction {
   REPORTED
   MARKED_SAFE
@@ -261,7 +275,7 @@ model PlatformSettings {
 
   // Security
   requireEmailVerification Boolean  @default(false)
-  minPasswordLength        Int      @default(6)
+  minPasswordLength        Int      @default(8)
   sessionTimeout           Int      @default(7)
   enableTwoFactor          Boolean  @default(false)
   maxLoginAttempts         Int      @default(5)
@@ -328,7 +342,7 @@ model PhishingScenario {
   id               String            @id @default(uuid())
   title            String
   description      String
-  difficulty       String            @default("Beginner")
+  difficulty       Difficulty        @default(Beginner)
   category         String            @default("General")
   isActive         Boolean           @default(true)
   senderName       String
@@ -358,6 +372,8 @@ model PhishingAttempt {
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   scenario       PhishingScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([scenarioId])
   @@map("phishing_attempts")
 }
 
@@ -403,6 +419,7 @@ model IntroAssessmentAttempt {
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   introAssessment   IntroAssessment @relation(fields: [introAssessmentId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("intro_assessment_attempts")
 }
 

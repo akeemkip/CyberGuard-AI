@@ -78,6 +78,9 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
     try {
       // Call backend AI API
       const response = await api.post<AIResponse>('/ai/chat', { message: userMessage });
+      if (!response.data?.response) {
+        throw new Error('Invalid AI response format');
+      }
       return response.data.response;
     } catch (error) {
       console.warn('AI API unavailable, using fallback responses:', error);

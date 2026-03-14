@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import prisma from '../config/database';
+import prisma, { PLATFORM_SETTINGS_ID } from '../config/database';
 import { decrypt } from '../utils/encryption';
 import { logger } from '../utils/logger';
 
@@ -25,7 +25,7 @@ export interface SMTPConfig {
  */
 export async function getSMTPConfig(): Promise<SMTPConfig | null> {
   const settings = await prisma.platformSettings.findUnique({
-    where: { id: 'singleton' },
+    where: { id: PLATFORM_SETTINGS_ID },
     select: {
       smtpHost: true,
       smtpPort: true,
@@ -90,7 +90,7 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
     }
 
     const settings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' },
+      where: { id: PLATFORM_SETTINGS_ID },
       select: { smtpUser: true, platformName: true },
     });
 
@@ -120,7 +120,7 @@ export async function sendEnrollmentEmail(
   courseTitle: string
 ): Promise<{ success: boolean; error?: string }> {
   const settings = await prisma.platformSettings.findUnique({
-    where: { id: 'singleton' },
+    where: { id: PLATFORM_SETTINGS_ID },
     select: { platformName: true },
   });
   const platformName = settings?.platformName || 'CyberGuard AI';
@@ -151,7 +151,7 @@ export async function sendCompletionEmail(
   courseTitle: string
 ): Promise<{ success: boolean; error?: string }> {
   const settings = await prisma.platformSettings.findUnique({
-    where: { id: 'singleton' },
+    where: { id: PLATFORM_SETTINGS_ID },
     select: { platformName: true },
   });
   const platformName = settings?.platformName || 'CyberGuard AI';
@@ -200,7 +200,7 @@ export async function sendTestEmail(toEmail: string): Promise<{ success: boolean
     await transporter.verify();
 
     const settings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' },
+      where: { id: PLATFORM_SETTINGS_ID },
       select: { platformName: true, smtpUser: true },
     });
 

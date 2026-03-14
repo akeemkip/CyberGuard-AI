@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import prisma from '../config/database';
+import prisma, { PLATFORM_SETTINGS_ID } from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { sendEnrollmentEmail, sendCompletionEmail } from '../services/email.service';
 import { logger } from '../utils/logger';
@@ -108,7 +108,7 @@ export const getCourseById = async (req: Request, res: Response) => {
 };
 
 // Create course (admin only)
-export const createCourse = async (req: Request, res: Response) => {
+export const createCourse = async (req: AuthRequest, res: Response) => {
   try {
     const validatedData = createCourseSchema.parse(req.body);
 
@@ -127,7 +127,7 @@ export const createCourse = async (req: Request, res: Response) => {
 };
 
 // Update course (admin only)
-export const updateCourse = async (req: Request, res: Response) => {
+export const updateCourse = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const validatedData = updateCourseSchema.parse(req.body);
@@ -148,9 +148,14 @@ export const updateCourse = async (req: Request, res: Response) => {
 };
 
 // Delete course (admin only)
-export const deleteCourse = async (req: Request, res: Response) => {
+export const deleteCourse = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
+
+    const course = await prisma.course.findUnique({ where: { id } });
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
 
     await prisma.course.delete({
       where: { id }
@@ -207,7 +212,7 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
 
     // Fire-and-forget enrollment email
     const settings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' },
+      where: { id: PLATFORM_SETTINGS_ID },
       select: { enableEmailNotifications: true, enableEnrollmentEmails: true }
     });
     if (settings?.enableEmailNotifications && settings?.enableEnrollmentEmails) {
@@ -250,49 +255,51 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
       orderBy: { enrolledAt: 'desc' }
     });
 
-    // Get progress for each course (includes both lessons AND labs)
-    const coursesWithProgress = await Promise.all(
-      enrollments.map(async (enrollment) => {
-        const lessonIds = enrollment.course.lessons.map(l => l.id);
-        const labIds = enrollment.course.labs.map(l => l.id);
+    // Batch progress queries instead of N+1 per enrollment
+    const allLessonIds = enrollments.flatMap(e => e.course.lessons.map(l => l.id));
+    const allLabIds = enrollments.flatMap(e => e.course.labs.map(l => l.id));
 
-        const completedLessons = await prisma.progress.count({
-          where: {
-            userId,
-            lessonId: { in: lessonIds },
-            completed: true
-          }
-        });
-
-        const completedLabs = await prisma.labProgress.count({
-          where: {
-            userId,
-            labId: { in: labIds },
-            status: 'COMPLETED'
-          }
-        });
-
-        const totalLessons = lessonIds.length;
-        const totalLabs = labIds.length;
-        const totalItems = totalLessons + totalLabs;
-        const completedItems = completedLessons + completedLabs;
-
-        const progressPercent = totalItems > 0
-          ? Math.round((completedItems / totalItems) * 100)
-          : 0;
-
-        return {
-          ...enrollment,
-          progress: {
-            completedLessons,
-            totalLessons,
-            completedLabs,
-            totalLabs,
-            percentage: progressPercent
-          }
-        };
+    const [completedLessonRows, completedLabRows] = await Promise.all([
+      prisma.progress.findMany({
+        where: { userId, lessonId: { in: allLessonIds }, completed: true },
+        select: { lessonId: true }
+      }),
+      prisma.labProgress.findMany({
+        where: { userId, labId: { in: allLabIds }, status: 'COMPLETED' },
+        select: { labId: true }
       })
-    );
+    ]);
+
+    const completedLessonSet = new Set(completedLessonRows.map(r => r.lessonId));
+    const completedLabSet = new Set(completedLabRows.map(r => r.labId));
+
+    const coursesWithProgress = enrollments.map((enrollment) => {
+      const lessonIds = enrollment.course.lessons.map(l => l.id);
+      const labIds = enrollment.course.labs.map(l => l.id);
+
+      const completedLessons = lessonIds.filter(id => completedLessonSet.has(id)).length;
+      const completedLabs = labIds.filter(id => completedLabSet.has(id)).length;
+
+      const totalLessons = lessonIds.length;
+      const totalLabs = labIds.length;
+      const totalItems = totalLessons + totalLabs;
+      const completedItems = completedLessons + completedLabs;
+
+      const progressPercent = totalItems > 0
+        ? Math.round((completedItems / totalItems) * 100)
+        : 0;
+
+      return {
+        ...enrollment,
+        progress: {
+          completedLessons,
+          totalLessons,
+          completedLabs,
+          totalLabs,
+          percentage: progressPercent
+        }
+      };
+    });
 
     res.json({ enrolledCourses: coursesWithProgress });
   } catch (error) {
@@ -548,7 +555,7 @@ const checkAndCompleteCourse = async (userId: string, courseId: string): Promise
 
       // Fire-and-forget completion email (outside transaction scope to avoid blocking)
       const emailSettings = await tx.platformSettings.findUnique({
-        where: { id: 'singleton' },
+        where: { id: PLATFORM_SETTINGS_ID },
         select: { enableEmailNotifications: true, enableCompletionEmails: true }
       });
       if (emailSettings?.enableEmailNotifications && emailSettings?.enableCompletionEmails) {
@@ -561,10 +568,22 @@ const checkAndCompleteCourse = async (userId: string, courseId: string): Promise
           select: { title: true }
         });
         if (student && course) {
-          // Send after transaction completes - fire and forget
-          setImmediate(() => {
-            sendCompletionEmail(student.email, student.firstName || 'Student', course.title)
-              .catch(err => logger.error('Completion email failed', err));
+          // Send after transaction completes with retry
+          setImmediate(async () => {
+            const maxRetries = 2;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+              try {
+                await sendCompletionEmail(student.email, student.firstName || 'Student', course.title);
+                return;
+              } catch (err) {
+                if (attempt === maxRetries) {
+                  logger.error(`Completion email failed after ${maxRetries + 1} attempts`, err);
+                } else {
+                  logger.warn(`Completion email attempt ${attempt + 1} failed, retrying...`);
+                  await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+                }
+              }
+            }
           });
         }
       }
@@ -623,7 +642,7 @@ export const markLessonComplete = async (req: AuthRequest, res: Response) => {
 };
 
 // Get lesson by ID (admin only)
-export const getLessonById = async (req: Request, res: Response) => {
+export const getLessonById = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
 
@@ -652,7 +671,7 @@ export const getLessonById = async (req: Request, res: Response) => {
 };
 
 // Create lesson (admin only)
-export const createLesson = async (req: Request, res: Response) => {
+export const createLesson = async (req: AuthRequest, res: Response) => {
   try {
     const courseId = req.params.courseId as string;
     const validatedData = createLessonSchema.parse(req.body);
@@ -684,7 +703,7 @@ export const createLesson = async (req: Request, res: Response) => {
 };
 
 // Update lesson (admin only)
-export const updateLesson = async (req: Request, res: Response) => {
+export const updateLesson = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const validatedData = updateLessonSchema.parse(req.body);
@@ -705,9 +724,14 @@ export const updateLesson = async (req: Request, res: Response) => {
 };
 
 // Delete lesson (admin only)
-export const deleteLesson = async (req: Request, res: Response) => {
+export const deleteLesson = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
+
+    const lesson = await prisma.lesson.findUnique({ where: { id } });
+    if (!lesson) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
 
     await prisma.lesson.delete({
       where: { id }

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import prisma from '../config/database';
+import prisma, { PLATFORM_SETTINGS_ID } from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { createPasswordSchema } from '../utils/validation';
 import { logger } from '../utils/logger';
@@ -31,7 +31,7 @@ const generateToken = async (userId: string, role: string): Promise<string> => {
   // Fetch session timeout from platform settings
   try {
     const settings = await prisma.platformSettings.findUnique({
-      where: { id: 'singleton' },
+      where: { id: PLATFORM_SETTINGS_ID },
       select: { sessionTimeout: true }
     });
     const days = settings?.sessionTimeout || 7;
@@ -57,7 +57,7 @@ export const register = async (req: Request, res: Response) => {
     let minPasswordLength = 8; // Default changed from 6 to 8 for security
     try {
       const settings = await prisma.platformSettings.findUnique({
-        where: { id: 'singleton' },
+        where: { id: PLATFORM_SETTINGS_ID },
         select: { minPasswordLength: true }
       });
       if (settings?.minPasswordLength) {
@@ -140,7 +140,7 @@ export const login = async (req: Request, res: Response) => {
     let maxLoginAttempts = 5; // Default
     try {
       const settings = await prisma.platformSettings.findUnique({
-        where: { id: 'singleton' },
+        where: { id: PLATFORM_SETTINGS_ID },
         select: { maxLoginAttempts: true }
       });
       if (settings?.maxLoginAttempts) {
