@@ -210,6 +210,7 @@ export const getAdminStats = async (req: Request, res: Response) => {
         totalCourses,
         avgScore,
         passRate,
+        phishingAccuracy,
         performanceScore
       };
     });

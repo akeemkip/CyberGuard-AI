@@ -105,6 +105,7 @@ export interface PerformanceStudent {
   totalCourses: number;
   avgScore: number;
   passRate: number;
+  phishingAccuracy: number;
   performanceScore: number;
 }
 

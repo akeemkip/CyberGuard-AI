@@ -3,6 +3,14 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "./ui/dialog";
+import {
   Moon,
   Sun,
   Users,
@@ -20,9 +28,10 @@ import {
   BarChart3,
   RefreshCw,
   AlertTriangle,
-  Shield
+  Shield,
+  ExternalLink
 } from "lucide-react";
-import adminService, { AdminDashboardData } from "../services/admin.service";
+import adminService, { AdminDashboardData, PerformanceStudent } from "../services/admin.service";
 import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
 import {
@@ -42,7 +51,7 @@ import { toast } from "sonner";
 
 interface AdminDashboardProps {
   userEmail: string;
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, idParam?: string) => void;
   onLogout: () => void;
 }
 
@@ -51,6 +60,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<{ student: PerformanceStudent; zone: 'highRisk' | 'safeZone' } | null>(null);
 
   const fetchDashboardData = async (showToast = false) => {
     try {
@@ -316,7 +326,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
                       variant="ghost"
                       size="sm"
                       className="text-red-600 dark:text-red-400 hover:bg-red-500/10"
-                      onClick={() => onNavigate("admin-user-profile", performanceExtremes.highRisk!.id)}
+                      onClick={() => setSelectedStudent({ student: performanceExtremes.highRisk!, zone: 'highRisk' })}
                     >
                       View
                     </Button>
@@ -342,7 +352,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
                       variant="ghost"
                       size="sm"
                       className="text-green-600 dark:text-green-400 hover:bg-green-500/10"
-                      onClick={() => onNavigate("admin-user-profile", performanceExtremes.safeZone!.id)}
+                      onClick={() => setSelectedStudent({ student: performanceExtremes.safeZone!, zone: 'safeZone' })}
                     >
                       View
                     </Button>
@@ -523,6 +533,105 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
         </main>
       </div>
 
+      {/* Performance Student Modal */}
+      <Dialog open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
+        <DialogContent className="sm:max-w-md">
+          {selectedStudent && (() => {
+            const { student, zone } = selectedStudent;
+            const isHighRisk = zone === 'highRisk';
+            const completionRate = student.totalCourses > 0
+              ? Math.round((student.coursesCompleted / student.totalCourses) * 100)
+              : 0;
+
+            const reasons: string[] = [];
+            if (isHighRisk) {
+              if (student.avgScore < 50) reasons.push(`Low average quiz score (${student.avgScore}%)`);
+              if (student.passRate < 50) reasons.push(`Low quiz pass rate (${student.passRate}%)`);
+              if (completionRate < 30) reasons.push(`Minimal course progress (${student.coursesCompleted}/${student.totalCourses} completed)`);
+              if (student.phishingAccuracy < 50) reasons.push(`Weak phishing detection (${student.phishingAccuracy}% accuracy)`);
+              if (reasons.length === 0) reasons.push("Lowest overall performance score among all students");
+            } else {
+              if (student.avgScore >= 80) reasons.push(`Strong average quiz score (${student.avgScore}%)`);
+              if (student.passRate >= 80) reasons.push(`High quiz pass rate (${student.passRate}%)`);
+              if (completionRate >= 70) reasons.push(`Great course progress (${student.coursesCompleted}/${student.totalCourses} completed)`);
+              if (student.phishingAccuracy >= 70) reasons.push(`Excellent phishing detection (${student.phishingAccuracy}% accuracy)`);
+              if (reasons.length === 0) reasons.push("Highest overall performance score among all students");
+            }
+
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isHighRisk ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                      {isHighRisk
+                        ? <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        : <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      }
+                    </div>
+                    <div>
+                      <DialogTitle>{student.name}</DialogTitle>
+                      <DialogDescription>{student.email}</DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  <div className={`rounded-lg p-3 ${isHighRisk ? 'bg-red-50 dark:bg-red-950/30' : 'bg-green-50 dark:bg-green-950/30'}`}>
+                    <p className={`text-sm font-medium mb-2 ${isHighRisk ? 'text-red-800 dark:text-red-200' : 'text-green-800 dark:text-green-200'}`}>
+                      Why {isHighRisk ? 'High Risk' : 'Safe Zone'}?
+                    </p>
+                    <ul className="space-y-1">
+                      {reasons.map((reason, i) => (
+                        <li key={i} className={`text-sm flex items-start gap-2 ${isHighRisk ? 'text-red-700 dark:text-red-300' : 'text-green-700 dark:text-green-300'}`}>
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-current" />
+                          {reason}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg bg-muted/50 p-3 text-center">
+                      <p className="text-2xl font-bold">{Math.round(student.performanceScore)}</p>
+                      <p className="text-xs text-muted-foreground">Performance Score</p>
+                    </div>
+                    <div className="rounded-lg bg-muted/50 p-3 text-center">
+                      <p className="text-2xl font-bold">{student.avgScore}%</p>
+                      <p className="text-xs text-muted-foreground">Avg Quiz Score</p>
+                    </div>
+                    <div className="rounded-lg bg-muted/50 p-3 text-center">
+                      <p className="text-2xl font-bold">{student.passRate}%</p>
+                      <p className="text-xs text-muted-foreground">Pass Rate</p>
+                    </div>
+                    <div className="rounded-lg bg-muted/50 p-3 text-center">
+                      <p className="text-2xl font-bold">{student.phishingAccuracy}%</p>
+                      <p className="text-xs text-muted-foreground">Phishing Accuracy</p>
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedStudent(null)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setSelectedStudent(null);
+                      onNavigate("admin-user-profile", student.id);
+                    }}
+                    className="gap-2"
+                  >
+                    See More <ExternalLink className="w-4 h-4" />
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
