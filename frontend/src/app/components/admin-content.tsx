@@ -371,6 +371,8 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const [isEditingCourse, setIsEditingCourse] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showDeleteCourseDialog, setShowDeleteCourseDialog] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [newCourse, setNewCourse] = useState({
     title: "",
@@ -381,6 +383,9 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     isPublished: false
   });
   const [imageUploadMode, setImageUploadMode] = useState<"url" | "upload">("url");
+  const [courseSearch, setCourseSearch] = useState("");
+  const [courseFilterDifficulty, setCourseFilterDifficulty] = useState<string>("all");
+  const [courseFilterStatus, setCourseFilterStatus] = useState<string>("all");
 
   // Convert markdown to HTML for rich text editor
   const convertMarkdownToHtml = (markdown: string): string => {
@@ -620,43 +625,31 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     }
   };
 
-  const handleDeleteCourse = async (courseId: string) => {
-    // Find course to get details for confirmation
+  const handleDeleteCourse = (courseId: string) => {
     const course = courses.find(c => c.id === courseId);
     if (!course) return;
+    setCourseToDelete(course);
+    setShowDeleteCourseDialog(true);
+  };
 
-    // Show confirmation with impact information
-    const confirmed = window.confirm(
-      `⚠️ DELETE COURSE: "${course.title}"\n\n` +
-      `This will permanently delete:\n` +
-      `• ${course._count?.lessons || 0} lesson(s)\n` +
-      `• ${course._count?.enrollments || 0} student enrollment(s)\n` +
-      `• All associated quizzes and progress data\n\n` +
-      `THIS CANNOT BE UNDONE!\n\n` +
-      `Are you absolutely sure you want to delete this course?`
-    );
+  const confirmDeleteCourse = async () => {
+    if (!courseToDelete) return;
 
-    if (!confirmed) return;
-
-    // Store original courses for rollback on error
     const originalCourses = [...courses];
 
     try {
-      // Optimistic update: Remove from UI immediately
-      setCourses(courses.filter(c => c.id !== courseId));
-
-      setDeletingId(courseId);
-      await courseService.deleteCourse(courseId);
-
+      setCourses(courses.filter(c => c.id !== courseToDelete.id));
+      setDeletingId(courseToDelete.id);
+      await courseService.deleteCourse(courseToDelete.id);
       toast.success("Course deleted successfully!");
     } catch (error) {
       console.error("Error deleting course:", error);
       toast.error("Failed to delete course. Please try again.");
-
-      // Rollback optimistic update on error
       setCourses(originalCourses);
     } finally {
       setDeletingId(null);
+      setShowDeleteCourseDialog(false);
+      setCourseToDelete(null);
     }
   };
 
@@ -878,7 +871,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       setQuizzes(allQuizzes);
     } catch (error) {
       console.error("Error fetching quizzes:", error);
-      toast.error("Failed to load quizzes");
+      toast.error("Failed to load quizzes. Please try again.");
     } finally {
       setIsLoadingQuizzes(false);
     }
@@ -945,7 +938,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       setLabs(allLabs);
     } catch (error) {
       console.error("Error fetching labs:", error);
-      toast.error("Failed to load labs");
+      toast.error("Failed to load labs. Please try again.");
     } finally {
       setIsLoadingLabs(false);
     }
@@ -995,7 +988,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       setModules(courseModules);
     } catch (error) {
       console.error("Error fetching modules:", error);
-      toast.error("Failed to load modules");
+      toast.error("Failed to load modules. Please try again.");
       setModules([]);
     } finally {
       setIsLoadingModules(false);
@@ -1163,7 +1156,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       setPhishingStats(stats);
     } catch (error) {
       console.error("Error fetching phishing scenarios:", error);
-      toast.error("Failed to load phishing scenarios");
+      toast.error("Failed to load phishing scenarios. Please try again.");
     } finally {
       setIsLoadingPhishing(false);
     }
@@ -1176,7 +1169,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
       setPhishingAttempts(response.attempts);
     } catch (error) {
       console.error("Error fetching phishing attempts:", error);
-      toast.error("Failed to load attempts");
+      toast.error("Failed to load attempts. Please try again.");
     } finally {
       setIsLoadingAttempts(false);
     }
@@ -1441,6 +1434,38 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
             </TabsList>
 
             <TabsContent value="courses" className="space-y-6">
+              {/* Search and Filters */}
+              {courses.length > 0 && (
+                <div className="flex flex-wrap gap-4 items-center">
+                  <Input
+                    placeholder="Search courses..."
+                    value={courseSearch}
+                    onChange={(e) => setCourseSearch(e.target.value)}
+                    className="max-w-xs bg-input-background"
+                  />
+                  <Select value={courseFilterDifficulty} onValueChange={setCourseFilterDifficulty}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={courseFilterStatus} onValueChange={setCourseFilterStatus}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               {courses.length === 0 ? (
                 <Card className="p-12 text-center">
                   <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -1453,7 +1478,12 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                 </Card>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {courses.map((course) => (
+                  {courses.filter((course) => {
+                    const matchesSearch = !courseSearch || course.title.toLowerCase().includes(courseSearch.toLowerCase()) || course.description.toLowerCase().includes(courseSearch.toLowerCase());
+                    const matchesDifficulty = courseFilterDifficulty === "all" || course.difficulty === courseFilterDifficulty;
+                    const matchesStatus = courseFilterStatus === "all" || (courseFilterStatus === "published" ? course.isPublished : !course.isPublished);
+                    return matchesSearch && matchesDifficulty && matchesStatus;
+                  }).map((course) => (
                     <Card key={course.id} className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center overflow-hidden">
@@ -1707,6 +1737,32 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+
+              {/* Delete Course Confirmation */}
+              <AlertDialog open={showDeleteCourseDialog} onOpenChange={setShowDeleteCourseDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Course</AlertDialogTitle>
+                    <AlertDialogDescription className="space-y-2">
+                      <span className="block">Are you sure you want to delete <strong>"{courseToDelete?.title}"</strong>?</span>
+                      <span className="block">This will permanently delete:</span>
+                      <span className="block">• {courseToDelete?._count?.lessons || 0} lesson(s)</span>
+                      <span className="block">• {courseToDelete?._count?.enrollments || 0} student enrollment(s)</span>
+                      <span className="block">• All associated quizzes and progress data</span>
+                      <span className="block font-semibold text-destructive">This action cannot be undone.</span>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={confirmDeleteCourse}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete Course
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </TabsContent>
 
             <TabsContent value="modules" className="space-y-6">
@@ -2872,18 +2928,6 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
               </AlertDialog>
             </TabsContent>
 
-            <TabsContent value="modules" className="space-y-6">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold">Modules</h2>
-                <p className="text-muted-foreground">Course module organization</p>
-              </div>
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  Lessons are organized in order within each course.
-                  Module grouping functionality coming soon.
-                </p>
-              </Card>
-            </TabsContent>
           </Tabs>
 
           {/* Create Lesson Dialog */}

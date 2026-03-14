@@ -304,7 +304,7 @@ export function AdminLessonEdit({ lessonId, userEmail, onNavigate, onLogout }: A
         onLogout={onLogout}
       />
 
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="border-b border-border bg-card sticky top-0 z-10">
           <div className="flex items-center justify-between p-4">

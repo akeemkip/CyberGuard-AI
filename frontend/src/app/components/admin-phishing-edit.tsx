@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import DOMPurify from "dompurify";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -231,7 +232,8 @@ export function AdminPhishingEdit({
             <Button variant="outline" onClick={() => onNavigate("admin-content")}>
               Back to Content
             </Button>
-            <Button onClick={() => fetchScenario()}>
+            <Button onClick={() => fetchScenario()} disabled={isLoading}>
+              {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Try Again
             </Button>
           </div>
@@ -586,7 +588,7 @@ export function AdminPhishingEdit({
                     {body ? (
                       <div
                         className="prose prose-sm dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{ __html: body }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(body) }}
                       />
                     ) : (
                       <p className="text-muted-foreground italic">
