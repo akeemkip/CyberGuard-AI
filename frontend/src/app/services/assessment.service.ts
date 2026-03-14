@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+import api from './api';
 
 export interface IntroAssessmentQuestion {
   id: string;
@@ -38,14 +36,40 @@ export interface IntroAssessmentResult {
   }[];
 }
 
+export interface FullAssessmentQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  topic: string;
+}
+
+export interface FullAssessmentData {
+  title: string;
+  passingScore: number;
+  totalQuestions: number;
+  questions: FullAssessmentQuestion[];
+}
+
 export interface FullAssessmentSubmission {
+  timeSpent?: number;
+  timerExpired?: boolean;
+  answers: { questionId: number; userAnswer: number }[];
+}
+
+export interface FullAssessmentResult {
+  attemptId: string;
   score: number;
   totalQuestions: number;
   percentage: number;
   passed: boolean;
-  timeSpent?: number;
-  timerExpired?: boolean;
-  answers: any;
+  completedAt: string;
+  answers: {
+    questionId: number;
+    userAnswer: number;
+    isCorrect: boolean;
+    correctAnswer: number;
+    explanation: string;
+  }[];
 }
 
 export interface AssessmentHistory {
@@ -75,19 +99,13 @@ export interface AssessmentHistory {
 
 // Check if user needs to take intro assessment
 export const checkIntroAssessmentRequired = async (): Promise<{ required: boolean; completed: boolean }> => {
-  const token = localStorage.getItem('token');
-  const response = await axios.get(`${API_BASE_URL}/api/assessment/intro/check`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  const response = await api.get('/assessment/intro/check');
   return response.data;
 };
 
 // Get intro assessment
 export const getIntroAssessment = async (): Promise<IntroAssessment> => {
-  const token = localStorage.getItem('token');
-  const response = await axios.get(`${API_BASE_URL}/api/assessment/intro`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  const response = await api.get('/assessment/intro');
   return response.data;
 };
 
@@ -96,42 +114,32 @@ export const submitIntroAssessment = async (
   assessmentId: string,
   answers: IntroAssessmentAnswer[]
 ): Promise<IntroAssessmentResult> => {
-  const token = localStorage.getItem('token');
-  const response = await axios.post(
-    `${API_BASE_URL}/api/assessment/intro/submit`,
-    { assessmentId, answers },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const response = await api.post('/assessment/intro/submit', { assessmentId, answers });
   return response.data;
 };
 
 // Check eligibility for full assessment
 export const checkFullAssessmentEligibility = async (): Promise<{ eligible: boolean; reason?: string }> => {
-  const token = localStorage.getItem('token');
-  const response = await axios.get(`${API_BASE_URL}/api/assessment/full/check-eligibility`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  const response = await api.get('/assessment/full/check-eligibility');
   return response.data;
 };
 
-// Submit full assessment
+// Get full assessment questions (correct answers withheld by server)
+export const getFullAssessmentQuestions = async (): Promise<FullAssessmentData> => {
+  const response = await api.get('/assessment/full/questions');
+  return response.data;
+};
+
+// Submit full assessment - server validates and calculates score
 export const submitFullAssessment = async (
   submission: FullAssessmentSubmission
-): Promise<{ attemptId: string; score: number; totalQuestions: number; percentage: number; passed: boolean; completedAt: string }> => {
-  const token = localStorage.getItem('token');
-  const response = await axios.post(
-    `${API_BASE_URL}/api/assessment/full/submit`,
-    submission,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+): Promise<FullAssessmentResult> => {
+  const response = await api.post('/assessment/full/submit', submission);
   return response.data;
 };
 
 // Get assessment history
 export const getAssessmentHistory = async (): Promise<AssessmentHistory> => {
-  const token = localStorage.getItem('token');
-  const response = await axios.get(`${API_BASE_URL}/api/assessment/history`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  const response = await api.get('/assessment/history');
   return response.data;
 };

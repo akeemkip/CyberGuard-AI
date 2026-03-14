@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
+import { FULL_ASSESSMENT_QUESTIONS, FULL_ASSESSMENT_PASSING_SCORE, QUESTION_ANSWER_MAP } from '../data/full-assessment-questions';
 
 // Check if user needs to take intro assessment
 export const checkIntroAssessmentRequired = async (req: Request, res: Response) => {
@@ -180,33 +181,89 @@ export const checkFullAssessmentEligibility = async (req: Request, res: Response
   }
 };
 
-// Submit full assessment
+// Get full assessment questions (without correct answers)
+export const getFullAssessmentQuestions = async (_req: Request, res: Response) => {
+  try {
+    const questions = FULL_ASSESSMENT_QUESTIONS.map(q => ({
+      id: q.id,
+      question: q.question,
+      options: q.options,
+      topic: q.topic
+    }));
+
+    res.json({
+      title: 'Full Cybersecurity Skills Assessment',
+      passingScore: FULL_ASSESSMENT_PASSING_SCORE,
+      totalQuestions: questions.length,
+      questions
+    });
+  } catch (error) {
+    console.error('Error fetching full assessment questions:', error);
+    res.status(500).json({ error: 'Failed to fetch assessment questions' });
+  }
+};
+
+// Submit full assessment - scores validated server-side
 export const submitFullAssessment = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const { score, totalQuestions, percentage, passed, timeSpent, timerExpired, answers } = req.body;
+    const { timeSpent, timerExpired, answers } = req.body;
 
-    // Save attempt
+    if (!answers || !Array.isArray(answers)) {
+      return res.status(400).json({ error: 'Answers array is required' });
+    }
+
+    // Server-side score calculation
+    const totalQuestions = FULL_ASSESSMENT_QUESTIONS.length;
+    let correctCount = 0;
+
+    const validatedAnswers = answers.map((answer: { questionId: number; userAnswer: number }) => {
+      const correctAnswer = QUESTION_ANSWER_MAP.get(answer.questionId);
+      const isCorrect = correctAnswer !== undefined && answer.userAnswer === correctAnswer;
+      if (isCorrect) correctCount++;
+
+      return {
+        questionId: answer.questionId,
+        userAnswer: answer.userAnswer,
+        isCorrect
+      };
+    });
+
+    const percentage = Math.round((correctCount / totalQuestions) * 100);
+    const passed = timerExpired ? false : percentage >= FULL_ASSESSMENT_PASSING_SCORE;
+
+    // Save attempt with server-calculated scores
     const attempt = await prisma.fullAssessmentAttempt.create({
       data: {
         userId,
-        score,
+        score: correctCount,
         totalQuestions,
         percentage,
         passed,
         timeSpent: timeSpent || null,
         timerExpired: timerExpired || false,
-        answers
+        answers: validatedAnswers
       }
+    });
+
+    // Return results with explanations
+    const answersWithExplanations = validatedAnswers.map((a: { questionId: number; userAnswer: number; isCorrect: boolean }) => {
+      const question = FULL_ASSESSMENT_QUESTIONS.find(q => q.id === a.questionId);
+      return {
+        ...a,
+        correctAnswer: QUESTION_ANSWER_MAP.get(a.questionId),
+        explanation: question?.explanation
+      };
     });
 
     res.json({
       attemptId: attempt.id,
-      score,
+      score: correctCount,
       totalQuestions,
       percentage,
       passed,
-      completedAt: attempt.completedAt
+      completedAt: attempt.completedAt,
+      answers: answersWithExplanations
     });
   } catch (error) {
     console.error('Error submitting full assessment:', error);

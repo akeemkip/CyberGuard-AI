@@ -5,6 +5,7 @@ import {
   getIntroAssessment,
   submitIntroAssessment,
   checkFullAssessmentEligibility,
+  getFullAssessmentQuestions,
   submitFullAssessment,
   getAssessmentHistory
 } from '../controllers/assessment.controller';
@@ -21,6 +22,7 @@ router.post('/intro/submit', submitIntroAssessment);
 
 // Full assessment routes
 router.get('/full/check-eligibility', checkFullAssessmentEligibility);
+router.get('/full/questions', getFullAssessmentQuestions);
 router.post('/full/submit', submitFullAssessment);
 
 // Assessment history
