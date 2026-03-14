@@ -66,14 +66,18 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
-        // Fetch all data in parallel
-        const [statsData, enrolledData, allCoursesData] = await Promise.all([
+        // Fetch all data in parallel — use allSettled so one failure doesn't block the rest
+        const [statsResult, enrolledResult, allCoursesResult] = await Promise.allSettled([
           userService.getMyStats(),
           courseService.getEnrolledCourses(),
           courseService.getAllCourses(true) // Only published courses
         ]);
 
-        setStats(statsData);
+        const statsData = statsResult.status === 'fulfilled' ? statsResult.value : null;
+        const enrolledData = enrolledResult.status === 'fulfilled' ? enrolledResult.value : [];
+        const allCoursesData = allCoursesResult.status === 'fulfilled' ? allCoursesResult.value : [];
+
+        if (statsData) setStats(statsData);
         setEnrolledCourses(enrolledData);
 
         // Check if user has completed phishing course

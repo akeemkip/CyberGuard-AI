@@ -8,6 +8,11 @@ import cookieParser from 'cookie-parser';
 // Load environment variables
 dotenv.config();
 
+import { validateEncryptionKey } from './utils/encryption';
+
+// Validate critical env vars early — fail fast if missing
+validateEncryptionKey();
+
 // Import routes
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';

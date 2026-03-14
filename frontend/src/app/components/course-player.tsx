@@ -662,12 +662,12 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                                       <p className="text-sm text-muted-foreground mb-2">
                                         Your answer:{" "}
                                         <span className={result?.isCorrect ? "text-green-600" : "text-red-600"}>
-                                          {q.options[result?.userAnswer ?? 0]}
+                                          {q.options[result?.userAnswer ?? 0] ?? "Unknown"}
                                         </span>
                                       </p>
                                       {!result?.isCorrect && (
                                         <p className="text-sm text-green-600">
-                                          Correct answer: {q.options[result?.correctAnswer ?? 0]}
+                                          Correct answer: {q.options[result?.correctAnswer ?? 0] ?? "Unknown"}
                                         </p>
                                       )}
                                     </div>

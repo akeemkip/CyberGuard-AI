@@ -84,11 +84,31 @@ export const uploadImage = async (req: Request, res: Response) => {
     const fileBuffer = fs.readFileSync(req.file.path);
     const detectedType = await fromBuffer(fileBuffer);
     const allowedMagicMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    // SVG and ICO lack reliable magic bytes — skip them if the extension-based filter already passed
     const extLower = path.extname(req.file.originalname).toLowerCase();
-    const skipMagicCheck = ['.svg', '.ico'].includes(extLower);
 
-    if (!skipMagicCheck) {
+    if (extLower === '.svg') {
+      // SVGs are XML-based and can contain scripts — validate content
+      const svgContent = fileBuffer.toString('utf-8');
+      const dangerousPatterns = [
+        /<script[\s>]/i,
+        /on\w+\s*=/i,
+        /javascript\s*:/i,
+        /<iframe[\s>]/i,
+        /<embed[\s>]/i,
+        /<object[\s>]/i,
+        /<foreignObject[\s>]/i,
+        /data\s*:\s*text\/html/i,
+        /xlink:href\s*=\s*["']?\s*javascript/i,
+      ];
+      const hasDangerousContent = dangerousPatterns.some(p => p.test(svgContent));
+      if (hasDangerousContent) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({
+          error: 'SVG file contains potentially dangerous content (scripts, event handlers, or embedded objects). Upload rejected for security.'
+        });
+      }
+    } else if (extLower !== '.ico') {
+      // ICO lacks reliable magic bytes — trust extension filter; all others get magic byte check
       if (!detectedType || !allowedMagicMimes.includes(detectedType.mime)) {
         fs.unlinkSync(req.file.path);
         return res.status(400).json({

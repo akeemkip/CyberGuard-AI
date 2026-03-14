@@ -10,7 +10,7 @@ Monolithic 2-tier app: React SPA frontend + Express.js REST API backend + Postgr
 CyberGuard-AI/
 ├── frontend/          # React 18 + Vite 6 + TypeScript SPA
 ├── backend/           # Express.js + TypeScript REST API
-├── Docs/              # Project docs, SQL backups, TODOs
+├── Docs/              # Project docs, audit reports
 ```
 
 No shared types between frontend/backend — they are independent Node.js projects with separate `package.json` files.

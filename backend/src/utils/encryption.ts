@@ -11,6 +11,11 @@ function getEncryptionKey(): Buffer {
   return Buffer.from(key, 'hex');
 }
 
+// Validate encryption key at startup — call early to fail fast
+export function validateEncryptionKey(): void {
+  getEncryptionKey();
+}
+
 export function encrypt(plaintext: string): string {
   if (!plaintext) return '';
   const key = getEncryptionKey();

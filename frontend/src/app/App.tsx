@@ -109,24 +109,18 @@ function AppContent() {
     }
     return savedPage || "landing";
   });
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(() => {
-    return localStorage.getItem("selectedCourseId");
-  });
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(() => {
-    return localStorage.getItem("selectedUserId");
-  });
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(() => {
-    return localStorage.getItem("selectedLessonId");
-  });
-  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(() => {
-    return localStorage.getItem("selectedQuizId");
-  });
-  const [selectedLabId, setSelectedLabId] = useState<string | null>(() => {
-    return localStorage.getItem("selectedLabId");
-  });
-  const [selectedPhishingScenarioId, setSelectedPhishingScenarioId] = useState<string | null>(() => {
-    return localStorage.getItem("selectedPhishingScenarioId");
-  });
+  // Safe localStorage reader — returns null for empty, "undefined", "null", or missing values
+  const readStoredId = (key: string): string | null => {
+    const val = localStorage.getItem(key);
+    return val && val !== "undefined" && val !== "null" && val.trim() !== "" ? val : null;
+  };
+
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(() => readStoredId("selectedCourseId"));
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(() => readStoredId("selectedUserId"));
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(() => readStoredId("selectedLessonId"));
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(() => readStoredId("selectedQuizId"));
+  const [selectedLabId, setSelectedLabId] = useState<string | null>(() => readStoredId("selectedLabId"));
+  const [selectedPhishingScenarioId, setSelectedPhishingScenarioId] = useState<string | null>(() => readStoredId("selectedPhishingScenarioId"));
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Log all page changes
@@ -530,16 +524,30 @@ function AppContent() {
           />
         );
       case "course-player":
-        return (
+        return selectedCourseId ? (
           <CoursePlayer
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
             courseId={selectedCourseId}
           />
+        ) : (
+          <CourseCatalog
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
         );
       case "lab-player":
-        return <LabPlayer labId={selectedLabId} onNavigate={handleNavigate} />;
+        return selectedLabId ? (
+          <LabPlayer labId={selectedLabId} onNavigate={handleNavigate} />
+        ) : (
+          <StudentDashboard
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        );
       case "ai-chat":
         return (
           <AIChat
@@ -637,27 +645,45 @@ function AppContent() {
           />
         );
       case "admin-quiz-edit":
-        return (
+        return selectedQuizId ? (
           <AdminQuizEdit
             quizId={selectedQuizId}
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
           />
+        ) : (
+          <AdminContent
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
         );
       case "admin-lab-edit":
-        return (
+        return selectedLabId ? (
           <AdminLabEdit
             labId={selectedLabId}
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
           />
+        ) : (
+          <AdminContent
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
         );
       case "admin-phishing-edit":
-        return (
+        return selectedPhishingScenarioId ? (
           <AdminPhishingEdit
             scenarioId={selectedPhishingScenarioId}
+            userEmail={userEmail}
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
+          />
+        ) : (
+          <AdminContent
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}

@@ -186,17 +186,25 @@ export function PlatformSettingsProvider({ children }: { children: ReactNode }) 
     }
   }, [settings.favicon]);
 
-  // Apply customCss when it changes
+  // Apply customCss when it changes (with sanitization)
   useEffect(() => {
     let styleTag = document.getElementById('platform-custom-css') as HTMLStyleElement;
 
     if (settings.customCss) {
+      // Strip dangerous CSS patterns that could exfiltrate data or execute code
+      const sanitized = settings.customCss
+        .replace(/@import\b/gi, '/* blocked @import */')
+        .replace(/url\s*\(\s*["']?\s*(?:https?:|data:|\/\/)/gi, 'url(/* blocked remote url */')
+        .replace(/expression\s*\(/gi, '/* blocked expression */(')
+        .replace(/behavior\s*:/gi, '/* blocked behavior */:')
+        .replace(/-moz-binding\s*:/gi, '/* blocked -moz-binding */:');
+
       if (!styleTag) {
         styleTag = document.createElement('style');
         styleTag.id = 'platform-custom-css';
         document.head.appendChild(styleTag);
       }
-      styleTag.textContent = settings.customCss;
+      styleTag.textContent = sanitized;
     } else if (styleTag) {
       styleTag.remove();
     }

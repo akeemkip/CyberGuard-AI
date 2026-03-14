@@ -260,8 +260,8 @@ export const getStats = async (req: AuthRequest, res: Response) => {
 export const getHistory = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit as string) || 20, 100));
+    const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
 
     const [attempts, total] = await Promise.all([
       prisma.phishingAttempt.findMany({

@@ -35,5 +35,22 @@
 - Password: min 8 chars, requires uppercase + lowercase + number + special char
 - Complexity configurable via `PlatformSettings.minPasswordLength`
 
+## File Upload Security
+- SVG uploads are scanned for dangerous content (scripts, event handlers, iframes, foreignObject, data URIs)
+- Other image types validated via magic bytes (`file-type` library)
+- ICO files skip magic byte check (unreliable) but pass extension + MIME filter
+- Max file size: 5MB, min 1KB
+
+## CSS Injection Protection
+- Admin custom CSS is sanitized before injection into the DOM
+- Blocked patterns: `@import`, remote `url()`, `expression()`, `behavior`, `-moz-binding`
+
+## Pagination Bounds
+- All paginated endpoints enforce `limit >= 1`, `limit <= 100`, `offset >= 0`
+- Prevents negative values from reaching database queries
+
+## Startup Validation
+- `ENCRYPTION_KEY` validated at server boot — app fails fast if missing or invalid
+
 ## Middleware Order (index.ts)
 1. CORS → 2. JSON parsing (10MB) → 3. Cookie parsing → 4. Sanitization → 5. Rate limiting → 6. CSRF → 7. Routes

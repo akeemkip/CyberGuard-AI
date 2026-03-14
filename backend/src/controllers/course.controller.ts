@@ -1132,9 +1132,9 @@ export const updateLabNotes = async (req: AuthRequest, res: Response) => {
 };
 
 // Helper function to calculate score server-side based on simulation type and answers
-const calculateLabScore = (labType: string, simulationConfig: any, answers: any): { score: number; passed: boolean; passingScore: number } => {
+const calculateLabScore = (labType: string, simulationConfig: any, answers: any, labPassingScore: number = 70): { score: number; passed: boolean; passingScore: number } => {
   let score = 0;
-  const passingScore = 70; // Default passing score
+  const passingScore = labPassingScore;
 
   switch (labType) {
     case 'PHISHING_EMAIL': {
@@ -1374,7 +1374,7 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
     let passed: boolean;
 
     try {
-      const result = calculateLabScore(lab.labType, lab.simulationConfig, answers);
+      const result = calculateLabScore(lab.labType, lab.simulationConfig, answers, lab.passingScore);
       calculatedScore = result.score;
       passed = result.passed;
     } catch (error) {

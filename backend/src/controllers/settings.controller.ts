@@ -22,7 +22,7 @@ const defaultPublicSettings = {
   logoUrl: '',
   favicon: '',
   customCss: '',
-  minPasswordLength: 6,
+  minPasswordLength: 8,
   allowSelfRegistration: true,
 };
 
@@ -367,8 +367,8 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
 // Get settings audit log
 export const getSettingsAuditLogs = async (req: AuthRequest, res: Response) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit as string) || 50, 100));
+    const offset = Math.max(0, parseInt(req.query.offset as string) || 0);
     const fieldFilter = req.query.field as string | undefined;
 
     const { entries, total } = await getAuditLog(limit, offset, fieldFilter);

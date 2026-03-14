@@ -25,6 +25,8 @@ This project does NOT use React Router. All routing is state-based in `frontend/
 ## Gotchas
 - Transient pages get their parent pushed to history first via `replaceState`, so back button works correctly
 - ID params are stored in BOTH React state AND localStorage — both must be set
+- All transient pages have null-ID guards in `renderPage()` — if the ID is missing, the parent page renders instead
+- localStorage IDs are validated on load via `readStoredId()` — rejects empty, "undefined", "null" values
 - Admin users CANNOT access any student pages and vice versa — no shared pages exist
 - The initial page is resolved from: history.state → localStorage → "landing" (transient pages in localStorage are skipped)
 - Logout has an 800ms delay for toast visibility before redirect
