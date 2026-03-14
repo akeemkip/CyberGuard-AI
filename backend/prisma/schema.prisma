@@ -24,6 +24,7 @@ model Course {
   modules        Module[]
   introQuestions IntroQuestion[]
 
+  @@index([isPublished])
   @@map("courses")
 }
 
@@ -37,6 +38,7 @@ model Enrollment {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+  @@index([enrolledAt])
   @@map("enrollments")
 }
 
@@ -83,6 +85,7 @@ model Progress {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+  @@index([completedAt])
   @@map("progress")
 }
 
@@ -108,6 +111,7 @@ model QuizAttempt {
   quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([attemptedAt])
   @@map("quiz_attempts")
 }
 
@@ -150,6 +154,7 @@ model User {
   introAssessmentAttempts  IntroAssessmentAttempt[]
   fullAssessmentAttempts   FullAssessmentAttempt[]
 
+  @@index([role])
   @@map("users")
 }
 
@@ -334,6 +339,7 @@ model PhishingScenario {
   updatedAt        DateTime          @updatedAt
   attempts         PhishingAttempt[]
 
+  @@index([isActive])
   @@map("phishing_scenarios")
 }
 
@@ -361,6 +367,7 @@ model IntroAssessment {
   questions    IntroQuestion[]
   attempts     IntroAssessmentAttempt[]
 
+  @@index([isActive])
   @@map("intro_assessments")
 }
 
