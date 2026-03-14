@@ -153,6 +153,7 @@ model User {
   quizAttempts             QuizAttempt[]
   introAssessmentAttempts  IntroAssessmentAttempt[]
   fullAssessmentAttempts   FullAssessmentAttempt[]
+  settingsAuditLogs       SettingsAuditLog[]
 
   @@index([role])
   @@map("users")
@@ -316,7 +317,10 @@ model SettingsAuditLog {
   newValue   String?
   ipAddress  String?
   timestamp  DateTime @default(now())
+  admin      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
+  @@index([adminId])
+  @@index([timestamp])
   @@map("settings_audit_log")
 }
 
