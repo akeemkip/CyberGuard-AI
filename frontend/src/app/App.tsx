@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Toaster, toast } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -67,6 +68,19 @@ const transientPageParents: Partial<Record<Page, Page>> = {
   "admin-quiz-edit": "admin-content",
   "admin-lab-edit": "admin-content",
   "admin-phishing-edit": "admin-content",
+};
+
+// Page transition variants (fade only)
+const pageVariants = {
+  enter: { opacity: 0 },
+  center: {
+    opacity: 1,
+    transition: { duration: 0.25, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.15, ease: "easeIn" },
+  },
 };
 
 function AppContent() {
@@ -281,6 +295,7 @@ function AppContent() {
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
       console.log('[App] popstate event triggered:', event.state);
+      window.scrollTo({ top: 0, behavior: "instant" });
       if (event.state?.page) {
         const targetPage = event.state.page as Page;
 
@@ -377,6 +392,7 @@ function AppContent() {
 
   const handleNavigate = (page: string, idParam?: string) => {
     console.log('[App] 🔄 handleNavigate called:', { from: currentPage, to: page, idParam });
+    window.scrollTo({ top: 0, behavior: "instant" });
 
     const pageAsType = page as Page;
     const isAdmin = user?.role === "ADMIN";
@@ -664,7 +680,20 @@ function AppContent() {
     }
   };
 
-  return renderPage();
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={currentPage}
+        variants={pageVariants}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        style={{ minHeight: "100vh" }}
+      >
+        {renderPage()}
+      </motion.div>
+    </AnimatePresence>
+  );
 }
 
 export default function App() {

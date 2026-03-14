@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Shield, Brain, Target, Users, Lock, TrendingUp, Moon, Sun, Menu, X } from "lucide-react";
@@ -53,25 +54,38 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
         </div>
 
         {/* Mobile Navigation Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-card">
-            <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
-              <button onClick={() => scrollToSection("features")} className="text-left py-2 text-muted-foreground hover:text-foreground transition-colors">Features</button>
-              <button onClick={() => scrollToSection("how-it-works")} className="text-left py-2 text-muted-foreground hover:text-foreground transition-colors">How It Works</button>
-              <button onClick={() => scrollToSection("pricing")} className="text-left py-2 text-muted-foreground hover:text-foreground transition-colors">Pricing</button>
-              <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                <Button variant="outline" onClick={() => onNavigate("login")} className="w-full">Log In</Button>
-                <Button onClick={() => onNavigate("register")} className="w-full">Get Started</Button>
-              </div>
-            </nav>
-          </div>
-        )}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              className="md:hidden border-t border-border bg-card overflow-hidden"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
+                <button onClick={() => scrollToSection("features")} className="text-left py-2 text-muted-foreground hover:text-foreground transition-colors">Features</button>
+                <button onClick={() => scrollToSection("how-it-works")} className="text-left py-2 text-muted-foreground hover:text-foreground transition-colors">How It Works</button>
+                <button onClick={() => scrollToSection("pricing")} className="text-left py-2 text-muted-foreground hover:text-foreground transition-colors">Pricing</button>
+                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                  <Button variant="outline" onClick={() => onNavigate("login")} className="w-full">Log In</Button>
+                  <Button onClick={() => onNavigate("register")} className="w-full">Get Started</Button>
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Hero Section */}
       <section className="py-20 md:py-32 bg-gradient-to-b from-secondary/20 to-background">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            className="max-w-4xl mx-auto text-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full mb-6">
               <Brain className="w-4 h-4" />
               <span className="text-sm font-medium">AI-Powered Adaptive Learning</span>
@@ -80,7 +94,7 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
               Master Cybersecurity<br />with Intelligent Training
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Transform your team's security awareness with adaptive AI-driven training, 
+              Transform your team's security awareness with adaptive AI-driven training,
               realistic phishing simulations, and comprehensive analytics.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -105,7 +119,7 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
                 <div className="text-sm text-muted-foreground">AI Support</div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -119,60 +133,30 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                <Brain className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">AI-Driven Adaptation</h3>
-              <p className="text-muted-foreground">
-                Personalized learning paths that adapt to each user's skill level and progress in real-time.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
-                <Target className="w-6 h-6 text-accent" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Phishing Simulations</h3>
-              <p className="text-muted-foreground">
-                Realistic phishing scenarios that test and train your team to identify threats.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-chart-3/10 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-chart-3" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Advanced Analytics</h3>
-              <p className="text-muted-foreground">
-                Comprehensive dashboards and reports to track progress and measure ROI.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center mb-4">
-                <Shield className="w-6 h-6 text-success" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Interactive Labs</h3>
-              <p className="text-muted-foreground">
-                Hands-on exercises in safe environments to practice real-world scenarios.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-warning" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Team Management</h3>
-              <p className="text-muted-foreground">
-                Powerful admin tools to manage users, assign courses, and track team performance.
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center mb-4">
-                <Lock className="w-6 h-6 text-destructive" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Secure & Compliant</h3>
-              <p className="text-muted-foreground">
-                Enterprise-grade security with compliance tracking for industry standards.
-              </p>
-            </Card>
+            {[
+              { icon: Brain, bgClass: "bg-primary/10", textClass: "text-primary", title: "AI-Driven Adaptation", desc: "Personalized learning paths that adapt to each user's skill level and progress in real-time." },
+              { icon: Target, bgClass: "bg-accent/10", textClass: "text-accent", title: "Phishing Simulations", desc: "Realistic phishing scenarios that test and train your team to identify threats." },
+              { icon: TrendingUp, bgClass: "bg-chart-3/10", textClass: "text-chart-3", title: "Advanced Analytics", desc: "Comprehensive dashboards and reports to track progress and measure ROI." },
+              { icon: Shield, bgClass: "bg-success/10", textClass: "text-success", title: "Interactive Labs", desc: "Hands-on exercises in safe environments to practice real-world scenarios." },
+              { icon: Users, bgClass: "bg-warning/10", textClass: "text-warning", title: "Team Management", desc: "Powerful admin tools to manage users, assign courses, and track team performance." },
+              { icon: Lock, bgClass: "bg-destructive/10", textClass: "text-destructive", title: "Secure & Compliant", desc: "Enterprise-grade security with compliance tracking for industry standards." },
+            ].map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.4, delay: i * 0.1, ease: "easeOut" }}
+              >
+                <Card className="p-6 hover:shadow-lg transition-shadow h-full">
+                  <div className={`w-12 h-12 ${feature.bgClass} rounded-lg flex items-center justify-center mb-4`}>
+                    <feature.icon className={`w-6 h-6 ${feature.textClass}`} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.desc}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
