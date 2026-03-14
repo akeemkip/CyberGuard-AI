@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import crypto from 'crypto';
+import { AuthRequest } from './auth.middleware';
 import { logger } from '../utils/logger';
 
 // Store for CSRF tokens (in production, use Redis or database)
@@ -49,7 +50,7 @@ const validateCsrfToken = (userId: string, token: string): boolean => {
  * Middleware to protect against CSRF attacks
  * Uses double-submit cookie pattern with additional header validation
  */
-export const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
+export const csrfProtection = (req: AuthRequest, res: Response, next: NextFunction) => {
   // Skip CSRF check for safe methods (GET, HEAD, OPTIONS)
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
@@ -61,7 +62,7 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
     return next();
   }
 
-  const userId = (req as any).userId;
+  const userId = req.userId;
 
   // If no user ID, skip CSRF (authentication will handle it)
   if (!userId) {
@@ -158,8 +159,8 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
 /**
  * Endpoint to get CSRF token (requires authentication)
  */
-export const getCsrfToken = (req: Request, res: Response) => {
-  const userId = (req as any).userId;
+export const getCsrfToken = (req: AuthRequest, res: Response) => {
+  const userId = req.userId;
 
   if (!userId) {
     return res.status(401).json({ error: 'Authentication required' });

@@ -2,11 +2,12 @@ import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { encrypt, decrypt, isEncrypted } from '../utils/encryption';
+import { logger } from '../utils/logger';
 import { logSettingsChanges, getSettingsAuditLog as getAuditLog, getAuditedFieldNames, AuditLogEntry } from '../services/audit.service';
 import { sendTestEmail } from '../services/email.service';
 
 // Sentinel value to indicate "keep existing password"
-const PASSWORD_MASK = '••••••••';
+const PASSWORD_MASK = '\x00__SMTP_PASSWORD_UNCHANGED__\x00';
 
 // Default settings for public endpoint
 const defaultPublicSettings = {
@@ -50,7 +51,7 @@ export const getPublicSettings = async (req: Request, res: Response) => {
     // Return defaults if no settings exist
     res.json({ settings: settings || defaultPublicSettings });
   } catch (error: any) {
-    console.error('Error fetching public platform settings:', error);
+    logger.error('Error fetching public platform settings:', error);
     res.status(500).json({ error: 'Failed to fetch platform settings' });
   }
 };
@@ -82,7 +83,7 @@ export const getPlatformSettings = async (req: Request, res: Response) => {
       }
     });
   } catch (error: any) {
-    console.error('Error fetching platform settings:', error);
+    logger.error('Error fetching platform settings:', error);
     res.status(500).json({ error: 'Failed to fetch platform settings' });
   }
 };
@@ -358,7 +359,7 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
       message: 'Platform settings updated successfully'
     });
   } catch (error: any) {
-    console.error('Error updating platform settings:', error);
+    logger.error('Error updating platform settings:', error);
     res.status(500).json({ error: 'Failed to update platform settings' });
   }
 };
@@ -381,7 +382,7 @@ export const getSettingsAuditLogs = async (req: AuthRequest, res: Response) => {
       fields,
     });
   } catch (error: any) {
-    console.error('Error fetching settings audit log:', error);
+    logger.error('Error fetching settings audit log:', error);
     res.status(500).json({ error: 'Failed to fetch audit log' });
   }
 };
@@ -459,7 +460,7 @@ export const rollbackSettingsChange = async (req: AuthRequest, res: Response) =>
       rolledBackTo: auditEntry.oldValue
     });
   } catch (error) {
-    console.error('Error rolling back settings:', error);
+    logger.error('Error rolling back settings:', error);
     res.status(500).json({ error: 'Failed to rollback settings' });
   }
 };
@@ -524,7 +525,7 @@ export const exportAuditLogCSV = async (req: AuthRequest, res: Response) => {
     res.setHeader('Content-Disposition', `attachment; filename=settings-audit-log-${Date.now()}.csv`);
     res.send(csvContent);
   } catch (error) {
-    console.error('Error exporting audit log:', error);
+    logger.error('Error exporting audit log:', error);
     res.status(500).json({ error: 'Failed to export audit log' });
   }
 };
@@ -561,7 +562,7 @@ export const testEmailSettings = async (req: AuthRequest, res: Response) => {
       });
     }
   } catch (error: any) {
-    console.error('Error sending test email:', error);
+    logger.error('Error sending test email:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to send test email',

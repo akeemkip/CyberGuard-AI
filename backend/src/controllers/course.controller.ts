@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { sendEnrollmentEmail, sendCompletionEmail } from '../services/email.service';
+import { logger } from '../utils/logger';
 
 // Validation schemas
 const createCourseSchema = z.object({
@@ -44,7 +46,7 @@ export const getAllCourses = async (req: Request, res: Response) => {
 
     res.json({ courses });
   } catch (error) {
-    console.error('GetAllCourses error:', error);
+    logger.error('GetAllCourses error:', error);
     res.status(500).json({ error: 'Failed to fetch courses' });
   }
 };
@@ -100,7 +102,7 @@ export const getCourseById = async (req: Request, res: Response) => {
 
     res.json({ course });
   } catch (error) {
-    console.error('GetCourseById error:', error);
+    logger.error('GetCourseById error:', error);
     res.status(500).json({ error: 'Failed to fetch course' });
   }
 };
@@ -108,9 +110,7 @@ export const getCourseById = async (req: Request, res: Response) => {
 // Create course (admin only)
 export const createCourse = async (req: Request, res: Response) => {
   try {
-    console.log('CreateCourse request body:', JSON.stringify(req.body).substring(0, 500));
     const validatedData = createCourseSchema.parse(req.body);
-    console.log('Validated data:', JSON.stringify(validatedData).substring(0, 500));
 
     const course = await prisma.course.create({
       data: validatedData
@@ -121,11 +121,8 @@ export const createCourse = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('CreateCourse error:', error);
-    console.error('Error name:', error?.name);
-    console.error('Error message:', error?.message);
-    console.error('Error code:', error?.code);
-    res.status(500).json({ error: 'Failed to create course', details: error?.message });
+    logger.error('CreateCourse error:', error);
+    res.status(500).json({ error: 'Failed to create course' });
   }
 };
 
@@ -145,7 +142,7 @@ export const updateCourse = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('UpdateCourse error:', error);
+    logger.error('UpdateCourse error:', error);
     res.status(500).json({ error: 'Failed to update course' });
   }
 };
@@ -161,7 +158,7 @@ export const deleteCourse = async (req: Request, res: Response) => {
 
     res.json({ message: 'Course deleted successfully' });
   } catch (error) {
-    console.error('DeleteCourse error:', error);
+    logger.error('DeleteCourse error:', error);
     res.status(500).json({ error: 'Failed to delete course' });
   }
 };
@@ -208,9 +205,25 @@ export const enrollInCourse = async (req: AuthRequest, res: Response) => {
       }
     });
 
+    // Fire-and-forget enrollment email
+    const settings = await prisma.platformSettings.findUnique({
+      where: { id: 'singleton' },
+      select: { enableEmailNotifications: true, enableEnrollmentEmails: true }
+    });
+    if (settings?.enableEmailNotifications && settings?.enableEnrollmentEmails) {
+      const student = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, firstName: true }
+      });
+      if (student) {
+        sendEnrollmentEmail(student.email, student.firstName || 'Student', course.title)
+          .catch(err => logger.error('Enrollment email failed', err));
+      }
+    }
+
     res.status(201).json({ message: 'Enrolled successfully', enrollment });
   } catch (error) {
-    console.error('EnrollInCourse error:', error);
+    logger.error('EnrollInCourse error:', error);
     res.status(500).json({ error: 'Failed to enroll in course' });
   }
 };
@@ -283,7 +296,7 @@ export const getEnrolledCourses = async (req: AuthRequest, res: Response) => {
 
     res.json({ enrolledCourses: coursesWithProgress });
   } catch (error) {
-    console.error('GetEnrolledCourses error:', error);
+    logger.error('GetEnrolledCourses error:', error);
     res.status(500).json({ error: 'Failed to fetch enrolled courses' });
   }
 };
@@ -328,7 +341,7 @@ export const getCourseProgress = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('GetCourseProgress error:', error);
+    logger.error('GetCourseProgress error:', error);
     res.status(500).json({ error: 'Failed to fetch course progress' });
   }
 };
@@ -367,7 +380,7 @@ export const getQuiz = async (req: Request, res: Response) => {
 
     res.json({ quiz });
   } catch (error) {
-    console.error('GetQuiz error:', error);
+    logger.error('GetQuiz error:', error);
     res.status(500).json({ error: 'Failed to fetch quiz' });
   }
 };
@@ -459,82 +472,108 @@ export const submitQuizAttempt = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('SubmitQuizAttempt error:', error);
+    logger.error('SubmitQuizAttempt error:', error);
     res.status(500).json({ error: 'Failed to submit quiz' });
   }
 };
 
 // Helper function to check and mark course completion (considers both lessons AND labs)
+// Wrapped in a transaction to prevent race conditions from concurrent lesson/lab completions
 const checkAndCompleteCourse = async (userId: string, courseId: string): Promise<boolean> => {
-  // Get all lessons in the course
-  const courseLessons = await prisma.lesson.findMany({
-    where: { courseId },
-    select: { id: true }
-  });
-
-  // Get all labs in the course
-  const courseLabs = await prisma.lab.findMany({
-    where: { courseId },
-    select: { id: true }
-  });
-
-  // Count completed lessons
-  const completedLessons = await prisma.progress.count({
-    where: {
-      userId,
-      lessonId: { in: courseLessons.map(l => l.id) },
-      completed: true
-    }
-  });
-
-  // Count completed labs
-  const completedLabs = await prisma.labProgress.count({
-    where: {
-      userId,
-      labId: { in: courseLabs.map(l => l.id) },
-      status: 'COMPLETED'
-    }
-  });
-
-  // Course is complete if:
-  // - Has lessons: all lessons done
-  // - Has labs: all labs done
-  // - Has both: both requirements met
-  // - Has neither: not complete (empty course)
-  const lessonsComplete = courseLessons.length === 0 || completedLessons === courseLessons.length;
-  const labsComplete = courseLabs.length === 0 || completedLabs === courseLabs.length;
-  const hasContent = courseLessons.length > 0 || courseLabs.length > 0;
-
-  if (hasContent && lessonsComplete && labsComplete) {
-    // Mark enrollment as complete
-    await prisma.enrollment.update({
-      where: {
-        userId_courseId: { userId, courseId }
-      },
-      data: {
-        completedAt: new Date()
-      }
+  return prisma.$transaction(async (tx) => {
+    // Get all lessons in the course
+    const courseLessons = await tx.lesson.findMany({
+      where: { courseId },
+      select: { id: true }
     });
 
-    // Create or update certificate
-    await prisma.certificate.upsert({
+    // Get all labs in the course
+    const courseLabs = await tx.lab.findMany({
+      where: { courseId },
+      select: { id: true }
+    });
+
+    // Count completed lessons
+    const completedLessons = await tx.progress.count({
       where: {
-        userId_courseId: { userId, courseId }
-      },
-      create: {
         userId,
-        courseId,
-        issuedAt: new Date()
-      },
-      update: {
-        issuedAt: new Date()
+        lessonId: { in: courseLessons.map(l => l.id) },
+        completed: true
       }
     });
 
-    return true;
-  }
+    // Count completed labs
+    const completedLabs = await tx.labProgress.count({
+      where: {
+        userId,
+        labId: { in: courseLabs.map(l => l.id) },
+        status: 'COMPLETED'
+      }
+    });
 
-  return false;
+    // Course is complete if:
+    // - Has lessons: all lessons done
+    // - Has labs: all labs done
+    // - Has both: both requirements met
+    // - Has neither: not complete (empty course)
+    const lessonsComplete = courseLessons.length === 0 || completedLessons === courseLessons.length;
+    const labsComplete = courseLabs.length === 0 || completedLabs === courseLabs.length;
+    const hasContent = courseLessons.length > 0 || courseLabs.length > 0;
+
+    if (hasContent && lessonsComplete && labsComplete) {
+      // Mark enrollment as complete
+      await tx.enrollment.update({
+        where: {
+          userId_courseId: { userId, courseId }
+        },
+        data: {
+          completedAt: new Date()
+        }
+      });
+
+      // Create or update certificate
+      await tx.certificate.upsert({
+        where: {
+          userId_courseId: { userId, courseId }
+        },
+        create: {
+          userId,
+          courseId,
+          issuedAt: new Date()
+        },
+        update: {
+          issuedAt: new Date()
+        }
+      });
+
+      // Fire-and-forget completion email (outside transaction scope to avoid blocking)
+      const emailSettings = await tx.platformSettings.findUnique({
+        where: { id: 'singleton' },
+        select: { enableEmailNotifications: true, enableCompletionEmails: true }
+      });
+      if (emailSettings?.enableEmailNotifications && emailSettings?.enableCompletionEmails) {
+        const student = await tx.user.findUnique({
+          where: { id: userId },
+          select: { email: true, firstName: true }
+        });
+        const course = await tx.course.findUnique({
+          where: { id: courseId },
+          select: { title: true }
+        });
+        if (student && course) {
+          // Send after transaction completes - fire and forget
+          setImmediate(() => {
+            sendCompletionEmail(student.email, student.firstName || 'Student', course.title)
+              .catch(err => logger.error('Completion email failed', err));
+          });
+        }
+      }
+
+      return true;
+    }
+
+    return false;
+  });
 };
 
 // Mark lesson as complete
@@ -578,7 +617,7 @@ export const markLessonComplete = async (req: AuthRequest, res: Response) => {
       courseComplete
     });
   } catch (error) {
-    console.error('MarkLessonComplete error:', error);
+    logger.error('MarkLessonComplete error:', error);
     res.status(500).json({ error: 'Failed to mark lesson as complete' });
   }
 };
@@ -607,7 +646,7 @@ export const getLessonById = async (req: Request, res: Response) => {
 
     res.json({ lesson });
   } catch (error) {
-    console.error('GetLessonById error:', error);
+    logger.error('GetLessonById error:', error);
     res.status(500).json({ error: 'Failed to fetch lesson' });
   }
 };
@@ -639,7 +678,7 @@ export const createLesson = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('CreateLesson error:', error);
+    logger.error('CreateLesson error:', error);
     res.status(500).json({ error: 'Failed to create lesson' });
   }
 };
@@ -660,7 +699,7 @@ export const updateLesson = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('UpdateLesson error:', error);
+    logger.error('UpdateLesson error:', error);
     res.status(500).json({ error: 'Failed to update lesson' });
   }
 };
@@ -676,7 +715,7 @@ export const deleteLesson = async (req: Request, res: Response) => {
 
     res.json({ message: 'Lesson deleted successfully' });
   } catch (error) {
-    console.error('DeleteLesson error:', error);
+    logger.error('DeleteLesson error:', error);
     res.status(500).json({ error: 'Failed to delete lesson' });
   }
 };
@@ -740,7 +779,7 @@ export const getCourseLabs = async (req: AuthRequest, res: Response) => {
 
     res.json({ labs: labsWithProgress });
   } catch (error) {
-    console.error('GetCourseLabs error:', error);
+    logger.error('GetCourseLabs error:', error);
     res.status(500).json({ error: 'Failed to fetch course labs' });
   }
 };
@@ -825,7 +864,7 @@ export const getLabForStudent = async (req: AuthRequest, res: Response) => {
       } : null
     });
   } catch (error) {
-    console.error('GetLabForStudent error:', error);
+    logger.error('GetLabForStudent error:', error);
     res.status(500).json({ error: 'Failed to fetch lab' });
   }
 };
@@ -881,7 +920,7 @@ export const startLab = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('StartLab error:', error);
+    logger.error('StartLab error:', error);
     res.status(500).json({ error: 'Failed to start lab' });
   }
 };
@@ -985,7 +1024,7 @@ export const completeLab = async (req: AuthRequest, res: Response) => {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('CompleteLab error:', errorMessage);
+    logger.error('CompleteLab error:', errorMessage);
     res.status(500).json({ error: 'Failed to complete lab' });
   }
 };
@@ -1063,7 +1102,7 @@ export const updateLabNotes = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('UpdateLabNotes error:', error);
+    logger.error('UpdateLabNotes error:', error);
     res.status(500).json({ error: 'Failed to update lab notes' });
   }
 };
@@ -1315,7 +1354,7 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
       calculatedScore = result.score;
       passed = result.passed;
     } catch (error) {
-      console.error('Score calculation error:', error);
+      logger.error('Score calculation error:', error);
       return res.status(400).json({ error: 'Failed to calculate score. Invalid answers or configuration.' });
     }
 
@@ -1374,7 +1413,7 @@ export const submitLabSimulation = async (req: AuthRequest, res: Response) => {
       courseComplete
     });
   } catch (error) {
-    console.error('SubmitLabSimulation error:', error);
+    logger.error('SubmitLabSimulation error:', error);
     res.status(500).json({ error: 'Failed to submit lab simulation' });
   }
 };

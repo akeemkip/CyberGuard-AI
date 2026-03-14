@@ -158,30 +158,30 @@ Think of this system like a house: the structure is solid, but some doors don't 
 
 | # | Issue | Severity | Layer | Status |
 |---|-------|----------|-------|--------|
-| 1 | Unauthenticated file uploads | **CRITICAL** | Backend | Open |
-| 2 | Client-trusted assessment scores | **CRITICAL** | Backend | Open |
-| 3 | 3 lab types missing scoring logic | **CRITICAL** | Backend | Open |
-| 4 | Navigation bug in default route | **CRITICAL** | Frontend | Open |
-| 5 | CSRF gaps on frontend services | HIGH | Frontend | Open |
-| 6 | Assessments page uses hardcoded data | HIGH | Frontend | Open |
-| 7 | Missing cascade delete on Module relations | HIGH | Database | Open |
-| 8 | Missing database indexes | HIGH | Database | Open |
-| 9 | Course player errors are silent | HIGH | Frontend | Open |
-| 10 | Audit log has no user FK relation | HIGH | Database | Open |
-| 11 | Unsafe type assertions in backend | MEDIUM | Backend | Open |
-| 12 | Race condition in course completion | MEDIUM | Backend | Open |
-| 13 | CSRF tokens in-memory only | MEDIUM | Backend | Open |
-| 14 | No pagination on admin queries | MEDIUM | Backend | Open |
-| 15 | Inconsistent error logging | MEDIUM | Backend | Open |
-| 16 | Email notifications not wired up | MEDIUM | Backend | Open |
-| 17 | File upload content not validated | MEDIUM | Backend | Open |
-| 18 | Dead smart-chatbot service | MEDIUM | Backend | Open |
-| 19 | Phishing query unlimited results | MEDIUM | Backend | Open |
-| 20 | alert() instead of toast | LOW | Frontend | Open |
-| 21 | Admin service returns `any` types | LOW | Frontend | Open |
-| 22 | Inconsistent API response formats | LOW | Backend | Open |
-| 23 | Lesson content missing @db.Text | LOW | Database | Open |
-| 24 | Password mask could be exploited | LOW | Backend | Open |
+| 1 | Unauthenticated file uploads | **CRITICAL** | Backend | **FIXED** (162b2a9) |
+| 2 | Client-trusted assessment scores | **CRITICAL** | Backend | **FIXED** (be75cd1) |
+| 3 | 3 lab types missing scoring logic | **CRITICAL** | Backend | **FIXED** (9c36254) |
+| 4 | Navigation bug in default route | **CRITICAL** | Frontend | **FIXED** (6d7af9d) |
+| 5 | CSRF gaps on frontend services | HIGH | Frontend | **FIXED** (be75cd1, 1547508) |
+| 6 | Assessments page uses hardcoded data | HIGH | Frontend | **FIXED** (be75cd1) |
+| 7 | Missing cascade delete on Module relations | HIGH | Database | **FIXED** (b5c100a) |
+| 8 | Missing database indexes | HIGH | Database | **FIXED** (5e5eef0) |
+| 9 | Course player errors are silent | HIGH | Frontend | **N/A** (already handled) |
+| 10 | Audit log has no user FK relation | HIGH | Database | **FIXED** (37097ca) |
+| 11 | Unsafe type assertions in backend | MEDIUM | Backend | **FIXED** |
+| 12 | Race condition in course completion | MEDIUM | Backend | **FIXED** |
+| 13 | CSRF tokens in-memory only | MEDIUM | Backend | Deferred (fine for single-instance) |
+| 14 | No pagination on admin queries | MEDIUM | Backend | Deferred (low data volume) |
+| 15 | Inconsistent error logging | MEDIUM | Backend | **FIXED** |
+| 16 | Email notifications not wired up | MEDIUM | Backend | **FIXED** |
+| 17 | File upload content not validated | MEDIUM | Backend | **FIXED** |
+| 18 | Dead smart-chatbot service | MEDIUM | Backend | **FIXED** (deleted) |
+| 19 | Phishing query unlimited results | MEDIUM | Backend | **FIXED** |
+| 20 | alert() instead of toast | LOW | Frontend | **FIXED** |
+| 21 | Admin service returns `any` types | LOW | Frontend | **FIXED** |
+| 22 | Inconsistent API response formats | LOW | Backend | Deferred (breaking change risk) |
+| 23 | Lesson content missing @db.Text | LOW | Database | **FIXED** |
+| 24 | Password mask could be exploited | LOW | Backend | **FIXED** |
 
 ---
 

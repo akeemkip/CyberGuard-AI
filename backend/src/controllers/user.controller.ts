@@ -3,6 +3,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { logger } from '../utils/logger';
 import { createPasswordSchema } from '../utils/validation';
 
 // Validation schemas
@@ -81,7 +82,7 @@ export const createUser = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('CreateUser error:', error);
+    logger.error('CreateUser error:', error);
     res.status(500).json({ error: 'Failed to create user' });
   }
 };
@@ -110,7 +111,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
     res.json({ users });
   } catch (error) {
-    console.error('GetAllUsers error:', error);
+    logger.error('GetAllUsers error:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 };
@@ -154,7 +155,7 @@ export const getUserById = async (req: AuthRequest, res: Response) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('GetUserById error:', error);
+    logger.error('GetUserById error:', error);
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 };
@@ -200,7 +201,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('UpdateUser error:', error);
+    logger.error('UpdateUser error:', error);
     res.status(500).json({ error: 'Failed to update user' });
   }
 };
@@ -237,7 +238,7 @@ export const changeUserRole = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('ChangeUserRole error:', error);
+    logger.error('ChangeUserRole error:', error);
     res.status(500).json({ error: 'Failed to change user role' });
   }
 };
@@ -253,7 +254,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error('DeleteUser error:', error);
+    logger.error('DeleteUser error:', error);
     res.status(500).json({ error: 'Failed to delete user' });
   }
 };
@@ -323,7 +324,7 @@ export const getUserStats = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('GetUserStats error:', error);
+    logger.error('GetUserStats error:', error);
     res.status(500).json({ error: 'Failed to fetch user stats' });
   }
 };
@@ -350,7 +351,7 @@ export const getUserSettings = async (req: AuthRequest, res: Response) => {
 
     res.json({ settings: user });
   } catch (error) {
-    console.error('GetUserSettings error:', error);
+    logger.error('GetUserSettings error:', error);
     res.status(500).json({ error: 'Failed to fetch user settings' });
   }
 };
@@ -381,7 +382,7 @@ export const updateUserSettings = async (req: AuthRequest, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors[0].message });
     }
-    console.error('UpdateUserSettings error:', error);
+    logger.error('UpdateUserSettings error:', error);
     res.status(500).json({ error: 'Failed to update settings' });
   }
 };
@@ -424,7 +425,7 @@ export const unlockUserAccount = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('UnlockUserAccount error:', error);
+    logger.error('UnlockUserAccount error:', error);
     res.status(500).json({ error: 'Failed to unlock user account' });
   }
 };

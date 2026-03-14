@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import prisma from '../config/database';
 import { decrypt } from '../utils/encryption';
+import { logger } from '../utils/logger';
 
 export interface EmailOptions {
   to: string;
@@ -105,9 +106,72 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
 
     return { success: true, messageId: info.messageId };
   } catch (error: any) {
-    console.error('Email send error:', error);
+    logger.error('Email send error:', error);
     return { success: false, error: error.message || 'Failed to send email' };
   }
+}
+
+/**
+ * Send enrollment confirmation email
+ */
+export async function sendEnrollmentEmail(
+  toEmail: string,
+  studentName: string,
+  courseTitle: string
+): Promise<{ success: boolean; error?: string }> {
+  const settings = await prisma.platformSettings.findUnique({
+    where: { id: 'singleton' },
+    select: { platformName: true },
+  });
+  const platformName = settings?.platformName || 'CyberGuard AI';
+
+  return sendEmail({
+    to: toEmail,
+    subject: `You're enrolled in ${courseTitle} - ${platformName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #3b82f6;">Welcome to ${courseTitle}!</h1>
+        <p>Hi ${studentName},</p>
+        <p>You have been successfully enrolled in <strong>${courseTitle}</strong>.</p>
+        <p>Log in to ${platformName} to start learning and build your cybersecurity skills.</p>
+        <p style="color: #9ca3af; font-size: 12px; margin-top: 30px;">
+          This is an automated message from ${platformName}.
+        </p>
+      </div>
+    `,
+  });
+}
+
+/**
+ * Send course completion / certificate email
+ */
+export async function sendCompletionEmail(
+  toEmail: string,
+  studentName: string,
+  courseTitle: string
+): Promise<{ success: boolean; error?: string }> {
+  const settings = await prisma.platformSettings.findUnique({
+    where: { id: 'singleton' },
+    select: { platformName: true },
+  });
+  const platformName = settings?.platformName || 'CyberGuard AI';
+
+  return sendEmail({
+    to: toEmail,
+    subject: `Congratulations! You completed ${courseTitle} - ${platformName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #10b981;">Course Completed!</h1>
+        <p>Hi ${studentName},</p>
+        <p>Congratulations on completing <strong>${courseTitle}</strong>!</p>
+        <p>A certificate has been issued and is available in your dashboard.</p>
+        <p>Keep up the great work and continue building your cybersecurity expertise.</p>
+        <p style="color: #9ca3af; font-size: 12px; margin-top: 30px;">
+          This is an automated message from ${platformName}.
+        </p>
+      </div>
+    `,
+  });
 }
 
 /**
@@ -177,7 +241,7 @@ export async function sendTestEmail(toEmail: string): Promise<{ success: boolean
       details: `Email delivered to ${toEmail}. Message ID: ${info.messageId}`
     };
   } catch (error: any) {
-    console.error('Test email error:', error);
+    logger.error('Test email error:', error);
 
     // Provide helpful error messages
     let message = 'Failed to send test email';

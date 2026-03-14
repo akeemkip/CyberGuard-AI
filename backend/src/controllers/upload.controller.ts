@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { fromBuffer } from 'file-type';
 import { logger } from '../utils/logger';
 
 // Ensure uploads directory exists
@@ -77,6 +78,23 @@ export const uploadImage = async (req: Request, res: Response) => {
     if (req.file.size < 1024) {
       fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'File too small. Minimum size is 1KB' });
+    }
+
+    // Validate magic bytes match the claimed MIME type
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const detectedType = await fromBuffer(fileBuffer);
+    const allowedMagicMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    // SVG and ICO lack reliable magic bytes — skip them if the extension-based filter already passed
+    const extLower = path.extname(req.file.originalname).toLowerCase();
+    const skipMagicCheck = ['.svg', '.ico'].includes(extLower);
+
+    if (!skipMagicCheck) {
+      if (!detectedType || !allowedMagicMimes.includes(detectedType.mime)) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({
+          error: 'File content does not match its extension. Upload rejected for security.'
+        });
+      }
     }
 
     // Construct the URL for the uploaded file

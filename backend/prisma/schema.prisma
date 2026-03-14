@@ -60,7 +60,7 @@ model Module {
 model Lesson {
   id        String     @id @default(uuid())
   title     String
-  content   String
+  content   String     @db.Text
   videoUrl  String?
   order     Int
   courseId  String

@@ -55,6 +55,7 @@ import {
   Trophy,
   Target,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useTheme } from "./theme-provider";
 import adminService, {
   AdminDashboardData,
@@ -174,7 +175,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
       // Get auth token
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Authentication required');
+        toast.error('Authentication required');
         return;
       }
 
@@ -210,7 +211,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
 
     } catch (error) {
       console.error('PDF export error:', error);
-      alert('Failed to export PDF. Please try again.');
+      toast.error('Failed to export PDF. Please try again.');
     }
   };
 
@@ -231,7 +232,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
       // Get auth token
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Authentication required');
+        toast.error('Authentication required');
         return;
       }
 
@@ -267,7 +268,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
 
     } catch (error) {
       console.error('CSV export error:', error);
-      alert('Failed to export CSV. Please try again.');
+      toast.error('Failed to export CSV. Please try again.');
     }
   };
 
@@ -294,7 +295,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
   const handleApplyCustomDates = () => {
     if (customStartDate && customEndDate) {
       if (new Date(customStartDate) > new Date(customEndDate)) {
-        alert("Start date must be before end date");
+        toast.warning("Start date must be before end date");
         return;
       }
       // Apply the dates (this triggers the useEffect to fetch data)
@@ -303,7 +304,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
       setDateRange("custom");
       setShowCustomDateDialog(false);
     } else {
-      alert("Please select both start and end dates");
+      toast.warning("Please select both start and end dates");
     }
   };
 

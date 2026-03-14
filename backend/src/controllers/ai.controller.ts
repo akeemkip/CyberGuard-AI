@@ -1,14 +1,16 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../middleware/auth.middleware';
+import { logger } from '../utils/logger';
 import { sendChatMessage } from '../services/ai.service';
 
 /**
  * Handle AI chat message endpoint
  * POST /api/ai/chat
  */
-export async function handleChatMessage(req: Request, res: Response) {
+export async function handleChatMessage(req: AuthRequest, res: Response) {
   try {
     const { message } = req.body;
-    const userId = (req as any).userId; // From auth middleware
+    const userId = req.userId!;
 
     // Validate message exists
     if (!message || typeof message !== 'string') {
@@ -29,7 +31,7 @@ export async function handleChatMessage(req: Request, res: Response) {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('AI Controller Error:', error);
+    logger.error('AI Controller Error:', error);
     return res.status(500).json({ error: 'Failed to process chat message' });
   }
 }

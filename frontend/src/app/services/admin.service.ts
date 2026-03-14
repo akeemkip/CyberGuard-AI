@@ -263,6 +263,22 @@ export interface QuizFull {
   attempts: QuizAttempt[];
 }
 
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string | null;
+  difficulty: string;
+  duration: string | null;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    lessons: number;
+    enrollments: number;
+  };
+}
+
 export interface CreateQuizRequest {
   lessonId: string;
   title: string;
@@ -649,26 +665,26 @@ const adminService = {
   // ============================================
 
   // Get all courses (including unpublished)
-  async getAllCourses(): Promise<any[]> {
-    const response = await api.get<{ courses: any[] }>('/admin/courses');
+  async getAllCourses(): Promise<Course[]> {
+    const response = await api.get<{ courses: Course[] }>('/admin/courses');
     return response.data.courses;
   },
 
   // Get course by ID
-  async getCourseById(courseId: string): Promise<any> {
-    const response = await api.get(`/admin/courses/${courseId}`);
+  async getCourseById(courseId: string): Promise<{ course: Course }> {
+    const response = await api.get<{ course: Course }>(`/admin/courses/${courseId}`);
     return response.data;
   },
 
   // Create new course
-  async createCourse(data: any): Promise<{ message: string; course: any }> {
-    const response = await api.post<{ message: string; course: any }>('/admin/courses', data);
+  async createCourse(data: Partial<Course>): Promise<{ message: string; course: Course }> {
+    const response = await api.post<{ message: string; course: Course }>('/admin/courses', data);
     return response.data;
   },
 
   // Update course
-  async updateCourse(courseId: string, data: any): Promise<{ message: string; course: any }> {
-    const response = await api.put<{ message: string; course: any }>(`/admin/courses/${courseId}`, data);
+  async updateCourse(courseId: string, data: Partial<Course>): Promise<{ message: string; course: Course }> {
+    const response = await api.put<{ message: string; course: Course }>(`/admin/courses/${courseId}`, data);
     return response.data;
   },
 
@@ -695,14 +711,14 @@ const adminService = {
   },
 
   // Create new quiz
-  async createQuiz(data: CreateQuizRequest): Promise<{ message: string; quiz: any }> {
-    const response = await api.post<{ message: string; quiz: any }>('/admin/quizzes', data);
+  async createQuiz(data: CreateQuizRequest): Promise<{ message: string; quiz: QuizFull }> {
+    const response = await api.post<{ message: string; quiz: QuizFull }>('/admin/quizzes', data);
     return response.data;
   },
 
   // Update quiz
-  async updateQuiz(quizId: string, data: UpdateQuizRequest): Promise<{ message: string; quiz: any }> {
-    const response = await api.put<{ message: string; quiz: any }>(`/admin/quizzes/${quizId}`, data);
+  async updateQuiz(quizId: string, data: UpdateQuizRequest): Promise<{ message: string; quiz: QuizFull }> {
+    const response = await api.put<{ message: string; quiz: QuizFull }>(`/admin/quizzes/${quizId}`, data);
     return response.data;
   },
 
@@ -769,14 +785,14 @@ const adminService = {
   },
 
   // Create new lab
-  async createLab(data: CreateLabRequest): Promise<{ message: string; lab: any }> {
-    const response = await api.post<{ message: string; lab: any }>('/admin/labs', data);
+  async createLab(data: CreateLabRequest): Promise<{ message: string; lab: LabFull }> {
+    const response = await api.post<{ message: string; lab: LabFull }>('/admin/labs', data);
     return response.data;
   },
 
   // Update lab
-  async updateLab(labId: string, data: UpdateLabRequest): Promise<{ message: string; lab: any }> {
-    const response = await api.put<{ message: string; lab: any }>(`/admin/labs/${labId}`, data);
+  async updateLab(labId: string, data: UpdateLabRequest): Promise<{ message: string; lab: LabFull }> {
+    const response = await api.put<{ message: string; lab: LabFull }>(`/admin/labs/${labId}`, data);
     return response.data;
   },
 
@@ -803,7 +819,7 @@ const adminService = {
     customStartDate?: string,
     customEndDate?: string
   ): Promise<AnalyticsResponse> {
-    const params: any = { dateRange, reportType };
+    const params: Record<string, string> = { dateRange, reportType };
 
     // Add custom date parameters if provided
     if (dateRange === 'custom' && customStartDate && customEndDate) {
@@ -870,7 +886,7 @@ const adminService = {
   },
 
   // Get assessment comparison report
-  async getAssessmentComparison(): Promise<any> {
+  async getAssessmentComparison(): Promise<Record<string, unknown>> {
     const response = await api.get('/admin/analytics/assessment-comparison');
     return response.data;
   }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Trophy, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   getIntroAssessment,
   submitIntroAssessment,
@@ -65,7 +66,7 @@ export const IntroAssessmentPage: React.FC<IntroAssessmentPageProps> = ({ onComp
     ).length;
 
     if (unansweredCount > 0) {
-      alert(`Please answer all questions. ${unansweredCount} question(s) remaining.`);
+      toast.warning(`Please answer all questions. ${unansweredCount} question(s) remaining.`);
       return;
     }
 

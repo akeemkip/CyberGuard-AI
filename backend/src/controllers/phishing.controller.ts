@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { logger } from '../utils/logger';
 
 // Get next scenario for user (prioritizes unseen, then failed)
 export const getNextScenario = async (req: AuthRequest, res: Response) => {
@@ -87,7 +88,7 @@ export const getNextScenario = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('GetNextScenario error:', error);
+    logger.error('GetNextScenario error:', error);
     res.status(500).json({ error: 'Failed to fetch scenario' });
   }
 };
@@ -161,7 +162,7 @@ export const submitAttempt = async (req: AuthRequest, res: Response) => {
           : 'Incorrect. This was actually a legitimate email.'
     });
   } catch (error) {
-    console.error('SubmitAttempt error:', error);
+    logger.error('SubmitAttempt error:', error);
     res.status(500).json({ error: 'Failed to submit attempt' });
   }
 };
@@ -250,7 +251,7 @@ export const getStats = async (req: AuthRequest, res: Response) => {
       }))
     });
   } catch (error) {
-    console.error('GetStats error:', error);
+    logger.error('GetStats error:', error);
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 };
@@ -259,7 +260,7 @@ export const getStats = async (req: AuthRequest, res: Response) => {
 export const getHistory = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
     const [attempts, total] = await Promise.all([
@@ -307,7 +308,7 @@ export const getHistory = async (req: AuthRequest, res: Response) => {
       offset
     });
   } catch (error) {
-    console.error('GetHistory error:', error);
+    logger.error('GetHistory error:', error);
     res.status(500).json({ error: 'Failed to fetch history' });
   }
 };

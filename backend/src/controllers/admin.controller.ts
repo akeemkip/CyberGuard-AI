@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { logger } from '../utils/logger';
 
 // Get admin dashboard stats
 export const getAdminStats = async (req: Request, res: Response) => {
@@ -240,7 +241,7 @@ export const getAdminStats = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('GetAdminStats error:', error);
+    logger.error('GetAdminStats error:', error);
     res.status(500).json({ error: 'Failed to fetch admin stats' });
   }
 };
@@ -271,7 +272,7 @@ export const getAllEnrollments = async (req: Request, res: Response) => {
 
     res.json({ enrollments });
   } catch (error) {
-    console.error('GetAllEnrollments error:', error);
+    logger.error('GetAllEnrollments error:', error);
     res.status(500).json({ error: 'Failed to fetch enrollments' });
   }
 };
@@ -510,7 +511,7 @@ export const getUserStatistics = async (req: Request, res: Response) => {
       recentActivity: allRecentActivity
     });
   } catch (error) {
-    console.error('GetUserStatistics error:', error);
+    logger.error('GetUserStatistics error:', error);
     res.status(500).json({ error: 'Failed to fetch user statistics' });
   }
 };
@@ -925,7 +926,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
     });
 
   } catch (error) {
-    console.error('GetAnalytics error:', error);
+    logger.error('GetAnalytics error:', error);
     res.status(500).json({ error: 'Failed to fetch analytics data' });
   }
 };
@@ -1026,7 +1027,7 @@ export const exportAnalyticsCSV = async (req: Request, res: Response) => {
     res.send(csv);
 
   } catch (error) {
-    console.error('ExportAnalyticsCSV error:', error);
+    logger.error('ExportAnalyticsCSV error:', error);
     res.status(500).json({ error: 'Failed to export analytics as CSV' });
   }
 };
@@ -1193,7 +1194,7 @@ export const exportAnalyticsPDF = async (req: Request, res: Response) => {
     doc.end();
 
   } catch (error) {
-    console.error('ExportAnalyticsPDF error:', error);
+    logger.error('ExportAnalyticsPDF error:', error);
     res.status(500).json({ error: 'Failed to export analytics as PDF' });
   }
 };
@@ -1260,7 +1261,7 @@ export const getAllQuizzes = async (req: Request, res: Response) => {
 
     res.json({ quizzes: quizzesWithStats });
   } catch (error) {
-    console.error('GetAllQuizzes error:', error);
+    logger.error('GetAllQuizzes error:', error);
     res.status(500).json({ error: 'Failed to fetch quizzes' });
   }
 };
@@ -1352,7 +1353,7 @@ export const getQuizById = async (req: Request, res: Response) => {
       }))
     });
   } catch (error) {
-    console.error('GetQuizById error:', error);
+    logger.error('GetQuizById error:', error);
     res.status(500).json({ error: 'Failed to fetch quiz' });
   }
 };
@@ -1431,7 +1432,7 @@ export const createQuiz = async (req: Request, res: Response) => {
       quiz
     });
   } catch (error) {
-    console.error('CreateQuiz error:', error);
+    logger.error('CreateQuiz error:', error);
     res.status(500).json({ error: 'Failed to create quiz' });
   }
 };
@@ -1527,7 +1528,7 @@ export const updateQuiz = async (req: Request, res: Response) => {
       quiz: updatedQuiz
     });
   } catch (error) {
-    console.error('UpdateQuiz error:', error);
+    logger.error('UpdateQuiz error:', error);
     res.status(500).json({ error: 'Failed to update quiz' });
   }
 };
@@ -1559,7 +1560,7 @@ export const deleteQuiz = async (req: Request, res: Response) => {
       deletedAttempts: quiz.attempts.length
     });
   } catch (error) {
-    console.error('DeleteQuiz error:', error);
+    logger.error('DeleteQuiz error:', error);
     res.status(500).json({ error: 'Failed to delete quiz' });
   }
 };
@@ -1607,7 +1608,7 @@ export const getCourseModules = async (req: Request, res: Response) => {
 
     res.json({ modules: modulesWithCount });
   } catch (error) {
-    console.error('GetCourseModules error:', error);
+    logger.error('GetCourseModules error:', error);
     res.status(500).json({ error: 'Failed to fetch modules' });
   }
 };
@@ -1659,7 +1660,7 @@ export const createModule = async (req: Request, res: Response) => {
       module
     });
   } catch (error) {
-    console.error('CreateModule error:', error);
+    logger.error('CreateModule error:', error);
     res.status(500).json({ error: 'Failed to create module' });
   }
 };
@@ -1716,7 +1717,7 @@ export const updateModule = async (req: Request, res: Response) => {
       module
     });
   } catch (error) {
-    console.error('UpdateModule error:', error);
+    logger.error('UpdateModule error:', error);
     res.status(500).json({ error: 'Failed to update module' });
   }
 };
@@ -1753,7 +1754,7 @@ export const deleteModule = async (req: Request, res: Response) => {
       affectedLessons: module.lessons.length
     });
   } catch (error) {
-    console.error('DeleteModule error:', error);
+    logger.error('DeleteModule error:', error);
     res.status(500).json({ error: 'Failed to delete module' });
   }
 };
@@ -1797,7 +1798,7 @@ export const reorderModules = async (req: Request, res: Response) => {
 
     res.json({ message: 'Modules reordered successfully' });
   } catch (error) {
-    console.error('ReorderModules error:', error);
+    logger.error('ReorderModules error:', error);
     res.status(500).json({ error: 'Failed to reorder modules' });
   }
 };
@@ -1863,7 +1864,7 @@ export const assignLessonToModule = async (req: Request, res: Response) => {
       lesson: updatedLesson
     });
   } catch (error) {
-    console.error('AssignLessonToModule error:', error);
+    logger.error('AssignLessonToModule error:', error);
     res.status(500).json({ error: 'Failed to assign lesson to module' });
   }
 };
@@ -1940,7 +1941,7 @@ export const getAllLabs = async (req: Request, res: Response) => {
 
     res.json({ labs: labsWithStats });
   } catch (error) {
-    console.error('GetAllLabs error:', error);
+    logger.error('GetAllLabs error:', error);
     res.status(500).json({ error: 'Failed to fetch labs' });
   }
 };
@@ -2024,7 +2025,7 @@ export const getLabById = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('GetLabById error:', error);
+    logger.error('GetLabById error:', error);
     res.status(500).json({ error: 'Failed to fetch lab' });
   }
 };
@@ -2176,7 +2177,7 @@ export const createLab = async (req: Request, res: Response) => {
       lab
     });
   } catch (error) {
-    console.error('CreateLab error:', error);
+    logger.error('CreateLab error:', error);
     res.status(500).json({ error: 'Failed to create lab' });
   }
 };
@@ -2336,7 +2337,7 @@ export const updateLab = async (req: Request, res: Response) => {
       lab
     });
   } catch (error) {
-    console.error('UpdateLab error:', error);
+    logger.error('UpdateLab error:', error);
     res.status(500).json({ error: 'Failed to update lab' });
   }
 };
@@ -2368,7 +2369,7 @@ export const deleteLab = async (req: Request, res: Response) => {
       deletedProgress: lab.progress.length
     });
   } catch (error) {
-    console.error('DeleteLab error:', error);
+    logger.error('DeleteLab error:', error);
     res.status(500).json({ error: 'Failed to delete lab' });
   }
 };
@@ -2402,7 +2403,7 @@ export const reorderLabs = async (req: Request, res: Response) => {
 
     res.json({ message: 'Labs reordered successfully' });
   } catch (error) {
-    console.error('ReorderLabs error:', error);
+    logger.error('ReorderLabs error:', error);
     res.status(500).json({ error: 'Failed to reorder labs' });
   }
 };
@@ -2460,7 +2461,7 @@ export const getAllPhishingScenarios = async (req: Request, res: Response) => {
 
     res.json({ scenarios: scenariosWithStats });
   } catch (error) {
-    console.error('GetAllPhishingScenarios error:', error);
+    logger.error('GetAllPhishingScenarios error:', error);
     res.status(500).json({ error: 'Failed to fetch phishing scenarios' });
   }
 };
@@ -2513,7 +2514,7 @@ export const getPhishingScenarioById = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('GetPhishingScenarioById error:', error);
+    logger.error('GetPhishingScenarioById error:', error);
     res.status(500).json({ error: 'Failed to fetch scenario' });
   }
 };
@@ -2590,7 +2591,7 @@ export const createPhishingScenario = async (req: Request, res: Response) => {
       scenario
     });
   } catch (error) {
-    console.error('CreatePhishingScenario error:', error);
+    logger.error('CreatePhishingScenario error:', error);
     res.status(500).json({ error: 'Failed to create scenario' });
   }
 };
@@ -2678,7 +2679,7 @@ export const updatePhishingScenario = async (req: Request, res: Response) => {
       scenario
     });
   } catch (error) {
-    console.error('UpdatePhishingScenario error:', error);
+    logger.error('UpdatePhishingScenario error:', error);
     res.status(500).json({ error: 'Failed to update scenario' });
   }
 };
@@ -2710,7 +2711,7 @@ export const deletePhishingScenario = async (req: Request, res: Response) => {
       deletedAttempts: scenario.attempts.length
     });
   } catch (error) {
-    console.error('DeletePhishingScenario error:', error);
+    logger.error('DeletePhishingScenario error:', error);
     res.status(500).json({ error: 'Failed to delete scenario' });
   }
 };
@@ -2809,7 +2810,7 @@ export const getPhishingPlatformStats = async (req: Request, res: Response) => {
       }))
     });
   } catch (error) {
-    console.error('GetPhishingPlatformStats error:', error);
+    logger.error('GetPhishingPlatformStats error:', error);
     res.status(500).json({ error: 'Failed to fetch platform stats' });
   }
 };
@@ -2879,7 +2880,7 @@ export const getAllPhishingAttempts = async (req: Request, res: Response) => {
       offset
     });
   } catch (error) {
-    console.error('GetAllPhishingAttempts error:', error);
+    logger.error('GetAllPhishingAttempts error:', error);
     res.status(500).json({ error: 'Failed to fetch attempts' });
   }
 };
@@ -2981,7 +2982,7 @@ export const getAssessmentComparison = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('GetAssessmentComparison error:', error);
+    logger.error('GetAssessmentComparison error:', error);
     res.status(500).json({ error: 'Failed to fetch assessment comparison' });
   }
 };

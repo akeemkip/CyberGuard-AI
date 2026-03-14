@@ -1,11 +1,13 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import prisma from '../config/database';
+import { AuthRequest } from '../middleware/auth.middleware';
+import { logger } from '../utils/logger';
 import { FULL_ASSESSMENT_QUESTIONS, FULL_ASSESSMENT_PASSING_SCORE, QUESTION_ANSWER_MAP } from '../data/full-assessment-questions';
 
 // Check if user needs to take intro assessment
-export const checkIntroAssessmentRequired = async (req: Request, res: Response) => {
+export const checkIntroAssessmentRequired = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId!;
 
     // Check if user has already completed intro assessment
     const existingAttempt = await prisma.introAssessmentAttempt.findFirst({
@@ -20,13 +22,13 @@ export const checkIntroAssessmentRequired = async (req: Request, res: Response) 
     // New users need to take intro assessment
     return res.json({ required: true, completed: false });
   } catch (error) {
-    console.error('Error checking intro assessment requirement:', error);
+    logger.error('Error checking intro assessment requirement:', error);
     res.status(500).json({ error: 'Failed to check assessment requirement' });
   }
 };
 
 // Get intro assessment with shuffled questions
-export const getIntroAssessment = async (req: Request, res: Response) => {
+export const getIntroAssessment = async (req: AuthRequest, res: Response) => {
   try {
     // Get the active intro assessment
     const assessment = await prisma.introAssessment.findFirst({
@@ -68,15 +70,15 @@ export const getIntroAssessment = async (req: Request, res: Response) => {
       questions: shuffledQuestions
     });
   } catch (error) {
-    console.error('Error fetching intro assessment:', error);
+    logger.error('Error fetching intro assessment:', error);
     res.status(500).json({ error: 'Failed to fetch intro assessment' });
   }
 };
 
 // Submit intro assessment
-export const submitIntroAssessment = async (req: Request, res: Response) => {
+export const submitIntroAssessment = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId!;
     const { assessmentId, answers } = req.body;
 
     // Get assessment with questions
@@ -131,15 +133,15 @@ export const submitIntroAssessment = async (req: Request, res: Response) => {
       answers: detailedAnswers
     });
   } catch (error) {
-    console.error('Error submitting intro assessment:', error);
+    logger.error('Error submitting intro assessment:', error);
     res.status(500).json({ error: 'Failed to submit assessment' });
   }
 };
 
 // Check eligibility for full assessment
-export const checkFullAssessmentEligibility = async (req: Request, res: Response) => {
+export const checkFullAssessmentEligibility = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId!;
 
     // Get phishing detection course
     const phishingCourse = await prisma.course.findFirst({
@@ -176,13 +178,13 @@ export const checkFullAssessmentEligibility = async (req: Request, res: Response
 
     res.json({ eligible: true });
   } catch (error) {
-    console.error('Error checking assessment eligibility:', error);
+    logger.error('Error checking assessment eligibility:', error);
     res.status(500).json({ error: 'Failed to check eligibility' });
   }
 };
 
 // Get full assessment questions (without correct answers)
-export const getFullAssessmentQuestions = async (_req: Request, res: Response) => {
+export const getFullAssessmentQuestions = async (_req: AuthRequest, res: Response) => {
   try {
     const questions = FULL_ASSESSMENT_QUESTIONS.map(q => ({
       id: q.id,
@@ -198,15 +200,15 @@ export const getFullAssessmentQuestions = async (_req: Request, res: Response) =
       questions
     });
   } catch (error) {
-    console.error('Error fetching full assessment questions:', error);
+    logger.error('Error fetching full assessment questions:', error);
     res.status(500).json({ error: 'Failed to fetch assessment questions' });
   }
 };
 
 // Submit full assessment - scores validated server-side
-export const submitFullAssessment = async (req: Request, res: Response) => {
+export const submitFullAssessment = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId!;
     const { timeSpent, timerExpired, answers } = req.body;
 
     if (!answers || !Array.isArray(answers)) {
@@ -266,15 +268,15 @@ export const submitFullAssessment = async (req: Request, res: Response) => {
       answers: answersWithExplanations
     });
   } catch (error) {
-    console.error('Error submitting full assessment:', error);
+    logger.error('Error submitting full assessment:', error);
     res.status(500).json({ error: 'Failed to submit assessment' });
   }
 };
 
 // Get assessment history for a user
-export const getAssessmentHistory = async (req: Request, res: Response) => {
+export const getAssessmentHistory = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId!;
 
     // Get intro assessment attempts
     const introAttempts = await prisma.introAssessmentAttempt.findMany({
@@ -320,7 +322,7 @@ export const getAssessmentHistory = async (req: Request, res: Response) => {
       }))
     });
   } catch (error) {
-    console.error('Error fetching assessment history:', error);
+    logger.error('Error fetching assessment history:', error);
     res.status(500).json({ error: 'Failed to fetch assessment history' });
   }
 };
