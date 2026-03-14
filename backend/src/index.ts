@@ -23,7 +23,7 @@ import { upload, uploadImage, deleteImage } from './controllers/upload.controlle
 import { sanitizeBody } from './utils/sanitization';
 import { logger } from './utils/logger';
 import { csrfProtection, getCsrfToken } from './middleware/csrf.middleware';
-import { authenticateToken } from './middleware/auth.middleware';
+import { authenticateToken, requireAdmin } from './middleware/auth.middleware';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -79,9 +79,9 @@ app.get('/api/settings/public', getPublicSettings);
 // CSRF token endpoint (requires authentication)
 app.get('/api/csrf-token', authenticateToken, getCsrfToken);
 
-// File upload endpoint (for logo/favicon)
-app.post('/api/uploads/image', upload.single('image'), uploadImage);
-app.delete('/api/uploads/:filename', deleteImage);
+// File upload endpoint (for logo/favicon) - admin only
+app.post('/api/uploads/image', authenticateToken, requireAdmin, upload.single('image'), uploadImage);
+app.delete('/api/uploads/:filename', authenticateToken, requireAdmin, deleteImage);
 
 // Apply CSRF protection to all routes (after this point)
 // This protects all POST, PUT, DELETE, PATCH requests

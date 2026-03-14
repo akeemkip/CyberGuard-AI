@@ -62,6 +62,7 @@ import { useTheme } from "./theme-provider";
 import { AdminSidebar } from "./admin-sidebar";
 import { toast } from "sonner";
 import adminService, { PlatformSettings as APIPlatformSettings, SettingsAuditLogEntry } from "../services/admin.service";
+import api from "../services/api";
 
 interface AdminSettingsProps {
   userEmail: string;
@@ -722,18 +723,11 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       const formData = new FormData();
       formData.append("image", file);
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-      const response = await fetch(`${apiBaseUrl}/uploads/image`, {
-        method: "POST",
-        body: formData,
+      const response = await api.post('/uploads/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Upload failed");
-      }
-
-      const data = await response.json();
+      const data = response.data;
       handleChange(field, data.url);
       toast.success(`${field === "logoUrl" ? "Logo" : "Favicon"} uploaded successfully`);
     } catch (error: any) {
