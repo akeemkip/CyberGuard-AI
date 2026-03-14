@@ -18,7 +18,7 @@ import { IncidentResponseConfig } from "../../services/admin.service";
 interface IncidentResponseSimulationProps {
   config: IncidentResponseConfig;
   passingScore: number;
-  onComplete: (score: number, passed: boolean, answers: Record<string, boolean>) => void;
+  onComplete: (score: number, passed: boolean, answers: Record<string, boolean | number | string>) => void;
 }
 
 interface StepAnswer {
@@ -98,9 +98,9 @@ export function IncidentResponseSimulation({
 
   const handleSubmit = () => {
     setShowResults(true);
-    const answersMap: Record<string, boolean> = {};
+    const answersMap: Record<string, number> = {};
     Object.entries(answers).forEach(([id, answer]) => {
-      answersMap[id] = answer.isCorrect;
+      answersMap[id] = answer.selectedOptionIndex; // Send raw option index, not pre-calculated correctness
     });
     onComplete(score, passed, answersMap);
   };

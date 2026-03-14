@@ -73,7 +73,7 @@ export function SecurityAlertsSimulation({
     setShowResults(true);
     const answersMap: Record<string, boolean> = {};
     Object.entries(answers).forEach(([id, answer]) => {
-      answersMap[id] = answer.isCorrect;
+      answersMap[id] = answer.userAnswer; // Send raw user choice, not pre-calculated correctness
     });
     onComplete(score, passed, answersMap);
   };

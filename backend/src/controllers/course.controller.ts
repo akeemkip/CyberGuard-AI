@@ -1187,6 +1187,70 @@ const calculateLabScore = (labType: string, simulationConfig: any, answers: any)
       break;
     }
 
+    case 'SECURITY_ALERTS': {
+      const config = simulationConfig as any;
+      if (!config.alerts || !Array.isArray(config.alerts)) {
+        throw new Error('Invalid security alerts configuration');
+      }
+
+      const totalAlerts = config.alerts.length;
+      let correctAnswers = 0;
+
+      config.alerts.forEach((alert: any) => {
+        const userAnswer = answers[alert.id]; // boolean: true = user thinks legitimate, false = fake
+        if (userAnswer === undefined) return;
+
+        const isCorrect = alert.isLegitimate === userAnswer;
+        if (isCorrect) correctAnswers++;
+      });
+
+      score = totalAlerts > 0 ? Math.round((correctAnswers / totalAlerts) * 100) : 0;
+      break;
+    }
+
+    case 'WIFI_SAFETY': {
+      const config = simulationConfig as any;
+      if (!config.networks || !Array.isArray(config.networks)) {
+        throw new Error('Invalid wifi safety configuration');
+      }
+
+      const totalNetworks = config.networks.length;
+      let correctAnswers = 0;
+
+      config.networks.forEach((network: any) => {
+        const userAnswer = answers[network.id]; // boolean: true = user thinks safe, false = unsafe
+        if (userAnswer === undefined) return;
+
+        const isCorrect = network.isSafe === userAnswer;
+        if (isCorrect) correctAnswers++;
+      });
+
+      score = totalNetworks > 0 ? Math.round((correctAnswers / totalNetworks) * 100) : 0;
+      break;
+    }
+
+    case 'INCIDENT_RESPONSE': {
+      const config = simulationConfig as any;
+      if (!config.steps || !Array.isArray(config.steps)) {
+        throw new Error('Invalid incident response configuration');
+      }
+
+      let correctAnswers = 0;
+      let answeredSteps = 0;
+
+      config.steps.forEach((step: any) => {
+        const userOptionIndex = answers[step.id]; // number: index of selected option
+        if (userOptionIndex === undefined) return;
+
+        answeredSteps++;
+        const selectedOption = step.options?.[userOptionIndex];
+        if (selectedOption?.isCorrect) correctAnswers++;
+      });
+
+      score = answeredSteps > 0 ? Math.round((correctAnswers / answeredSteps) * 100) : 0;
+      break;
+    }
+
     default:
       throw new Error(`Unsupported lab type for score calculation: ${labType}`);
   }

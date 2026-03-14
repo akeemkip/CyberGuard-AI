@@ -341,7 +341,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
     }
   };
 
-  const handleSimulationComplete = async (score: number, passed: boolean, answers: Record<string, boolean>) => {
+  const handleSimulationComplete = async (score: number, passed: boolean, answers: Record<string, boolean | number | string>) => {
     try {
       const timeSpentMinutes = Math.floor(elapsedTime / 60);
       await courseService.submitLabSimulation(labId!, score, passed, answers, timeSpentMinutes);
