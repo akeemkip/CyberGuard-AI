@@ -7,6 +7,8 @@ async function main() {
   console.log('🌱 Starting seed...');
 
   // Clear existing data
+  await prisma.phishingAttempt.deleteMany();
+  await prisma.phishingScenario.deleteMany();
   await prisma.introAssessmentAttempt.deleteMany();
   await prisma.introQuestion.deleteMany();
   await prisma.introAssessment.deleteMany();
@@ -50,19 +52,7 @@ async function main() {
   const studentPassword = await bcrypt.hash('student123', 10);
 
   const students = await Promise.all([
-    // Original student
-    prisma.user.create({
-      data: {
-        email: 'student@example.com',
-        password: studentPassword,
-        firstName: 'John',
-        lastName: 'Doe',
-        role: 'STUDENT',
-        createdAt: new Date('2025-12-15T10:30:00Z')
-      }
-    }),
-
-    // Guyanese Students
+    // [0] Rajesh Singh - Active Learner
     prisma.user.create({
       data: {
         email: 'rajesh.singh@gmail.com',
@@ -73,6 +63,7 @@ async function main() {
         createdAt: new Date('2025-12-01T08:15:00Z')
       }
     }),
+    // [1] Priya Persaud - High Risk
     prisma.user.create({
       data: {
         email: 'priya.persaud@yahoo.com',
@@ -83,6 +74,7 @@ async function main() {
         createdAt: new Date('2025-12-10T14:22:00Z')
       }
     }),
+    // [2] Kumar Ramnauth - Brand New
     prisma.user.create({
       data: {
         email: 'kumar.ramnauth@outlook.com',
@@ -93,16 +85,7 @@ async function main() {
         createdAt: new Date('2026-01-15T09:45:00Z')
       }
     }),
-    prisma.user.create({
-      data: {
-        email: 'anita.khan@gmail.com',
-        password: studentPassword,
-        firstName: 'Anita',
-        lastName: 'Khan',
-        role: 'STUDENT',
-        createdAt: new Date('2025-12-05T16:30:00Z')
-      }
-    }),
+    // [3] Arjun Jaipaul - Fresh
     prisma.user.create({
       data: {
         email: 'arjun.jaipaul@yahoo.com',
@@ -113,66 +96,7 @@ async function main() {
         createdAt: new Date('2025-12-20T11:10:00Z')
       }
     }),
-    prisma.user.create({
-      data: {
-        email: 'kavita.ramkissoon@outlook.com',
-        password: studentPassword,
-        firstName: 'Kavita',
-        lastName: 'Ramkissoon',
-        role: 'STUDENT',
-        createdAt: new Date('2026-01-08T13:20:00Z')
-      }
-    }),
-    prisma.user.create({
-      data: {
-        email: 'nadira.mohamed@gmail.com',
-        password: studentPassword,
-        firstName: 'Nadira',
-        lastName: 'Mohamed',
-        role: 'STUDENT',
-        createdAt: new Date('2025-12-28T10:05:00Z')
-      }
-    }),
-    prisma.user.create({
-      data: {
-        email: 'rohan.narine@yahoo.com',
-        password: studentPassword,
-        firstName: 'Rohan',
-        lastName: 'Narine',
-        role: 'STUDENT',
-        createdAt: new Date('2025-11-28T15:40:00Z')
-      }
-    }),
-    prisma.user.create({
-      data: {
-        email: 'simran.samaroo@outlook.com',
-        password: studentPassword,
-        firstName: 'Simran',
-        lastName: 'Samaroo',
-        role: 'STUDENT',
-        createdAt: new Date('2025-12-12T09:25:00Z')
-      }
-    }),
-    prisma.user.create({
-      data: {
-        email: 'deepak.lall@gmail.com',
-        password: studentPassword,
-        firstName: 'Deepak',
-        lastName: 'Lall',
-        role: 'STUDENT',
-        createdAt: new Date('2026-01-10T12:50:00Z')
-      }
-    }),
-    prisma.user.create({
-      data: {
-        email: 'maya.ramdass@yahoo.com',
-        password: studentPassword,
-        firstName: 'Maya',
-        lastName: 'Ramdass',
-        role: 'STUDENT',
-        createdAt: new Date('2025-12-08T14:15:00Z')
-      }
-    }),
+    // [4] Vishnu Bisram - Safe Zone
     prisma.user.create({
       data: {
         email: 'vishnu.bisram@outlook.com',
@@ -185,8 +109,7 @@ async function main() {
     })
   ]);
 
-  const student = students[0]; // Keep reference to original student for backward compatibility
-  console.log(`✅ Created ${students.length} student users (all use password: student123)`);
+  console.log('✅ Created 5 student users (all use password: student123)');
 
   // Create Courses
   const courses = await Promise.all([
@@ -1900,34 +1823,6 @@ Proactively searching for threats that have evaded existing security controls.
 
   console.log('✅ Added 18 modules and 30 new lessons (48 total lessons across 6 courses)');
 
-  // Enroll student in first two courses
-  await prisma.enrollment.createMany({
-    data: [
-      { userId: student.id, courseId: courses[0].id },
-      { userId: student.id, courseId: courses[1].id }
-    ]
-  });
-
-  console.log('✅ Enrolled student in 2 courses');
-
-  // Add some progress for the student
-  const course1Lessons = await prisma.lesson.findMany({
-    where: { courseId: courses[0].id },
-    orderBy: { order: 'asc' }
-  });
-
-  if (course1Lessons.length > 0) {
-    await prisma.progress.create({
-      data: {
-        userId: student.id,
-        lessonId: course1Lessons[0].id,
-        completed: true,
-        completedAt: new Date()
-      }
-    });
-    console.log('✅ Added progress for student (1 lesson completed)');
-  }
-
   // ============================================
   // CREATE QUIZZES FOR COURSES
   // ============================================
@@ -3137,55 +3032,55 @@ For each finding:
     include: { lesson: true }
   });
 
-  // Rajesh Singh - Active learner (enrolled in 4 courses, completed 2, high scores)
+  // Rajesh Singh [0] - Active learner (enrolled in 4 courses, completed 2, high scores)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[1].id, courseId: courses[0].id, completedAt: new Date('2026-01-10') },
-      { userId: students[1].id, courseId: courses[1].id, completedAt: new Date('2026-01-14') },
-      { userId: students[1].id, courseId: courses[2].id },
-      { userId: students[1].id, courseId: courses[3].id }
+      { userId: students[0].id, courseId: courses[0].id, completedAt: new Date('2026-01-10') },
+      { userId: students[0].id, courseId: courses[1].id, completedAt: new Date('2026-01-14') },
+      { userId: students[0].id, courseId: courses[2].id },
+      { userId: students[0].id, courseId: courses[3].id }
     ]
   });
   // Complete all lessons in first two courses
   for (const lesson of lessonsByCourse[courses[0].id]) {
     await prisma.progress.create({
-      data: { userId: students[1].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-09') }
+      data: { userId: students[0].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-09') }
     });
   }
   for (const lesson of lessonsByCourse[courses[1].id]) {
     await prisma.progress.create({
-      data: { userId: students[1].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-13') }
+      data: { userId: students[0].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-13') }
     });
   }
   // Complete first lesson of course 3
   await prisma.progress.create({
-    data: { userId: students[1].id, lessonId: lessonsByCourse[courses[2].id][0].id, completed: true, completedAt: new Date('2026-01-15') }
+    data: { userId: students[0].id, lessonId: lessonsByCourse[courses[2].id][0].id, completed: true, completedAt: new Date('2026-01-15') }
   });
   // Quiz attempts - passed both
   const rajeshQuiz1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
   const rajeshQuiz2 = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
   if (rajeshQuiz1) {
     await prisma.quizAttempt.create({
-      data: { userId: students[1].id, quizId: rajeshQuiz1.id, score: 85, passed: true, attemptedAt: new Date('2026-01-10') }
+      data: { userId: students[0].id, quizId: rajeshQuiz1.id, score: 85, passed: true, attemptedAt: new Date('2026-01-10') }
     });
   }
   if (rajeshQuiz2) {
     await prisma.quizAttempt.create({
-      data: { userId: students[1].id, quizId: rajeshQuiz2.id, score: 90, passed: true, attemptedAt: new Date('2026-01-14') }
+      data: { userId: students[0].id, quizId: rajeshQuiz2.id, score: 90, passed: true, attemptedAt: new Date('2026-01-14') }
     });
   }
 
-  // Priya Persaud - Struggling student (enrolled in 2, failed quiz once, retook and passed)
+  // Priya Persaud [1] - High risk / struggling student (enrolled in 2, failed quiz once, retook and passed)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[2].id, courseId: courses[0].id },
-      { userId: students[2].id, courseId: courses[1].id }
+      { userId: students[1].id, courseId: courses[0].id },
+      { userId: students[1].id, courseId: courses[1].id }
     ]
   });
   // Complete 2 lessons from course 1
   for (let i = 0; i < 2; i++) {
     await prisma.progress.create({
-      data: { userId: students[2].id, lessonId: lessonsByCourse[courses[0].id][i].id, completed: true, completedAt: new Date('2026-01-12') }
+      data: { userId: students[1].id, lessonId: lessonsByCourse[courses[0].id][i].id, completed: true, completedAt: new Date('2026-01-12') }
     });
   }
   // Failed quiz, then retook and passed
@@ -3193,186 +3088,52 @@ For each finding:
   if (priyaQuiz) {
     await prisma.quizAttempt.createMany({
       data: [
-        { userId: students[2].id, quizId: priyaQuiz.id, score: 65, passed: false, attemptedAt: new Date('2026-01-13') },
-        { userId: students[2].id, quizId: priyaQuiz.id, score: 75, passed: true, attemptedAt: new Date('2026-01-15') }
+        { userId: students[1].id, quizId: priyaQuiz.id, score: 65, passed: false, attemptedAt: new Date('2026-01-13') },
+        { userId: students[1].id, quizId: priyaQuiz.id, score: 75, passed: true, attemptedAt: new Date('2026-01-15') }
       ]
     });
   }
 
-  // Kumar Ramnauth - New student (enrolled in 1 course, just started)
+  // Kumar Ramnauth [2] - Brand new student (enrolled in 1 course, just started)
   await prisma.enrollment.create({
-    data: { userId: students[3].id, courseId: courses[0].id }
+    data: { userId: students[2].id, courseId: courses[0].id }
   });
   // Complete only first lesson
   await prisma.progress.create({
-    data: { userId: students[3].id, lessonId: lessonsByCourse[courses[0].id][0].id, completed: true, completedAt: new Date('2026-01-16') }
+    data: { userId: students[2].id, lessonId: lessonsByCourse[courses[0].id][0].id, completed: true, completedAt: new Date('2026-01-16') }
   });
 
-  // Anita Khan - Completed student (finished 1 course completely with cert)
+  // Arjun Jaipaul [3] - Fresh student (enrolled in 3, completed half of each)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[4].id, courseId: courses[0].id, completedAt: new Date('2026-01-11') },
-      { userId: students[4].id, courseId: courses[3].id }
-    ]
-  });
-  // Complete all lessons from course 1
-  for (const lesson of lessonsByCourse[courses[0].id]) {
-    await prisma.progress.create({
-      data: { userId: students[4].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-10') }
-    });
-  }
-  // Passed quiz
-  const anitaQuiz = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
-  if (anitaQuiz) {
-    await prisma.quizAttempt.create({
-      data: { userId: students[4].id, quizId: anitaQuiz.id, score: 80, passed: true, attemptedAt: new Date('2026-01-11') }
-    });
-  }
-
-  // Arjun Jaipaul - Average student (enrolled in 3, completed half of each)
-  await prisma.enrollment.createMany({
-    data: [
-      { userId: students[5].id, courseId: courses[0].id },
-      { userId: students[5].id, courseId: courses[1].id },
-      { userId: students[5].id, courseId: courses[2].id }
+      { userId: students[3].id, courseId: courses[0].id },
+      { userId: students[3].id, courseId: courses[1].id },
+      { userId: students[3].id, courseId: courses[2].id }
     ]
   });
   // Complete first 4 lessons of each course (halfway through)
   for (const course of [courses[0], courses[1], courses[2]]) {
     for (let i = 0; i < 4; i++) {
       await prisma.progress.create({
-        data: { userId: students[5].id, lessonId: lessonsByCourse[course.id][i].id, completed: true, completedAt: new Date('2026-01-14') }
+        data: { userId: students[3].id, lessonId: lessonsByCourse[course.id][i].id, completed: true, completedAt: new Date('2026-01-14') }
       });
     }
   }
 
-  // Kavita Ramkissoon - Focused learner (1 course, completed)
-  await prisma.enrollment.create({
-    data: { userId: students[6].id, courseId: courses[1].id, completedAt: new Date('2026-01-15') }
-  });
-  // Complete all lessons
-  for (const lesson of lessonsByCourse[courses[1].id]) {
-    await prisma.progress.create({
-      data: { userId: students[6].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-15') }
-    });
-  }
-
-  // Nadira Mohamed - Inactive student (enrolled but no progress)
+  // Vishnu Bisram [4] - Safe zone / high achiever (completed 3 courses, high scores)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[7].id, courseId: courses[0].id },
-      { userId: students[7].id, courseId: courses[4].id }
-    ]
-  });
-
-  // Rohan Narine - Advanced student (taking advanced course)
-  await prisma.enrollment.createMany({
-    data: [
-      { userId: students[8].id, courseId: courses[0].id, completedAt: new Date('2026-01-08') },
-      { userId: students[8].id, courseId: courses[5].id }
-    ]
-  });
-  // Completed all lessons in course 1
-  for (const lesson of lessonsByCourse[courses[0].id]) {
-    await prisma.progress.create({
-      data: { userId: students[8].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-07') }
-    });
-  }
-  // Working on advanced course - 2 lessons done
-  for (let i = 0; i < 2; i++) {
-    await prisma.progress.create({
-      data: { userId: students[8].id, lessonId: lessonsByCourse[courses[5].id][i].id, completed: true, completedAt: new Date('2026-01-15') }
-    });
-  }
-  // Passed first quiz with high score
-  const rohanQuiz = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
-  if (rohanQuiz) {
-    await prisma.quizAttempt.create({
-      data: { userId: students[8].id, quizId: rohanQuiz.id, score: 95, passed: true, attemptedAt: new Date('2026-01-08') }
-    });
-  }
-
-  // Simran Samaroo - Moderate progress (2 courses, working through steadily)
-  await prisma.enrollment.createMany({
-    data: [
-      { userId: students[9].id, courseId: courses[1].id, completedAt: new Date('2026-01-12') },
-      { userId: students[9].id, courseId: courses[3].id }
-    ]
-  });
-  // Complete all lessons in course 2
-  for (const lesson of lessonsByCourse[courses[1].id]) {
-    await prisma.progress.create({
-      data: { userId: students[9].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-12') }
-    });
-  }
-  // Complete 1 lesson in course 4
-  await prisma.progress.create({
-    data: { userId: students[9].id, lessonId: lessonsByCourse[courses[3].id][0].id, completed: true, completedAt: new Date('2026-01-14') }
-  });
-  // Passed quiz 2
-  const simranQuiz = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
-  if (simranQuiz) {
-    await prisma.quizAttempt.create({
-      data: { userId: students[9].id, quizId: simranQuiz.id, score: 78, passed: true, attemptedAt: new Date('2026-01-12') }
-    });
-  }
-
-  // Deepak Lall - Just browsing (enrolled in many, minimal progress)
-  await prisma.enrollment.createMany({
-    data: [
-      { userId: students[10].id, courseId: courses[0].id },
-      { userId: students[10].id, courseId: courses[1].id },
-      { userId: students[10].id, courseId: courses[2].id },
-      { userId: students[10].id, courseId: courses[3].id },
-      { userId: students[10].id, courseId: courses[4].id }
-    ]
-  });
-  // Only completed 1 lesson across all courses
-  await prisma.progress.create({
-    data: { userId: students[10].id, lessonId: lessonsByCourse[courses[0].id][0].id, completed: true, completedAt: new Date('2026-01-13') }
-  });
-
-  // Maya Ramdass - Consistent learner (enrolled in 2, steady progress)
-  await prisma.enrollment.createMany({
-    data: [
-      { userId: students[11].id, courseId: courses[0].id },
-      { userId: students[11].id, courseId: courses[2].id }
-    ]
-  });
-  // Complete all lessons in course 1
-  for (const lesson of lessonsByCourse[courses[0].id]) {
-    await prisma.progress.create({
-      data: { userId: students[11].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-11') }
-    });
-  }
-  // Complete 2 lessons in course 3
-  for (let i = 0; i < 2; i++) {
-    await prisma.progress.create({
-      data: { userId: students[11].id, lessonId: lessonsByCourse[courses[2].id][i].id, completed: true, completedAt: new Date('2026-01-15') }
-    });
-  }
-  // Passed quiz 1
-  const mayaQuiz = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
-  if (mayaQuiz) {
-    await prisma.quizAttempt.create({
-      data: { userId: students[11].id, quizId: mayaQuiz.id, score: 82, passed: true, attemptedAt: new Date('2026-01-11') }
-    });
-  }
-
-  // Vishnu Bisram - High achiever (completed 3 courses, high scores)
-  await prisma.enrollment.createMany({
-    data: [
-      { userId: students[12].id, courseId: courses[0].id, completedAt: new Date('2026-01-06') },
-      { userId: students[12].id, courseId: courses[1].id, completedAt: new Date('2026-01-09') },
-      { userId: students[12].id, courseId: courses[2].id, completedAt: new Date('2026-01-12') },
-      { userId: students[12].id, courseId: courses[4].id }
+      { userId: students[4].id, courseId: courses[0].id, completedAt: new Date('2026-01-06') },
+      { userId: students[4].id, courseId: courses[1].id, completedAt: new Date('2026-01-09') },
+      { userId: students[4].id, courseId: courses[2].id, completedAt: new Date('2026-01-12') },
+      { userId: students[4].id, courseId: courses[4].id }
     ]
   });
   // Complete all lessons in first 3 courses
   for (const course of [courses[0], courses[1], courses[2]]) {
     for (const lesson of lessonsByCourse[course.id]) {
       await prisma.progress.create({
-        data: { userId: students[12].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-05') }
+        data: { userId: students[4].id, lessonId: lesson.id, completed: true, completedAt: new Date('2026-01-05') }
       });
     }
   }
@@ -3382,17 +3143,17 @@ For each finding:
   const vishnuQuiz3 = allQuizzes.find(q => q.lesson.courseId === courses[2].id);
   if (vishnuQuiz1) {
     await prisma.quizAttempt.create({
-      data: { userId: students[12].id, quizId: vishnuQuiz1.id, score: 100, passed: true, attemptedAt: new Date('2026-01-06') }
+      data: { userId: students[4].id, quizId: vishnuQuiz1.id, score: 100, passed: true, attemptedAt: new Date('2026-01-06') }
     });
   }
   if (vishnuQuiz2) {
     await prisma.quizAttempt.create({
-      data: { userId: students[12].id, quizId: vishnuQuiz2.id, score: 95, passed: true, attemptedAt: new Date('2026-01-09') }
+      data: { userId: students[4].id, quizId: vishnuQuiz2.id, score: 95, passed: true, attemptedAt: new Date('2026-01-09') }
     });
   }
   if (vishnuQuiz3) {
     await prisma.quizAttempt.create({
-      data: { userId: students[12].id, quizId: vishnuQuiz3.id, score: 92, passed: true, attemptedAt: new Date('2026-01-12') }
+      data: { userId: students[4].id, quizId: vishnuQuiz3.id, score: 92, passed: true, attemptedAt: new Date('2026-01-12') }
     });
   }
 
@@ -3402,25 +3163,24 @@ For each finding:
   // These provide multi-week repeat attempts so the Knowledge Retention chart has data.
   // Dates are spread across the last 6 weeks (within the default 90-day analytics window).
 
-  // Rajesh retakes quiz 1 (phishing) over several weeks — scores improve
-  if (vishnuQuiz1) {
-    // Rajesh: week 1 baseline, then retakes
+  // Rajesh [0] retakes quiz 1 (phishing) over several weeks — scores improve
+  {
     const rajeshQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
     if (rajeshQ1) {
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ1.id, score: 75, passed: true, attemptedAt: new Date('2026-02-01') }
+        data: { userId: students[0].id, quizId: rajeshQ1.id, score: 75, passed: true, attemptedAt: new Date('2026-02-01') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ1.id, score: 80, passed: true, attemptedAt: new Date('2026-02-08') }
+        data: { userId: students[0].id, quizId: rajeshQ1.id, score: 80, passed: true, attemptedAt: new Date('2026-02-08') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ1.id, score: 90, passed: true, attemptedAt: new Date('2026-02-15') }
+        data: { userId: students[0].id, quizId: rajeshQ1.id, score: 90, passed: true, attemptedAt: new Date('2026-02-15') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ1.id, score: 95, passed: true, attemptedAt: new Date('2026-02-22') }
+        data: { userId: students[0].id, quizId: rajeshQ1.id, score: 95, passed: true, attemptedAt: new Date('2026-02-22') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ1.id, score: 92, passed: true, attemptedAt: new Date('2026-03-01') }
+        data: { userId: students[0].id, quizId: rajeshQ1.id, score: 92, passed: true, attemptedAt: new Date('2026-03-01') }
       });
     }
 
@@ -3428,145 +3188,69 @@ For each finding:
     const rajeshQ2 = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
     if (rajeshQ2) {
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ2.id, score: 80, passed: true, attemptedAt: new Date('2026-02-03') }
+        data: { userId: students[0].id, quizId: rajeshQ2.id, score: 80, passed: true, attemptedAt: new Date('2026-02-03') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ2.id, score: 88, passed: true, attemptedAt: new Date('2026-02-17') }
+        data: { userId: students[0].id, quizId: rajeshQ2.id, score: 88, passed: true, attemptedAt: new Date('2026-02-17') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[1].id, quizId: rajeshQ2.id, score: 92, passed: true, attemptedAt: new Date('2026-03-03') }
+        data: { userId: students[0].id, quizId: rajeshQ2.id, score: 92, passed: true, attemptedAt: new Date('2026-03-03') }
       });
     }
   }
 
-  // Anita retakes quiz 1 over several weeks — steady improvement
+  // Priya [1] retakes quiz 1 — starts weak, improves significantly
   {
-    const anitaQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
-    if (anitaQ1) {
+    const priyaQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+    if (priyaQ1) {
       await prisma.quizAttempt.create({
-        data: { userId: students[4].id, quizId: anitaQ1.id, score: 70, passed: true, attemptedAt: new Date('2026-02-02') }
+        data: { userId: students[1].id, quizId: priyaQ1.id, score: 60, passed: false, attemptedAt: new Date('2026-02-03') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[4].id, quizId: anitaQ1.id, score: 78, passed: true, attemptedAt: new Date('2026-02-09') }
+        data: { userId: students[1].id, quizId: priyaQ1.id, score: 70, passed: true, attemptedAt: new Date('2026-02-10') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[4].id, quizId: anitaQ1.id, score: 85, passed: true, attemptedAt: new Date('2026-02-16') }
+        data: { userId: students[1].id, quizId: priyaQ1.id, score: 78, passed: true, attemptedAt: new Date('2026-02-24') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[4].id, quizId: anitaQ1.id, score: 88, passed: true, attemptedAt: new Date('2026-02-23') }
-      });
-    }
-  }
-
-  // Rohan retakes quiz 1 — high performer maintaining scores
-  {
-    const rohanQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
-    if (rohanQ1) {
-      await prisma.quizAttempt.create({
-        data: { userId: students[8].id, quizId: rohanQ1.id, score: 90, passed: true, attemptedAt: new Date('2026-02-04') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[8].id, quizId: rohanQ1.id, score: 92, passed: true, attemptedAt: new Date('2026-02-11') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[8].id, quizId: rohanQ1.id, score: 95, passed: true, attemptedAt: new Date('2026-02-25') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[8].id, quizId: rohanQ1.id, score: 98, passed: true, attemptedAt: new Date('2026-03-08') }
+        data: { userId: students[1].id, quizId: priyaQ1.id, score: 82, passed: true, attemptedAt: new Date('2026-03-10') }
       });
     }
   }
 
-  // Vishnu retakes all 3 quizzes over time — consistently excellent
+  // Vishnu [4] retakes all 3 quizzes over time — consistently excellent
   {
     const vQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
     const vQ2 = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
     const vQ3 = allQuizzes.find(q => q.lesson.courseId === courses[2].id);
     if (vQ1) {
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ1.id, score: 95, passed: true, attemptedAt: new Date('2026-02-05') }
+        data: { userId: students[4].id, quizId: vQ1.id, score: 95, passed: true, attemptedAt: new Date('2026-02-05') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ1.id, score: 100, passed: true, attemptedAt: new Date('2026-02-19') }
+        data: { userId: students[4].id, quizId: vQ1.id, score: 100, passed: true, attemptedAt: new Date('2026-02-19') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ1.id, score: 100, passed: true, attemptedAt: new Date('2026-03-05') }
+        data: { userId: students[4].id, quizId: vQ1.id, score: 100, passed: true, attemptedAt: new Date('2026-03-05') }
       });
     }
     if (vQ2) {
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ2.id, score: 90, passed: true, attemptedAt: new Date('2026-02-07') }
+        data: { userId: students[4].id, quizId: vQ2.id, score: 90, passed: true, attemptedAt: new Date('2026-02-07') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ2.id, score: 95, passed: true, attemptedAt: new Date('2026-02-21') }
+        data: { userId: students[4].id, quizId: vQ2.id, score: 95, passed: true, attemptedAt: new Date('2026-02-21') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ2.id, score: 100, passed: true, attemptedAt: new Date('2026-03-07') }
+        data: { userId: students[4].id, quizId: vQ2.id, score: 100, passed: true, attemptedAt: new Date('2026-03-07') }
       });
     }
     if (vQ3) {
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ3.id, score: 88, passed: true, attemptedAt: new Date('2026-02-10') }
+        data: { userId: students[4].id, quizId: vQ3.id, score: 88, passed: true, attemptedAt: new Date('2026-02-10') }
       });
       await prisma.quizAttempt.create({
-        data: { userId: students[12].id, quizId: vQ3.id, score: 95, passed: true, attemptedAt: new Date('2026-03-03') }
-      });
-    }
-  }
-
-  // Maya retakes quiz 1 — gradual improvement
-  {
-    const mayaQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
-    if (mayaQ1) {
-      await prisma.quizAttempt.create({
-        data: { userId: students[11].id, quizId: mayaQ1.id, score: 72, passed: true, attemptedAt: new Date('2026-02-06') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[11].id, quizId: mayaQ1.id, score: 80, passed: true, attemptedAt: new Date('2026-02-13') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[11].id, quizId: mayaQ1.id, score: 85, passed: true, attemptedAt: new Date('2026-02-27') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[11].id, quizId: mayaQ1.id, score: 90, passed: true, attemptedAt: new Date('2026-03-10') }
-      });
-    }
-  }
-
-  // Priya retakes quiz 1 — starts weak, improves significantly
-  {
-    const priyaQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
-    if (priyaQ1) {
-      await prisma.quizAttempt.create({
-        data: { userId: students[2].id, quizId: priyaQ1.id, score: 60, passed: false, attemptedAt: new Date('2026-02-03') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[2].id, quizId: priyaQ1.id, score: 70, passed: true, attemptedAt: new Date('2026-02-10') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[2].id, quizId: priyaQ1.id, score: 78, passed: true, attemptedAt: new Date('2026-02-24') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[2].id, quizId: priyaQ1.id, score: 82, passed: true, attemptedAt: new Date('2026-03-10') }
-      });
-    }
-  }
-
-  // Simran retakes quiz 2 (password) — solid performer
-  {
-    const simranQ2 = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
-    if (simranQ2) {
-      await prisma.quizAttempt.create({
-        data: { userId: students[9].id, quizId: simranQ2.id, score: 74, passed: true, attemptedAt: new Date('2026-02-05') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[9].id, quizId: simranQ2.id, score: 82, passed: true, attemptedAt: new Date('2026-02-12') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[9].id, quizId: simranQ2.id, score: 86, passed: true, attemptedAt: new Date('2026-02-26') }
-      });
-      await prisma.quizAttempt.create({
-        data: { userId: students[9].id, quizId: simranQ2.id, score: 90, passed: true, attemptedAt: new Date('2026-03-12') }
+        data: { userId: students[4].id, quizId: vQ3.id, score: 95, passed: true, attemptedAt: new Date('2026-03-03') }
       });
     }
   }
@@ -3587,84 +3271,39 @@ For each finding:
     labsByCourse[lab.courseId].push(lab);
   }
 
-  // Rajesh - completed courses 0 & 1, so completed their labs
+  // Rajesh [0] - completed courses 0 & 1, so completed their labs
   if (labsByCourse[courses[0].id]?.[0]) {
     await prisma.labProgress.create({
-      data: { userId: students[1].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 25, score: 90, passed: true, attempts: 1, startedAt: new Date('2026-01-08'), completedAt: new Date('2026-01-08') }
+      data: { userId: students[0].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 25, score: 90, passed: true, attempts: 1, startedAt: new Date('2026-01-08'), completedAt: new Date('2026-01-08') }
     });
   }
   for (const lab of labsByCourse[courses[1].id] || []) {
     await prisma.labProgress.create({
-      data: { userId: students[1].id, labId: lab.id, status: 'COMPLETED', timeSpent: 20, score: 85, passed: true, attempts: 1, startedAt: new Date('2026-01-12'), completedAt: new Date('2026-01-12') }
+      data: { userId: students[0].id, labId: lab.id, status: 'COMPLETED', timeSpent: 20, score: 85, passed: true, attempts: 1, startedAt: new Date('2026-01-12'), completedAt: new Date('2026-01-12') }
     });
   }
 
-  // Priya - started lab in course 0 but didn't finish
+  // Priya [1] - started lab in course 0 but didn't finish
   if (labsByCourse[courses[0].id]?.[0]) {
     await prisma.labProgress.create({
-      data: { userId: students[2].id, labId: labsByCourse[courses[0].id][0].id, status: 'IN_PROGRESS', timeSpent: 10, attempts: 1, startedAt: new Date('2026-01-12') }
+      data: { userId: students[1].id, labId: labsByCourse[courses[0].id][0].id, status: 'IN_PROGRESS', timeSpent: 10, attempts: 1, startedAt: new Date('2026-01-12') }
     });
   }
 
-  // Anita - completed course 0 labs
+  // Vishnu [4] - completed labs for courses 0, 1, 2 (high achiever)
   if (labsByCourse[courses[0].id]?.[0]) {
     await prisma.labProgress.create({
-      data: { userId: students[4].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 30, score: 80, passed: true, attempts: 2, startedAt: new Date('2026-01-09'), completedAt: new Date('2026-01-10') }
-    });
-  }
-
-  // Kavita - completed course 1 labs
-  for (const lab of labsByCourse[courses[1].id] || []) {
-    await prisma.labProgress.create({
-      data: { userId: students[6].id, labId: lab.id, status: 'COMPLETED', timeSpent: 22, score: 88, passed: true, attempts: 1, startedAt: new Date('2026-01-14'), completedAt: new Date('2026-01-15') }
-    });
-  }
-
-  // Rohan - completed course 0 labs, started course 5 lab
-  if (labsByCourse[courses[0].id]?.[0]) {
-    await prisma.labProgress.create({
-      data: { userId: students[8].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 18, score: 95, passed: true, attempts: 1, startedAt: new Date('2026-01-07'), completedAt: new Date('2026-01-07') }
-    });
-  }
-  if (labsByCourse[courses[5].id]?.[0]) {
-    await prisma.labProgress.create({
-      data: { userId: students[8].id, labId: labsByCourse[courses[5].id][0].id, status: 'IN_PROGRESS', timeSpent: 35, attempts: 1, startedAt: new Date('2026-01-15') }
-    });
-  }
-
-  // Simran - completed course 1 labs
-  for (const lab of labsByCourse[courses[1].id] || []) {
-    await prisma.labProgress.create({
-      data: { userId: students[9].id, labId: lab.id, status: 'COMPLETED', timeSpent: 28, score: 82, passed: true, attempts: 1, startedAt: new Date('2026-01-11'), completedAt: new Date('2026-01-12') }
-    });
-  }
-
-  // Maya - completed course 0 labs, started course 2 lab
-  if (labsByCourse[courses[0].id]?.[0]) {
-    await prisma.labProgress.create({
-      data: { userId: students[11].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 24, score: 85, passed: true, attempts: 1, startedAt: new Date('2026-01-10'), completedAt: new Date('2026-01-11') }
-    });
-  }
-  if (labsByCourse[courses[2].id]?.[0]) {
-    await prisma.labProgress.create({
-      data: { userId: students[11].id, labId: labsByCourse[courses[2].id][0].id, status: 'IN_PROGRESS', timeSpent: 15, attempts: 1, startedAt: new Date('2026-01-15') }
-    });
-  }
-
-  // Vishnu - completed labs for courses 0, 1, 2 (high achiever)
-  if (labsByCourse[courses[0].id]?.[0]) {
-    await prisma.labProgress.create({
-      data: { userId: students[12].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 15, score: 100, passed: true, attempts: 1, startedAt: new Date('2026-01-04'), completedAt: new Date('2026-01-04') }
+      data: { userId: students[4].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 15, score: 100, passed: true, attempts: 1, startedAt: new Date('2026-01-04'), completedAt: new Date('2026-01-04') }
     });
   }
   for (const lab of labsByCourse[courses[1].id] || []) {
     await prisma.labProgress.create({
-      data: { userId: students[12].id, labId: lab.id, status: 'COMPLETED', timeSpent: 18, score: 95, passed: true, attempts: 1, startedAt: new Date('2026-01-07'), completedAt: new Date('2026-01-07') }
+      data: { userId: students[4].id, labId: lab.id, status: 'COMPLETED', timeSpent: 18, score: 95, passed: true, attempts: 1, startedAt: new Date('2026-01-07'), completedAt: new Date('2026-01-07') }
     });
   }
   for (const lab of labsByCourse[courses[2].id] || []) {
     await prisma.labProgress.create({
-      data: { userId: students[12].id, labId: lab.id, status: 'COMPLETED', timeSpent: 20, score: 98, passed: true, attempts: 1, startedAt: new Date('2026-01-10'), completedAt: new Date('2026-01-10') }
+      data: { userId: students[4].id, labId: lab.id, status: 'COMPLETED', timeSpent: 20, score: 98, passed: true, attempts: 1, startedAt: new Date('2026-01-10'), completedAt: new Date('2026-01-10') }
     });
   }
 
@@ -3788,23 +3427,315 @@ For each finding:
 
   console.log('✅ Created intro assessment with 10 questions');
 
+  // ============================================
+  // CREATE INTRO ASSESSMENT ATTEMPTS
+  // ============================================
+
+  // Rajesh [0] - score 8/10, 80%, passed
+  await prisma.introAssessmentAttempt.create({
+    data: {
+      userId: students[0].id,
+      introAssessmentId: introAssessment.id,
+      score: 8,
+      totalQuestions: 10,
+      percentage: 80,
+      passed: true,
+      answers: {
+        "0": 1, "1": 1, "2": 1, "3": 1, "4": 3, "5": 2, "6": 1, "7": 1, "8": 0, "9": 0
+      },
+      completedAt: new Date('2025-12-02T09:30:00Z')
+    }
+  });
+
+  // Priya [1] - score 5/10, 50%, passed (barely)
+  await prisma.introAssessmentAttempt.create({
+    data: {
+      userId: students[1].id,
+      introAssessmentId: introAssessment.id,
+      score: 5,
+      totalQuestions: 10,
+      percentage: 50,
+      passed: true,
+      answers: {
+        "0": 1, "1": 0, "2": 1, "3": 0, "4": 0, "5": 2, "6": 1, "7": 0, "8": 0, "9": 1
+      },
+      completedAt: new Date('2025-12-11T15:00:00Z')
+    }
+  });
+
+  // Vishnu [4] - score 10/10, 100%, passed (perfect)
+  await prisma.introAssessmentAttempt.create({
+    data: {
+      userId: students[4].id,
+      introAssessmentId: introAssessment.id,
+      score: 10,
+      totalQuestions: 10,
+      percentage: 100,
+      passed: true,
+      answers: {
+        "0": 1, "1": 1, "2": 1, "3": 1, "4": 3, "5": 2, "6": 1, "7": 1, "8": 1, "9": 1
+      },
+      completedAt: new Date('2025-11-26T09:00:00Z')
+    }
+  });
+
+  console.log('✅ Created intro assessment attempts for 3 students');
+
+  // ============================================
+  // CREATE PHISHING SCENARIOS AND ATTEMPTS
+  // ============================================
+
+  const phishingScenarios = await Promise.all([
+    prisma.phishingScenario.create({
+      data: {
+        title: 'Urgent Account Verification Required',
+        description: 'Fake PayPal email requesting immediate account verification',
+        difficulty: 'Beginner',
+        category: 'Finance',
+        isActive: true,
+        senderName: 'PayPal Security Team',
+        senderEmail: 'security@paypa1-secure.com',
+        subject: 'URGENT: Verify Your Account Within 24 Hours',
+        body: `Dear Valued Customer,
+
+We have detected unusual activity on your PayPal account. For your security, we have temporarily limited your account access.
+
+To restore full access, please verify your information immediately by clicking the link below:
+
+https://paypal-secure-verify.com/account/verify
+
+You have 24 hours to complete this verification, or your account will be permanently suspended.
+
+Thank you for your prompt attention to this matter.
+
+PayPal Security Team`,
+        attachments: [],
+        isPhishing: true,
+        redFlags: [
+          'Misspelled domain (paypa1 instead of paypal)',
+          'Creates false urgency (24 hour deadline)',
+          'Threatening account suspension',
+          'Suspicious verification link',
+          'Generic greeting instead of personalized'
+        ]
+      }
+    }),
+    prisma.phishingScenario.create({
+      data: {
+        title: 'IT Department Password Reset',
+        description: 'Fake internal IT email requesting password reset',
+        difficulty: 'Beginner',
+        category: 'Corporate',
+        isActive: true,
+        senderName: 'IT Support',
+        senderEmail: 'it-support@companyname-helpdesk.com',
+        subject: 'Mandatory Password Reset - Action Required',
+        body: `Hello,
+
+As part of our security upgrade, all employees must reset their passwords immediately.
+
+Please click here to reset your password: http://company-portal-login.tk/reset
+
+Failure to complete this within 2 hours will result in account lockout.
+
+IT Department
+Internal Extension: 5555`,
+        attachments: [],
+        isPhishing: true,
+        redFlags: [
+          'External domain (.tk is a free domain)',
+          'Unsolicited password reset request',
+          'Creates false urgency (2 hour deadline)',
+          'Suspicious reset link',
+          'Generic signature with fake extension'
+        ]
+      }
+    }),
+    prisma.phishingScenario.create({
+      data: {
+        title: 'Bank Statement Ready',
+        description: 'Legitimate bank notification about monthly statement',
+        difficulty: 'Beginner',
+        category: 'Finance',
+        isActive: true,
+        senderName: 'Scotia Bank Notifications',
+        senderEmail: 'statements@scotiabank.com',
+        subject: 'Your December 2025 Statement is Ready',
+        body: `Dear Customer,
+
+Your monthly statement for December 2025 is now available.
+
+To view your statement, please log in to online banking through our official website at www.scotiabank.com or mobile app.
+
+Account ending in: **4532
+Statement Period: December 1-31, 2025
+
+If you have any questions, please contact us at 1-800-472-6842.
+
+Best regards,
+Scotia Bank
+
+This is an automated message. Please do not reply to this email.`,
+        attachments: [],
+        isPhishing: false,
+        redFlags: [],
+        legitimateReason: 'Official bank domain, no suspicious links, professional formatting, contains account-specific information'
+      }
+    }),
+    prisma.phishingScenario.create({
+      data: {
+        title: 'Netflix Subscription Expired',
+        description: 'Fake Netflix email claiming payment failure',
+        difficulty: 'Intermediate',
+        category: 'Entertainment',
+        isActive: true,
+        senderName: 'Netflix Billing',
+        senderEmail: 'billing@netflix-support.net',
+        subject: 'Your Netflix subscription has been suspended',
+        body: `Hi there,
+
+We're having trouble processing your payment for Netflix.
+
+Your subscription has been suspended. To continue enjoying Netflix, please update your payment information:
+
+UPDATE PAYMENT METHOD: https://netflix-billing.net/update-payment
+
+If we don't receive your payment within 48 hours, your account will be permanently closed and you will lose access to all your saved preferences and watch history.
+
+The Netflix Team`,
+        attachments: ['Invoice_Dec2025.pdf'],
+        isPhishing: true,
+        redFlags: [
+          'Wrong domain (.net instead of .com)',
+          'Creates urgency with account closure threat',
+          'Suspicious payment link',
+          'Attachment could contain malware',
+          'Lacks Netflix official branding'
+        ]
+      }
+    }),
+    prisma.phishingScenario.create({
+      data: {
+        title: 'Company Holiday Schedule',
+        description: 'Legitimate HR email about company holidays',
+        difficulty: 'Beginner',
+        category: 'Corporate',
+        isActive: true,
+        senderName: 'Human Resources',
+        senderEmail: 'hr@company.com',
+        subject: '2026 Holiday Schedule and Office Closure Dates',
+        body: `Dear Team,
+
+Please find below the official holiday schedule for 2026:
+
+New Year's Day - January 1
+Good Friday - April 10
+Easter Monday - April 13
+Labour Day - May 1
+Independence Day - May 26
+CARICOM Day - July 6
+Emancipation Day - August 1
+Christmas Day - December 25
+Boxing Day - December 26
+
+Please plan your work accordingly. For any questions regarding leave requests during these periods, please contact HR at extension 2500.
+
+Best regards,
+Sarah Johnson
+HR Manager
+Company Name Ltd.`,
+        attachments: [],
+        isPhishing: false,
+        redFlags: [],
+        legitimateReason: 'Internal company email, legitimate HR domain, contains factual information, professional signature with contact details'
+      }
+    }),
+    prisma.phishingScenario.create({
+      data: {
+        title: 'Amazon Prize Winner Notification',
+        description: 'Fake Amazon email claiming user won a prize',
+        difficulty: 'Intermediate',
+        category: 'Retail',
+        isActive: true,
+        senderName: 'Amazon Customer Service',
+        senderEmail: 'prizes@amazon-winners.org',
+        subject: "Congratulations! You've Won a $500 Amazon Gift Card",
+        body: `Dear Lucky Winner,
+
+CONGRATULATIONS! Your email address has been randomly selected in our monthly customer appreciation draw.
+
+You have won a $500 Amazon Gift Card!
+
+To claim your prize, please click the link below and enter your details:
+
+CLAIM YOUR PRIZE NOW: http://amazon-claim-prize.xyz/winner
+
+You must claim within 72 hours or the prize will be forfeited to another customer.
+
+This is a limited time offer!
+
+Amazon Customer Rewards Team`,
+        attachments: [],
+        isPhishing: true,
+        redFlags: [
+          'Unexpected prize/lottery notification',
+          'Suspicious domain (.org and .xyz)',
+          'Creates urgency (72 hour deadline)',
+          'No official Amazon branding',
+          'Asks to enter personal details on external site',
+          'Too good to be true'
+        ]
+      }
+    })
+  ]);
+
+  // Rajesh [0] - 6 phishing attempts, 90% success (5 correct, 1 wrong)
+  await prisma.phishingAttempt.createMany({
+    data: [
+      { userId: students[0].id, scenarioId: phishingScenarios[0].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 12000, attemptedAt: new Date('2026-01-20T10:15:00Z') },
+      { userId: students[0].id, scenarioId: phishingScenarios[1].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 18000, attemptedAt: new Date('2026-01-22T14:30:00Z') },
+      { userId: students[0].id, scenarioId: phishingScenarios[2].id, userAction: 'MARKED_SAFE', isCorrect: true, responseTimeMs: 25000, attemptedAt: new Date('2026-01-25T09:45:00Z') },
+      { userId: students[0].id, scenarioId: phishingScenarios[3].id, userAction: 'CLICKED_LINK', isCorrect: false, responseTimeMs: 8000, attemptedAt: new Date('2026-02-01T11:20:00Z') },
+      { userId: students[0].id, scenarioId: phishingScenarios[4].id, userAction: 'MARKED_SAFE', isCorrect: true, responseTimeMs: 15000, attemptedAt: new Date('2026-02-05T16:00:00Z') },
+      { userId: students[0].id, scenarioId: phishingScenarios[5].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 10000, attemptedAt: new Date('2026-02-10T13:30:00Z') }
+    ]
+  });
+
+  // Priya [1] - 6 phishing attempts, 50% success (3 correct, 3 wrong) — high risk
+  await prisma.phishingAttempt.createMany({
+    data: [
+      { userId: students[1].id, scenarioId: phishingScenarios[0].id, userAction: 'CLICKED_LINK', isCorrect: false, responseTimeMs: 5000, attemptedAt: new Date('2026-01-21T09:00:00Z') },
+      { userId: students[1].id, scenarioId: phishingScenarios[1].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 30000, attemptedAt: new Date('2026-01-24T11:15:00Z') },
+      { userId: students[1].id, scenarioId: phishingScenarios[2].id, userAction: 'REPORTED', isCorrect: false, responseTimeMs: 20000, attemptedAt: new Date('2026-01-28T14:45:00Z') },
+      { userId: students[1].id, scenarioId: phishingScenarios[3].id, userAction: 'CLICKED_LINK', isCorrect: false, responseTimeMs: 6000, attemptedAt: new Date('2026-02-02T10:30:00Z') },
+      { userId: students[1].id, scenarioId: phishingScenarios[4].id, userAction: 'MARKED_SAFE', isCorrect: true, responseTimeMs: 22000, attemptedAt: new Date('2026-02-08T15:20:00Z') },
+      { userId: students[1].id, scenarioId: phishingScenarios[5].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 28000, attemptedAt: new Date('2026-02-12T12:00:00Z') }
+    ]
+  });
+
+  // Vishnu [4] - 6 phishing attempts, ~100% success (all correct) — safe zone
+  await prisma.phishingAttempt.createMany({
+    data: [
+      { userId: students[4].id, scenarioId: phishingScenarios[0].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 8000, attemptedAt: new Date('2026-01-18T10:00:00Z') },
+      { userId: students[4].id, scenarioId: phishingScenarios[1].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 10000, attemptedAt: new Date('2026-01-20T14:00:00Z') },
+      { userId: students[4].id, scenarioId: phishingScenarios[2].id, userAction: 'MARKED_SAFE', isCorrect: true, responseTimeMs: 12000, attemptedAt: new Date('2026-01-23T09:30:00Z') },
+      { userId: students[4].id, scenarioId: phishingScenarios[3].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 7000, attemptedAt: new Date('2026-01-27T11:45:00Z') },
+      { userId: students[4].id, scenarioId: phishingScenarios[4].id, userAction: 'MARKED_SAFE', isCorrect: true, responseTimeMs: 9000, attemptedAt: new Date('2026-02-03T16:15:00Z') },
+      { userId: students[4].id, scenarioId: phishingScenarios[5].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 6000, attemptedAt: new Date('2026-02-07T13:00:00Z') }
+    ]
+  });
+
+  console.log('✅ Created 6 phishing scenarios and 18 phishing attempts for 3 students');
+
   console.log('\n🎉 Seed completed successfully!\n');
   console.log('Test accounts:');
   console.log('  Admin: admin@cyberguard.com / admin123');
-  console.log('\nStudents (all passwords: student123):');
-  console.log('  John Doe: student@example.com');
-  console.log('  Rajesh Singh: rajesh.singh@gmail.com (Active - 4 enrollments, 2 completed)');
-  console.log('  Priya Persaud: priya.persaud@yahoo.com (Struggling - failed then passed quiz)');
-  console.log('  Kumar Ramnauth: kumar.ramnauth@outlook.com (New - just started)');
-  console.log('  Anita Khan: anita.khan@gmail.com (Completed 1 course)');
-  console.log('  Arjun Jaipaul: arjun.jaipaul@yahoo.com (Average - 3 courses, halfway)');
-  console.log('  Kavita Ramkissoon: kavita.ramkissoon@outlook.com (Focused - 1 course almost done)');
-  console.log('  Nadira Mohamed: nadira.mohamed@gmail.com (Inactive - enrolled but no progress)');
-  console.log('  Rohan Narine: rohan.narine@yahoo.com (Advanced - taking advanced course)');
-  console.log('  Simran Samaroo: simran.samaroo@outlook.com (Moderate - steady progress)');
-  console.log('  Deepak Lall: deepak.lall@gmail.com (Browsing - many enrollments, minimal progress)');
-  console.log('  Maya Ramdass: maya.ramdass@yahoo.com (Consistent - 2 courses, good progress)');
-  console.log('  Vishnu Bisram: vishnu.bisram@outlook.com (High achiever - 3 completed, 100% scores)');
+  console.log('\n5 student users (all passwords: student123):');
+  console.log('  Rajesh Singh: rajesh.singh@gmail.com (Active Learner - 4 enrollments, 2 completed)');
+  console.log('  Priya Persaud: priya.persaud@yahoo.com (High Risk - struggling, failed then passed quiz)');
+  console.log('  Kumar Ramnauth: kumar.ramnauth@outlook.com (Brand New - just started)');
+  console.log('  Arjun Jaipaul: arjun.jaipaul@yahoo.com (Fresh - 3 courses, halfway through)');
+  console.log('  Vishnu Bisram: vishnu.bisram@outlook.com (Safe Zone - high achiever, 3 completed, top scores)');
 }
 
 main()
