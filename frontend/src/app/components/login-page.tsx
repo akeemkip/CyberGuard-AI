@@ -17,7 +17,7 @@ interface DemoAccount {
   color: string;
   label: string;
   description: string;
-  assessmentStatus: "completed" | "needs-assessment";
+  assessmentStatus: "completed" | "needs-assessment" | "not-applicable";
   role: "student" | "admin";
 }
 
@@ -59,7 +59,7 @@ const demoAccounts: DemoAccount[] = [
     color: "red",
     label: "High Risk",
     description: "Minimal engagement, 1 enrollment, only 1 lesson done",
-    assessmentStatus: "needs-assessment",
+    assessmentStatus: "completed",
     role: "student",
   },
   {
@@ -68,8 +68,8 @@ const demoAccounts: DemoAccount[] = [
     password: "student123",
     color: "slate",
     label: "In Progress",
-    description: "3 courses halfway, mixed quiz results, no assessment",
-    assessmentStatus: "needs-assessment",
+    description: "3 courses halfway, mixed quiz results",
+    assessmentStatus: "completed",
     role: "student",
   },
   {
@@ -79,7 +79,7 @@ const demoAccounts: DemoAccount[] = [
     color: "purple",
     label: "Administrator",
     description: "Full platform access",
-    assessmentStatus: "completed",
+    assessmentStatus: "not-applicable",
     role: "admin",
   },
 ];
@@ -301,19 +301,21 @@ export function LoginPage({
                 </span>
               </div>
               <p className={`text-xs ${colors.desc} mb-1.5`}>{account.description}</p>
-              <div className="flex items-center gap-1">
-                {account.assessmentStatus === "completed" ? (
-                  <>
-                    <CheckCircle className={`w-3 h-3 ${colors.desc}`} />
-                    <span className={`text-[10px] ${colors.desc}`}>Assessment completed</span>
-                  </>
-                ) : (
-                  <>
-                    <Clock className={`w-3 h-3 ${colors.desc}`} />
-                    <span className={`text-[10px] ${colors.desc}`}>New - needs assessment</span>
-                  </>
-                )}
-              </div>
+              {account.assessmentStatus !== "not-applicable" && (
+                <div className="flex items-center gap-1">
+                  {account.assessmentStatus === "completed" ? (
+                    <>
+                      <CheckCircle className={`w-3 h-3 ${colors.desc}`} />
+                      <span className={`text-[10px] ${colors.desc}`}>Assessment completed</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className={`w-3 h-3 ${colors.desc}`} />
+                      <span className={`text-[10px] ${colors.desc}`}>New - needs assessment</span>
+                    </>
+                  )}
+                </div>
+              )}
             </button>
           );
         })}

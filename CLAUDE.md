@@ -47,7 +47,7 @@ No shared types between frontend/backend — they are independent Node.js projec
 - **Migrations**: Uses `prisma db push` workflow (no migration files)
 - **Key models**: User, Course, Module, Lesson, Quiz, Lab, Enrollment, Certificate, PhishingScenario, IntroAssessment, PlatformSettings, SettingsAuditLog, LabProgress
 - **Enums**: Role (STUDENT/ADMIN), LabType (8 types), LabStatus, PhishingAction
-- **Seed data**: 5 students, 6 courses, 18 modules, 48 lessons, 6 quizzes, 11 labs, phishing scenarios/attempts, audit log entries, intro assessment attempts
+- **Seed data**: 5 students, 6 courses, 18 modules, 48 lessons, 6 quizzes, 11 labs, phishing scenarios/attempts (Rajesh + Vishnu only — requires completing phishing course), audit log entries, intro assessment attempts for all 5 students
 
 ## Commands
 
@@ -133,8 +133,8 @@ VITE_API_BASE_URL=http://localhost:3000/api
 - **Students** (all use password `student123`):
   - Rajesh Singh: `rajesh.singh@gmail.com` (Active Learner — 4 enrollments, 2 completed, quizzes 85/90%)
   - Priya Persaud: `priya.persaud@yahoo.com` (Improving — 2 enrollments, failed quiz then retook and passed)
-  - Kumar Ramnauth: `kumar.ramnauth@outlook.com` (High Risk — minimal engagement, 1 lesson done, no assessment)
-  - Arjun Jaipaul: `arjun.jaipaul@yahoo.com` (In Progress — 3 courses halfway, mixed quiz results, no assessment)
+  - Kumar Ramnauth: `kumar.ramnauth@outlook.com` (High Risk — minimal engagement, 1 lesson done, assessment 40%)
+  - Arjun Jaipaul: `arjun.jaipaul@yahoo.com` (In Progress — 3 courses halfway, mixed quiz results, assessment 60%)
   - Vishnu Bisram: `vishnu.bisram@outlook.com` (Safe Zone — 3 completed, top scores 100/95/92%)
 
 ## File Naming Conventions

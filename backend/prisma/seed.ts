@@ -3551,6 +3551,38 @@ For each finding:
     }
   });
 
+  // Kumar [2] - score 4/10, 40%, failed (weak baseline, enrolled after assessment)
+  await prisma.introAssessmentAttempt.create({
+    data: {
+      userId: students[2].id,
+      introAssessmentId: introAssessment.id,
+      score: 4,
+      totalQuestions: 10,
+      percentage: 40,
+      passed: false,
+      answers: {
+        "0": 0, "1": 0, "2": 1, "3": 0, "4": 0, "5": 0, "6": 1, "7": 0, "8": 1, "9": 1
+      },
+      completedAt: new Date('2026-01-15T10:00:00Z')
+    }
+  });
+
+  // Arjun [3] - score 6/10, 60%, passed (decent baseline, then enrolled in 3 courses)
+  await prisma.introAssessmentAttempt.create({
+    data: {
+      userId: students[3].id,
+      introAssessmentId: introAssessment.id,
+      score: 6,
+      totalQuestions: 10,
+      percentage: 60,
+      passed: true,
+      answers: {
+        "0": 1, "1": 0, "2": 1, "3": 1, "4": 0, "5": 2, "6": 1, "7": 0, "8": 1, "9": 0
+      },
+      completedAt: new Date('2025-12-21T11:30:00Z')
+    }
+  });
+
   // Vishnu [4] - score 10/10, 100%, passed (perfect)
   await prisma.introAssessmentAttempt.create({
     data: {
@@ -3567,7 +3599,7 @@ For each finding:
     }
   });
 
-  console.log('✅ Created intro assessment attempts for 3 students');
+  console.log('✅ Created intro assessment attempts for 5 students');
 
   // ============================================
   // CREATE PHISHING SCENARIOS AND ATTEMPTS
@@ -3789,17 +3821,7 @@ Amazon Customer Rewards Team`,
     ]
   });
 
-  // Priya [1] - 6 phishing attempts, 50% success (3 correct, 3 wrong) — high risk
-  await prisma.phishingAttempt.createMany({
-    data: [
-      { userId: students[1].id, scenarioId: phishingScenarios[0].id, userAction: 'CLICKED_LINK', isCorrect: false, responseTimeMs: 5000, attemptedAt: new Date('2026-01-21T09:00:00Z') },
-      { userId: students[1].id, scenarioId: phishingScenarios[1].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 30000, attemptedAt: new Date('2026-01-24T11:15:00Z') },
-      { userId: students[1].id, scenarioId: phishingScenarios[2].id, userAction: 'REPORTED', isCorrect: false, responseTimeMs: 20000, attemptedAt: new Date('2026-01-28T14:45:00Z') },
-      { userId: students[1].id, scenarioId: phishingScenarios[3].id, userAction: 'CLICKED_LINK', isCorrect: false, responseTimeMs: 6000, attemptedAt: new Date('2026-02-02T10:30:00Z') },
-      { userId: students[1].id, scenarioId: phishingScenarios[4].id, userAction: 'MARKED_SAFE', isCorrect: true, responseTimeMs: 22000, attemptedAt: new Date('2026-02-08T15:20:00Z') },
-      { userId: students[1].id, scenarioId: phishingScenarios[5].id, userAction: 'REPORTED', isCorrect: true, responseTimeMs: 28000, attemptedAt: new Date('2026-02-12T12:00:00Z') }
-    ]
-  });
+  // Priya [1] - NO phishing attempts (hasn't completed phishing course yet, simulation is locked)
 
   // Vishnu [4] - 6 phishing attempts, ~100% success (all correct) — safe zone
   await prisma.phishingAttempt.createMany({
@@ -3813,7 +3835,7 @@ Amazon Customer Rewards Team`,
     ]
   });
 
-  console.log('✅ Created 6 phishing scenarios and 18 phishing attempts for 3 students');
+  console.log('✅ Created 6 phishing scenarios and 12 phishing attempts for 2 students (Rajesh, Vishnu)');
 
   console.log('\n🎉 Seed completed successfully!\n');
   console.log('Test accounts:');
