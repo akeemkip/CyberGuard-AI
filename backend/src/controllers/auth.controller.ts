@@ -13,7 +13,7 @@ const baseRegisterSchema = z.object({
   password: z.string(), // Min length validated dynamically
   firstName: z.string().trim().min(1, 'First name is required'),
   lastName: z.string().trim().min(1, 'Last name is required'),
-  role: z.enum(['STUDENT', 'ADMIN']).optional()
+  // Role is always forced to STUDENT on public registration — admins are created via seed/DB only
 });
 
 const loginSchema = z.object({
@@ -93,7 +93,7 @@ export const register = async (req: Request, res: Response) => {
         password: hashedPassword,
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
-        role: validatedData.role || 'STUDENT'
+        role: 'STUDENT'
       },
       select: {
         id: true,

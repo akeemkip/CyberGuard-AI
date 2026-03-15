@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Trophy,
 } from "lucide-react";
+import DOMPurify from "dompurify";
 import { PhishingEmailConfig } from "../../services/admin.service";
 
 interface PhishingEmailSimulationProps {
@@ -312,7 +313,7 @@ export function PhishingEmailSimulation({
             <div className="flex-1 p-6 overflow-y-auto">
               <div
                 className="prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedEmail.body) }}
               />
             </div>
 

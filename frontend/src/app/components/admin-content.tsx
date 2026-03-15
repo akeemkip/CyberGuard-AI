@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -250,16 +250,19 @@ function VideoPreview({ url }: VideoPreviewProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [key, setKey] = useState(0);
+  const isLoadingRef = useRef(true);
 
   // Reset states when URL changes
   useEffect(() => {
     setHasError(false);
     setIsLoading(true);
+    isLoadingRef.current = true;
     setKey(prev => prev + 1);
 
     // Set timeout for loading state (10 seconds)
     const timeout = setTimeout(() => {
-      if (isLoading) {
+      if (isLoadingRef.current) {
+        isLoadingRef.current = false;
         setIsLoading(false);
         setHasError(true);
       }
@@ -341,8 +344,9 @@ function VideoPreview({ url }: VideoPreviewProps) {
           className={`w-full h-64 ${isLoading ? 'hidden' : 'block'}`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          onLoad={() => setIsLoading(false)}
+          onLoad={() => { isLoadingRef.current = false; setIsLoading(false); }}
           onError={() => {
+            isLoadingRef.current = false;
             setHasError(true);
             setIsLoading(false);
           }}

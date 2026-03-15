@@ -33,25 +33,18 @@ async function main() {
 
   console.log(`✅ Found ${allStudents.length} students\n`);
 
-  // Define student performance profiles (same as before)
+  // Define student performance profiles (updated for 5 students)
   const studentProfiles = [
-    // Excellent performers (95% success rate in phishing)
-    { email: 'student@example.com', name: 'John Doe', phishingSuccess: 0.95, quizScore: 95 },
+    // Safe Zone - excellent performer
+    { email: 'vishnu.bisram@outlook.com', name: 'Vishnu Bisram', phishingSuccess: 0.95, quizScore: 98 },
+    // Active Learner - strong performer
     { email: 'rajesh.singh@gmail.com', name: 'Rajesh Singh', phishingSuccess: 0.90, quizScore: 92 },
-
-    // Good performers (70-75% success rate)
-    { email: 'priya.persaud@yahoo.com', name: 'Priya Persaud', phishingSuccess: 0.75, quizScore: 85 },
+    // Brand New - moderate performer
     { email: 'kumar.ramnauth@outlook.com', name: 'Kumar Ramnauth', phishingSuccess: 0.70, quizScore: 80 },
-
-    // Average performers (55% success rate)
-    { email: 'anita.khan@gmail.com', name: 'Anita Khan', phishingSuccess: 0.55, quizScore: 75 },
-
-    // Below average performers (35-45% success rate)
-    { email: 'rohan.narine@yahoo.com', name: 'Rohan Narine', phishingSuccess: 0.45, quizScore: 72 },
-    { email: 'simran.samaroo@outlook.com', name: 'Simran Samaroo', phishingSuccess: 0.35, quizScore: 70 },
-
-    // Poor performers (25% success rate)
-    { email: 'nadira.mohamed@gmail.com', name: 'Nadira Mohamed', phishingSuccess: 0.25, quizScore: 68 },
+    // Fresh - average performer
+    { email: 'arjun.jaipaul@yahoo.com', name: 'Arjun Jaipaul', phishingSuccess: 0.55, quizScore: 72 },
+    // High Risk - struggling performer
+    { email: 'priya.persaud@yahoo.com', name: 'Priya Persaud', phishingSuccess: 0.35, quizScore: 65 },
   ];
 
   // Map emails to actual student objects

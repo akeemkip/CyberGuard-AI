@@ -25,6 +25,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import api from "../services/api";
 import {
   Dialog,
@@ -599,7 +600,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                 </div>
               ) : aiRecommendations ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none text-sm" dangerouslySetInnerHTML={{ __html: marked(aiRecommendations) as string }} />
+                <div className="prose prose-sm dark:prose-invert max-w-none text-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(aiRecommendations) as string) }} />
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   Get personalized course suggestions based on your progress

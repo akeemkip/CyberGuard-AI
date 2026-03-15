@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Trophy, TrendingUp, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import api from '../services/api';
 import {
   getIntroAssessment,
@@ -277,7 +278,7 @@ export const IntroAssessmentPage: React.FC<IntroAssessmentPageProps> = ({ onComp
               </div>
               <div
                 className="prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: marked(aiLearningPath) as string }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(aiLearningPath) as string) }}
               />
             </div>
           )}

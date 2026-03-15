@@ -743,7 +743,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                                   <Sparkles className="w-4 h-4 text-primary" />
                                   <h4 className="font-semibold text-sm">AI Review</h4>
                                 </div>
-                                <div className="prose prose-sm dark:prose-invert max-w-none text-sm" dangerouslySetInnerHTML={{ __html: marked(aiExplanation) as string }} />
+                                <div className="prose prose-sm dark:prose-invert max-w-none text-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(aiExplanation) as string) }} />
                               </Card>
                             )}
                           </div>

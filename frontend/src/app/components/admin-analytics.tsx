@@ -57,6 +57,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { toast } from "sonner";
 import { useTheme } from "./theme-provider";
 import api from "../services/api";
@@ -205,33 +206,13 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
         params.append('endDate', appliedEndDate);
       }
 
-      // Get auth token
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Authentication required');
-        return;
-      }
-
-      // Fetch PDF file
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000'}/api/admin/analytics/export/pdf?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to export PDF');
-      }
-
-      // Get the PDF content
-      const blob = await response.blob();
+      // Fetch PDF file using centralized API instance
+      const response = await api.get(`/admin/analytics/export/pdf?${params.toString()}`, {
+        responseType: 'blob'
+      });
 
       // Create download link
-      const url = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
       link.download = `cyberguard-analytics-report-${dateRange}-${Date.now()}.pdf`;
@@ -262,33 +243,13 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
         params.append('endDate', appliedEndDate);
       }
 
-      // Get auth token
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Authentication required');
-        return;
-      }
-
-      // Fetch CSV file
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000'}/api/admin/analytics/export/csv?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to export CSV');
-      }
-
-      // Get the CSV content
-      const blob = await response.blob();
+      // Fetch CSV file using centralized API instance
+      const response = await api.get(`/admin/analytics/export/csv?${params.toString()}`, {
+        responseType: 'blob'
+      });
 
       // Create download link
-      const url = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
       link.download = `cyberguard-analytics-${dateRange}-${Date.now()}.csv`;
@@ -766,7 +727,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
               </Button>
             </div>
             {aiInsights ? (
-              <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: marked(aiInsights) as string }} />
+              <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(aiInsights) as string) }} />
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Brain className="w-10 h-10 mx-auto mb-3 opacity-50" />

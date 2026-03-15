@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -1262,19 +1263,19 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
 
                         {instructions && (
                           <TabsContent value="instructions" className="prose prose-sm dark:prose-invert max-w-none">
-                            <div dangerouslySetInnerHTML={{ __html: marked(instructions) }} />
+                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(instructions) as string) }} />
                           </TabsContent>
                         )}
 
                         {resources && (
                           <TabsContent value="resources" className="prose prose-sm dark:prose-invert max-w-none">
-                            <div dangerouslySetInnerHTML={{ __html: marked(resources) }} />
+                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(resources) as string) }} />
                           </TabsContent>
                         )}
 
                         {hints && (
                           <TabsContent value="hints" className="prose prose-sm dark:prose-invert max-w-none">
-                            <div dangerouslySetInnerHTML={{ __html: marked(hints) }} />
+                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(hints) as string) }} />
                           </TabsContent>
                         )}
                       </Tabs>

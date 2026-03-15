@@ -6,6 +6,7 @@ import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import {
   ArrowLeft,
   Clock,
@@ -535,7 +536,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                 {labHints.map((hint, i) => (
                   <div key={i} className="text-sm prose prose-sm dark:prose-invert max-w-none">
                     <strong>Hint {i + 1}:</strong>{' '}
-                    <span dangerouslySetInnerHTML={{ __html: marked(hint) }} />
+                    <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(hint) as string) }} />
                   </div>
                 ))}
               </div>
@@ -871,12 +872,12 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                   </TabsList>
 
                   <TabsContent value="instructions" className="prose prose-sm dark:prose-invert max-w-none">
-                    <div dangerouslySetInnerHTML={{ __html: marked(lab.instructions) }} />
+                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(lab.instructions) as string) }} />
                   </TabsContent>
 
                   {lab.resources && (
                     <TabsContent value="resources" className="prose prose-sm dark:prose-invert max-w-none">
-                      <div dangerouslySetInnerHTML={{ __html: marked(lab.resources) }} />
+                      <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(lab.resources) as string) }} />
                     </TabsContent>
                   )}
 
@@ -894,7 +895,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                         </div>
                       ) : (
                         <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <div dangerouslySetInnerHTML={{ __html: marked(lab.hints) }} />
+                          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(lab.hints) as string) }} />
                         </div>
                       )}
                     </TabsContent>

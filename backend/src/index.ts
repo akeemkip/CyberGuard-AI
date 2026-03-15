@@ -50,6 +50,14 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 AI requests per 15 min (protects free Gemini quota)
+  message: 'Too many AI requests. Please wait a few minutes before trying again.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Middleware
 // CORS configuration - supports comma-separated origins in FRONTEND_URL
 const allowedOrigins = process.env.FRONTEND_URL
@@ -84,13 +92,13 @@ app.get('/api/settings/public', getPublicSettings);
 // CSRF token endpoint (requires authentication)
 app.get('/api/csrf-token', authenticateToken, getCsrfToken);
 
-// File upload endpoint (for logo/favicon) - admin only
-app.post('/api/uploads/image', authenticateToken, requireAdmin, upload.single('image'), uploadImage);
-app.delete('/api/uploads/:filename', authenticateToken, requireAdmin, deleteImage);
-
 // Apply CSRF protection to all routes (after this point)
 // This protects all POST, PUT, DELETE, PATCH requests
 app.use(csrfProtection);
+
+// File upload endpoint (for logo/favicon) - admin only (now CSRF-protected)
+app.post('/api/uploads/image', authenticateToken, requireAdmin, upload.single('image'), uploadImage);
+app.delete('/api/uploads/:filename', authenticateToken, requireAdmin, deleteImage);
 
 // Routes
 // Apply stricter rate limiting to auth routes
@@ -99,7 +107,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/settings', settingsRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiLimiter, aiRoutes);
 app.use('/api/labs', labRoutes);
 app.use('/api/phishing', phishingRoutes);
 app.use('/api/assessment', assessmentRoutes);
@@ -125,6 +133,12 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
   res.status(500).json({ error: errorMessage });
 });
+
+// Validate required environment variables at startup
+if (!process.env.JWT_SECRET) {
+  logger.error('CRITICAL: JWT_SECRET environment variable is not set. Server cannot start.');
+  process.exit(1);
+}
 
 // Start server
 app.listen(PORT, () => {

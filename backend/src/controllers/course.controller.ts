@@ -10,7 +10,7 @@ const createCourseSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
   description: z.string().trim().min(1, 'Description is required'),
   thumbnail: z.string().trim().optional(),
-  difficulty: z.string().trim().optional(),
+  difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']).optional(),
   duration: z.string().trim().optional(),
   isPublished: z.boolean().optional()
 });
@@ -26,13 +26,15 @@ const createLessonSchema = z.object({
 
 const updateLessonSchema = createLessonSchema.partial();
 
-// Get all courses (public)
-export const getAllCourses = async (req: Request, res: Response) => {
+// Get all courses (public — defaults to published only, admins can see all)
+export const getAllCourses = async (req: AuthRequest, res: Response) => {
   try {
     const { published } = req.query;
+    // Default to published-only for non-admin requests
+    const showAll = published === 'false' && req.userRole === 'ADMIN';
 
     const courses = await prisma.course.findMany({
-      where: published === 'true' ? { isPublished: true } : undefined,
+      where: showAll ? undefined : { isPublished: true },
       include: {
         _count: {
           select: {
