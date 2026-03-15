@@ -454,6 +454,12 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
       processedContent = htmlLines.join('\n');
     }
 
+    // Convert inline markdown: **bold**, *italic*, `code`
+    processedContent = processedContent
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+
     // Sanitize HTML to prevent XSS attacks
     const sanitizedHTML = DOMPurify.sanitize(processedContent, {
       ALLOWED_TAGS: [
