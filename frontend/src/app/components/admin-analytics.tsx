@@ -1701,60 +1701,6 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 </Card>
               </div>
 
-              {/* Score Distribution Chart */}
-              <Card className="p-6 mb-6">
-                <h3 className="font-semibold mb-4">Score Distribution: Final 1st Attempt vs 2nd Attempt</h3>
-                <div className="space-y-4">
-                  {(assessmentComparisonData.charts.scoreDistribution.firstFull || assessmentComparisonData.charts.scoreDistribution.intro || []).map((range: any, index: number) => {
-                    const secondRange = (assessmentComparisonData.charts.scoreDistribution.secondFull || assessmentComparisonData.charts.scoreDistribution.full || [])[index];
-                    const firstTotal = assessmentComparisonData.summary.studentsWithFirstAttempt || assessmentComparisonData.summary.totalStudents || 1;
-                    const secondTotal = assessmentComparisonData.summary.studentsWithBothAttempts || assessmentComparisonData.summary.studentsWithBothAssessments || 1;
-                    return (
-                      <div key={range.range}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium">{range.range}%</span>
-                          <span className="text-xs text-muted-foreground">
-                            1st: {range.count} | 2nd: {secondRange?.count || 0}
-                          </span>
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <div className="h-8 bg-blue-100 dark:bg-blue-900/30 rounded overflow-hidden">
-                              <div
-                                className="h-full bg-blue-500 transition-all duration-500"
-                                style={{
-                                  width: `${firstTotal > 0 ? (range.count / firstTotal) * 100 : 0}%`
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded overflow-hidden">
-                              <div
-                                className="h-full bg-green-500 transition-all duration-500"
-                                style={{
-                                  width: `${secondTotal > 0 ? ((secondRange?.count || 0) / secondTotal) * 100 : 0}%`
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex gap-4 mt-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                    <span>Final (1st Attempt)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded"></div>
-                    <span>Final (2nd Attempt)</span>
-                  </div>
-                </div>
-              </Card>
-
               {/* Student Progress Table */}
               <Card className="p-6">
                 <h3 className="font-semibold mb-4">Individual Student Progress</h3>
