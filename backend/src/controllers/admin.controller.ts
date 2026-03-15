@@ -2956,19 +2956,33 @@ export const getAssessmentComparison = async (req: Request, res: Response) => {
         const introAttempt = student.introAssessmentAttempts[0];
         const fullAttempt = student.fullAssessmentAttempts[0];
 
+        const introPercentage = introAttempt.percentage;
+        const fullPercentage = fullAttempt?.percentage ?? null;
+        const improvement = fullPercentage !== null ? fullPercentage - introPercentage : null;
+
+        // Knowledge retention: compare intro to final
+        let retention: string | null = null;
+        if (improvement !== null) {
+          if (improvement >= 20) retention = 'Excellent';
+          else if (improvement >= 10) retention = 'Good';
+          else if (improvement >= 0) retention = 'Moderate';
+          else retention = 'Declining';
+        }
+
         return {
           studentId: student.id,
           studentName: `${student.firstName} ${student.lastName}`,
           email: student.email,
-          introScore: introAttempt.percentage,
-          fullScore: fullAttempt?.percentage || null,
-          improvement: fullAttempt
-            ? fullAttempt.percentage - introAttempt.percentage
-            : null,
+          introScore: introPercentage,
+          introGrade: `${introAttempt.score}/${introAttempt.totalQuestions}`,
+          fullScore: fullPercentage,
+          fullGrade: fullAttempt ? `${fullAttempt.score}/${fullAttempt.totalQuestions}` : null,
+          improvement,
+          retention,
           introPassed: introAttempt.passed,
-          fullPassed: fullAttempt?.passed || null,
+          fullPassed: fullAttempt?.passed ?? null,
           introCompletedAt: introAttempt.completedAt,
-          fullCompletedAt: fullAttempt?.completedAt || null
+          fullCompletedAt: fullAttempt?.completedAt ?? null
         };
       });
 

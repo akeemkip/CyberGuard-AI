@@ -1764,6 +1764,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                         <th className="text-center p-3 text-sm font-semibold">Intro Score</th>
                         <th className="text-center p-3 text-sm font-semibold">Final Score</th>
                         <th className="text-center p-3 text-sm font-semibold">Improvement</th>
+                        <th className="text-center p-3 text-sm font-semibold">Knowledge Retention</th>
                         <th className="text-center p-3 text-sm font-semibold">Status</th>
                       </tr>
                     </thead>
@@ -1777,15 +1778,21 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                             </div>
                           </td>
                           <td className="text-center p-3">
-                            <Badge variant={student.introPassed ? "default" : "secondary"}>
-                              {student.introScore}%
-                            </Badge>
+                            <div>
+                              <Badge variant={student.introPassed ? "default" : "secondary"}>
+                                {student.introGrade || `${student.introScore}%`}
+                              </Badge>
+                              <div className="text-xs text-muted-foreground mt-1">{student.introScore}%</div>
+                            </div>
                           </td>
                           <td className="text-center p-3">
                             {student.fullScore !== null ? (
-                              <Badge variant={student.fullPassed ? "default" : "secondary"}>
-                                {student.fullScore}%
-                              </Badge>
+                              <div>
+                                <Badge variant={student.fullPassed ? "default" : "secondary"}>
+                                  {student.fullGrade || `${student.fullScore}%`}
+                                </Badge>
+                                <div className="text-xs text-muted-foreground mt-1">{student.fullScore}%</div>
+                              </div>
                             ) : (
                               <span className="text-xs text-muted-foreground">Not taken</span>
                             )}
@@ -1795,6 +1802,20 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                               <span className={`font-semibold ${student.improvement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {student.improvement >= 0 ? '+' : ''}{student.improvement}%
                               </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </td>
+                          <td className="text-center p-3">
+                            {student.retention ? (
+                              <Badge variant="outline" className={
+                                student.retention === 'Excellent' ? 'border-green-500 text-green-600' :
+                                student.retention === 'Good' ? 'border-blue-500 text-blue-600' :
+                                student.retention === 'Moderate' ? 'border-yellow-500 text-yellow-600' :
+                                'border-red-500 text-red-600'
+                              }>
+                                {student.retention}
+                              </Badge>
                             ) : (
                               <span className="text-xs text-muted-foreground">-</span>
                             )}
