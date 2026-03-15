@@ -7,6 +7,7 @@ async function main() {
   console.log('🌱 Starting seed...');
 
   // Clear existing data
+  await prisma.settingsAuditLog.deleteMany();
   await prisma.phishingAttempt.deleteMany();
   await prisma.phishingScenario.deleteMany();
   await prisma.introAssessmentAttempt.deleteMany();
@@ -48,6 +49,75 @@ async function main() {
   });
   console.log('✅ Created admin user: admin@cyberguard.com / admin123');
 
+  // Seed Settings Audit Log entries — covers all filter categories
+  const a = admin.id;
+  const ae = 'admin@cyberguard.com';
+  await prisma.settingsAuditLog.createMany({
+    data: [
+      // === General Settings ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'platformName', oldValue: 'CyberGuard AI', newValue: 'CyberGuard AI Training', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-02T10:30:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'platformName', oldValue: 'CyberGuard AI Training', newValue: 'CyberGuard AI', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-02T10:35:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'platformDescription', oldValue: '', newValue: 'AI-powered cybersecurity training platform', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-03T09:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'supportEmail', oldValue: null, newValue: 'help@cyberguard.com', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-03T09:05:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'contactEmail', oldValue: null, newValue: 'support@cyberguard.com', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-03T09:10:00Z') },
+
+      // === Security Settings ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'minPasswordLength', oldValue: '6', newValue: '8', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-05T14:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'maxLoginAttempts', oldValue: '10', newValue: '5', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-05T14:05:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'sessionTimeout', oldValue: '30', newValue: '7', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-10T09:15:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableTwoFactor', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2025-12-12T11:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'requireEmailVerification', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2025-12-12T11:05:00Z') },
+
+      // === User Management Settings ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'allowSelfRegistration', oldValue: 'true', newValue: 'false', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-20T16:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'allowSelfRegistration', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-22T08:30:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'autoEnrollNewUsers', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-25T10:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'ROLLBACK', fieldName: 'autoEnrollNewUsers', oldValue: 'true', newValue: 'false', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-25T10:30:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultUserRole', oldValue: 'STUDENT', newValue: 'STUDENT', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-25T10:35:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'requireProfileCompletion', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2026-01-28T14:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enablePublicProfiles', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2026-01-28T14:05:00Z') },
+
+      // === Course Settings ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultCourseVisibility', oldValue: 'draft', newValue: 'published', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultQuizPassingScore', oldValue: '60', newValue: '70', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:05:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableCertificates', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:10:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'allowCourseReviews', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:15:00Z') },
+
+      // === Email/Notification Settings ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableEmailNotifications', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableEnrollmentEmails', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:05:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableCompletionEmails', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:10:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableWeeklyDigest', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:15:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'smtpHost', oldValue: null, newValue: 'smtp.gmail.com', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-01T08:20:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'smtpPort', oldValue: null, newValue: '587', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-01T08:25:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'smtpUser', oldValue: null, newValue: 'notifications@cyberguard.com', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-01T08:30:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'smtpPassword', oldValue: '[EMPTY]', newValue: '[SET]', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-01T08:35:00Z') },
+
+      // === Appearance/Branding Settings ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'primaryColor', oldValue: '#3b82f6', newValue: '#2563eb', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-10T11:30:00Z') },
+      { adminId: a, adminEmail: ae, action: 'ROLLBACK', fieldName: 'primaryColor', oldValue: '#2563eb', newValue: '#3b82f6', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-10T11:45:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'secondaryColor', oldValue: '#64748b', newValue: '#475569', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-10T12:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'accentColor', oldValue: '#f59e0b', newValue: '#eab308', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-10T12:05:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'fontFamily', oldValue: 'Inter', newValue: 'Poppins', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-12T15:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'ROLLBACK', fieldName: 'fontFamily', oldValue: 'Poppins', newValue: 'Inter', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-12T15:30:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'fontSize', oldValue: '16', newValue: '14', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-12T15:35:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'borderRadius', oldValue: '8', newValue: '12', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-12T15:40:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'darkModeDefault', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-15T09:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'ROLLBACK', fieldName: 'darkModeDefault', oldValue: 'true', newValue: 'false', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-15T09:30:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'customCss', oldValue: null, newValue: '/* Custom theme tweaks */', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-20T14:00:00Z') },
+
+      // === Maintenance ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'maintenanceMode', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-28T22:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'maintenanceMode', oldValue: 'true', newValue: 'false', ipAddress: '192.168.1.100', timestamp: new Date('2026-03-01T06:00:00Z') },
+
+      // === Recent activity (March) ===
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultQuizPassingScore', oldValue: '70', newValue: '75', ipAddress: '127.0.0.1', timestamp: new Date('2026-03-05T10:00:00Z') },
+      { adminId: a, adminEmail: ae, action: 'ROLLBACK', fieldName: 'defaultQuizPassingScore', oldValue: '75', newValue: '70', ipAddress: '127.0.0.1', timestamp: new Date('2026-03-05T10:15:00Z') },
+      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableWeeklyDigest', oldValue: 'true', newValue: 'false', ipAddress: '192.168.1.100', timestamp: new Date('2026-03-10T14:00:00Z') },
+    ]
+  });
+  console.log('✅ Created settings audit log entries');
+
   // Create Student Users (including original + new Guyanese students)
   const studentPassword = await bcrypt.hash('student123', 10);
 
@@ -60,7 +130,8 @@ async function main() {
         firstName: 'Rajesh',
         lastName: 'Singh',
         role: 'STUDENT',
-        createdAt: new Date('2025-12-01T08:15:00Z')
+        createdAt: new Date('2025-12-01T08:15:00Z'),
+        lastLoginAt: new Date('2026-03-03T14:30:00Z')
       }
     }),
     // [1] Priya Persaud - High Risk
@@ -71,7 +142,8 @@ async function main() {
         firstName: 'Priya',
         lastName: 'Persaud',
         role: 'STUDENT',
-        createdAt: new Date('2025-12-10T14:22:00Z')
+        createdAt: new Date('2025-12-10T14:22:00Z'),
+        lastLoginAt: new Date('2026-03-10T11:00:00Z')
       }
     }),
     // [2] Kumar Ramnauth - Brand New
@@ -82,7 +154,8 @@ async function main() {
         firstName: 'Kumar',
         lastName: 'Ramnauth',
         role: 'STUDENT',
-        createdAt: new Date('2026-01-15T09:45:00Z')
+        createdAt: new Date('2026-01-15T09:45:00Z'),
+        lastLoginAt: new Date('2026-01-16T10:15:00Z')
       }
     }),
     // [3] Arjun Jaipaul - Fresh
@@ -93,7 +166,8 @@ async function main() {
         firstName: 'Arjun',
         lastName: 'Jaipaul',
         role: 'STUDENT',
-        createdAt: new Date('2025-12-20T11:10:00Z')
+        createdAt: new Date('2025-12-20T11:10:00Z'),
+        lastLoginAt: new Date('2026-01-14T16:45:00Z')
       }
     }),
     // [4] Vishnu Bisram - Safe Zone
@@ -104,7 +178,8 @@ async function main() {
         firstName: 'Vishnu',
         lastName: 'Bisram',
         role: 'STUDENT',
-        createdAt: new Date('2025-11-25T08:00:00Z')
+        createdAt: new Date('2025-11-25T08:00:00Z'),
+        lastLoginAt: new Date('2026-03-07T09:20:00Z')
       }
     })
   ]);
@@ -3035,10 +3110,10 @@ For each finding:
   // Rajesh Singh [0] - Active learner (enrolled in 4 courses, completed 2, high scores)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[0].id, courseId: courses[0].id, completedAt: new Date('2026-01-10') },
-      { userId: students[0].id, courseId: courses[1].id, completedAt: new Date('2026-01-14') },
-      { userId: students[0].id, courseId: courses[2].id },
-      { userId: students[0].id, courseId: courses[3].id }
+      { userId: students[0].id, courseId: courses[0].id, enrolledAt: new Date('2025-12-15'), completedAt: new Date('2026-01-10') },
+      { userId: students[0].id, courseId: courses[1].id, enrolledAt: new Date('2026-01-02'), completedAt: new Date('2026-01-14') },
+      { userId: students[0].id, courseId: courses[2].id, enrolledAt: new Date('2026-01-10') },
+      { userId: students[0].id, courseId: courses[3].id, enrolledAt: new Date('2026-01-10') }
     ]
   });
   // Complete all lessons in first two courses
@@ -3073,8 +3148,8 @@ For each finding:
   // Priya Persaud [1] - High risk / struggling student (enrolled in 2, failed quiz once, retook and passed)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[1].id, courseId: courses[0].id },
-      { userId: students[1].id, courseId: courses[1].id }
+      { userId: students[1].id, courseId: courses[0].id, enrolledAt: new Date('2025-12-20') },
+      { userId: students[1].id, courseId: courses[1].id, enrolledAt: new Date('2026-01-05') }
     ]
   });
   // Complete 2 lessons from course 1
@@ -3096,7 +3171,7 @@ For each finding:
 
   // Kumar Ramnauth [2] - Brand new student (enrolled in 1 course, just started)
   await prisma.enrollment.create({
-    data: { userId: students[2].id, courseId: courses[0].id }
+    data: { userId: students[2].id, courseId: courses[0].id, enrolledAt: new Date('2026-01-15') }
   });
   // Complete only first lesson
   await prisma.progress.create({
@@ -3106,9 +3181,9 @@ For each finding:
   // Arjun Jaipaul [3] - Fresh student (enrolled in 3, completed half of each)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[3].id, courseId: courses[0].id },
-      { userId: students[3].id, courseId: courses[1].id },
-      { userId: students[3].id, courseId: courses[2].id }
+      { userId: students[3].id, courseId: courses[0].id, enrolledAt: new Date('2025-12-22') },
+      { userId: students[3].id, courseId: courses[1].id, enrolledAt: new Date('2025-12-28') },
+      { userId: students[3].id, courseId: courses[2].id, enrolledAt: new Date('2026-01-05') }
     ]
   });
   // Complete first 4 lessons of each course (halfway through)
@@ -3123,10 +3198,10 @@ For each finding:
   // Vishnu Bisram [4] - Safe zone / high achiever (completed 3 courses, high scores)
   await prisma.enrollment.createMany({
     data: [
-      { userId: students[4].id, courseId: courses[0].id, completedAt: new Date('2026-01-06') },
-      { userId: students[4].id, courseId: courses[1].id, completedAt: new Date('2026-01-09') },
-      { userId: students[4].id, courseId: courses[2].id, completedAt: new Date('2026-01-12') },
-      { userId: students[4].id, courseId: courses[4].id }
+      { userId: students[4].id, courseId: courses[0].id, enrolledAt: new Date('2025-11-28'), completedAt: new Date('2026-01-06') },
+      { userId: students[4].id, courseId: courses[1].id, enrolledAt: new Date('2025-12-05'), completedAt: new Date('2026-01-09') },
+      { userId: students[4].id, courseId: courses[2].id, enrolledAt: new Date('2025-12-15'), completedAt: new Date('2026-01-12') },
+      { userId: students[4].id, courseId: courses[4].id, enrolledAt: new Date('2026-01-10') }
     ]
   });
   // Complete all lessons in first 3 courses
@@ -3293,7 +3368,7 @@ For each finding:
   // Vishnu [4] - completed labs for courses 0, 1, 2 (high achiever)
   if (labsByCourse[courses[0].id]?.[0]) {
     await prisma.labProgress.create({
-      data: { userId: students[4].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 15, score: 100, passed: true, attempts: 1, startedAt: new Date('2026-01-04'), completedAt: new Date('2026-01-04') }
+      data: { userId: students[4].id, labId: labsByCourse[courses[0].id][0].id, status: 'COMPLETED', timeSpent: 15, score: 100, passed: true, attempts: 1, startedAt: new Date('2026-01-05'), completedAt: new Date('2026-01-06') }
     });
   }
   for (const lab of labsByCourse[courses[1].id] || []) {
