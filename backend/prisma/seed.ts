@@ -3194,6 +3194,19 @@ For each finding:
       });
     }
   }
+  // Arjun attempted quizzes for courses 0 and 1 — average scores, hasn't retaken
+  const arjunQ1 = allQuizzes.find(q => q.lesson.courseId === courses[0].id);
+  const arjunQ2 = allQuizzes.find(q => q.lesson.courseId === courses[1].id);
+  if (arjunQ1) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[3].id, quizId: arjunQ1.id, score: 60, passed: false, attemptedAt: new Date('2026-01-15') }
+    });
+  }
+  if (arjunQ2) {
+    await prisma.quizAttempt.create({
+      data: { userId: students[3].id, quizId: arjunQ2.id, score: 72, passed: true, attemptedAt: new Date('2026-01-16') }
+    });
+  }
 
   // Vishnu Bisram [4] - Safe zone / high achiever (completed 3 courses, high scores)
   await prisma.enrollment.createMany({
