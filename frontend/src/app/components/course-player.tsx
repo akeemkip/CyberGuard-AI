@@ -23,7 +23,6 @@ import {
   AlertCircle,
   Target,
   Sparkles,
-  MessageCircle
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useSettings } from "../context/SettingsContext";
@@ -113,6 +112,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
   // AI Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showAiHint, setShowAiHint] = useState(true);
   const [chatMessages, setChatMessages] = useState<{ id: number; role: "user" | "assistant" | "system"; content: string; timestamp: Date }[]>([
     { id: 1, role: "assistant", content: "", timestamp: new Date() }
   ]);
@@ -601,12 +601,30 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                   )}
                   <h2 className="text-2xl font-bold">{currentLesson?.title}</h2>
                 </div>
-                {isLessonCompleted && (
-                  <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
-                    <Check className="w-4 h-4" />
-                    Completed
-                  </span>
-                )}
+                <div className="flex items-center gap-3">
+                  {isLessonCompleted && (
+                    <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                      <Check className="w-4 h-4" />
+                      Completed
+                    </span>
+                  )}
+                  <div className="relative">
+                    {showAiHint && !isChatOpen && (
+                      <div className="absolute -top-12 right-0 whitespace-nowrap bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-lg shadow-lg animate-bounce z-10">
+                        Need help? Ask AI!
+                        <div className="absolute -bottom-1 right-4 w-2 h-2 bg-primary rotate-45" />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => { setIsChatOpen(true); setShowAiHint(false); }}
+                      className="relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105"
+                      aria-label="Ask AI about this lesson"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span className="hidden sm:inline">AI Assistant</span>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Video embed if available */}
@@ -1104,16 +1122,6 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
           </div>
         </div>
       </div>
-
-      {/* AI Chat FAB */}
-      <Button
-        onClick={() => setIsChatOpen(true)}
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-40 gap-0"
-        size="icon"
-        aria-label="Ask AI about this lesson"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </Button>
 
       {/* AI Lesson Chat Panel */}
       <LessonChatPanel
