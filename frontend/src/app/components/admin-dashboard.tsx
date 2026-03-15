@@ -110,19 +110,10 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
   const recentActivity = dashboardData?.recentActivity || [];
   const performanceExtremes = dashboardData?.performanceExtremes;
 
-  // Calculate mock comparison data (in real app, this would come from backend)
-  // NOTE: These comparison metrics are SIMULATED for demonstration purposes
-  // In a production environment, this should compare actual data from previous period
-  const getComparison = (current: number, field: string) => {
-    // Mock data - simulate 5-20% growth or decline
-    const changePercent = Math.floor(Math.random() * 15) + 5;
-    const isPositive = Math.random() > 0.3; // 70% chance of positive growth
-
-    return {
-      percent: isPositive ? changePercent : -changePercent,
-      isPositive,
-      text: `${isPositive ? '+' : '-'}${changePercent}% from last month`
-    };
+  // Comparison metrics are not available without historical data tracking
+  // Returning null to hide comparison badges rather than showing fake data
+  const getComparison = (_current: number, _field: string) => {
+    return null;
   };
 
   const MetricCard = ({

@@ -273,43 +273,20 @@ export const getUserStats = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
 
-    // Get enrollment count
-    const enrollmentCount = await prisma.enrollment.count({
-      where: { userId }
-    });
+    // Run independent queries in parallel
+    const [enrollmentCount, completedCourses, completedLessons, enrolledCourseIds, quizAttempts] = await Promise.all([
+      prisma.enrollment.count({ where: { userId } }),
+      prisma.enrollment.count({ where: { userId, completedAt: { not: null } } }),
+      prisma.progress.count({ where: { userId, completed: true } }),
+      prisma.enrollment.findMany({ where: { userId }, select: { courseId: true } }),
+      prisma.quizAttempt.findMany({ where: { userId }, select: { score: true, passed: true } })
+    ]);
 
-    // Get completed courses
-    const completedCourses = await prisma.enrollment.count({
-      where: {
-        userId,
-        completedAt: { not: null }
-      }
-    });
-
-    // Get completed lessons
-    const completedLessons = await prisma.progress.count({
-      where: {
-        userId,
-        completed: true
-      }
-    });
-
-    // Get total lessons from enrolled courses
-    const enrolledCourseIds = await prisma.enrollment.findMany({
-      where: { userId },
-      select: { courseId: true }
-    });
-
+    // This depends on enrolledCourseIds above
     const totalLessons = await prisma.lesson.count({
       where: {
         courseId: { in: enrolledCourseIds.map(e => e.courseId) }
       }
-    });
-
-    // Get quiz stats
-    const quizAttempts = await prisma.quizAttempt.findMany({
-      where: { userId },
-      select: { score: true, passed: true }
     });
 
     const avgScore = quizAttempts.length > 0

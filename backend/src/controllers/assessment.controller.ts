@@ -108,7 +108,7 @@ export const submitIntroAssessment = async (req: AuthRequest, res: Response) => 
     });
 
     const totalQuestions = assessment.questions.length;
-    const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+    const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
     const passed = percentage >= assessment.passingScore;
 
     // Save attempt

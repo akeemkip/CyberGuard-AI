@@ -509,7 +509,7 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                       <span className="text-sm text-muted-foreground">Active Courses</span>
                     </div>
                     <span className="text-lg font-bold">
-                      {(stats?.coursesEnrolled || 0) - (stats?.coursesCompleted || 0)}
+                      {Math.max(0, (stats?.coursesEnrolled || 0) - (stats?.coursesCompleted || 0))}
                     </span>
                   </div>
 

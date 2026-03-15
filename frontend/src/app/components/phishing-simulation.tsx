@@ -485,7 +485,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
                             {result.wasPhishing ? "This was Phishing" : "This was Legitimate"}
                           </Badge>
                           <Badge variant="outline">
-                            Your action: {result.userAction.replace("_", " ")}
+                            Your action: {(result.userAction || "").replace("_", " ")}
                           </Badge>
                         </div>
 

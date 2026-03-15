@@ -144,6 +144,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
     try {
       setIsCreating(true);
       const newUser = await userService.createUser(createForm);
+      const createdName = `${createForm.firstName} ${createForm.lastName}`.trim();
       setUsers([newUser as User, ...users]);
       setShowCreateDialog(false);
       setCreateForm({
@@ -153,7 +154,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
         lastName: "",
         role: "STUDENT"
       });
-      toast.success(`User ${createForm.firstName} ${createForm.lastName} created successfully!`);
+      toast.success(`User ${createdName} created successfully!`);
     } catch (error: any) {
       console.error("Error creating user:", error);
       toast.error(error.response?.data?.error || "Failed to create user");
@@ -167,10 +168,11 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
 
     try {
       setIsEditing(true);
+      const updatedName = `${editForm.firstName} ${editForm.lastName}`.trim();
       const updatedUser = await userService.updateUser(selectedUser.id, editForm);
       setUsers(users.map(u => u.id === selectedUser.id ? { ...u, ...updatedUser } : u));
       setShowEditDialog(false);
-      toast.success(`User ${editForm.firstName} ${editForm.lastName} updated successfully!`);
+      toast.success(`User ${updatedName} updated successfully!`);
     } catch (error: any) {
       console.error("Error updating user:", error);
       toast.error(error.response?.data?.error || "Failed to update user");

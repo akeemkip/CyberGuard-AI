@@ -252,28 +252,36 @@ export const getAdminStats = async (req: Request, res: Response) => {
 // Get all enrollments with user and course details (for admin)
 export const getAllEnrollments = async (req: Request, res: Response) => {
   try {
-    const enrollments = await prisma.enrollment.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+
+    const [enrollments, total] = await Promise.all([
+      prisma.enrollment.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true
+            }
+          },
+          course: {
+            select: {
+              id: true,
+              title: true,
+              difficulty: true
+            }
           }
         },
-        course: {
-          select: {
-            id: true,
-            title: true,
-            difficulty: true
-          }
-        }
-      },
-      orderBy: { enrolledAt: 'desc' }
-    });
+        orderBy: { enrolledAt: 'desc' },
+        take: limit,
+        skip: offset
+      }),
+      prisma.enrollment.count()
+    ]);
 
-    res.json({ enrollments });
+    res.json({ enrollments, total, limit, offset });
   } catch (error) {
     logger.error('GetAllEnrollments error:', error);
     res.status(500).json({ error: 'Failed to fetch enrollments' });
@@ -1210,32 +1218,40 @@ export const exportAnalyticsPDF = async (req: Request, res: Response) => {
 // Get all quizzes with statistics
 export const getAllQuizzes = async (req: Request, res: Response) => {
   try {
-    const quizzes = await prisma.quiz.findMany({
-      include: {
-        lesson: {
-          include: {
-            course: {
-              select: {
-                id: true,
-                title: true
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+
+    const [quizzes, total] = await Promise.all([
+      prisma.quiz.findMany({
+        include: {
+          lesson: {
+            include: {
+              course: {
+                select: {
+                  id: true,
+                  title: true
+                }
               }
+            }
+          },
+          questions: {
+            select: {
+              id: true
+            }
+          },
+          attempts: {
+            select: {
+              score: true,
+              passed: true
             }
           }
         },
-        questions: {
-          select: {
-            id: true
-          }
-        },
-        attempts: {
-          select: {
-            score: true,
-            passed: true
-          }
-        }
-      },
-      orderBy: { lesson: { title: 'asc' } }
-    });
+        orderBy: { lesson: { title: 'asc' } },
+        take: limit,
+        skip: offset
+      }),
+      prisma.quiz.count()
+    ]);
 
     // Format with statistics
     const quizzesWithStats = quizzes.map(quiz => {
@@ -1263,7 +1279,7 @@ export const getAllQuizzes = async (req: Request, res: Response) => {
       };
     });
 
-    res.json({ quizzes: quizzesWithStats });
+    res.json({ quizzes: quizzesWithStats, total, limit, offset });
   } catch (error) {
     logger.error('GetAllQuizzes error:', error);
     res.status(500).json({ error: 'Failed to fetch quizzes' });
@@ -1880,23 +1896,31 @@ export const assignLessonToModule = async (req: Request, res: Response) => {
 // Get all labs with statistics
 export const getAllLabs = async (req: Request, res: Response) => {
   try {
-    const labs = await prisma.lab.findMany({
-      include: {
-        course: {
-          select: { id: true, title: true }
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+
+    const [labs, total] = await Promise.all([
+      prisma.lab.findMany({
+        include: {
+          course: {
+            select: { id: true, title: true }
+          },
+          module: {
+            select: { id: true, title: true }
+          },
+          progress: {
+            select: { status: true, timeSpent: true, score: true, passed: true }
+          }
         },
-        module: {
-          select: { id: true, title: true }
-        },
-        progress: {
-          select: { status: true, timeSpent: true, score: true, passed: true }
-        }
-      },
-      orderBy: [
-        { courseId: 'asc' },
-        { order: 'asc' }
-      ]
-    });
+        orderBy: [
+          { courseId: 'asc' },
+          { order: 'asc' }
+        ],
+        take: limit,
+        skip: offset
+      }),
+      prisma.lab.count()
+    ]);
 
     // Format with statistics
     const labsWithStats = labs.map(lab => {
@@ -1943,7 +1967,7 @@ export const getAllLabs = async (req: Request, res: Response) => {
       };
     });
 
-    res.json({ labs: labsWithStats });
+    res.json({ labs: labsWithStats, total, limit, offset });
   } catch (error) {
     logger.error('GetAllLabs error:', error);
     res.status(500).json({ error: 'Failed to fetch labs' });
@@ -2419,14 +2443,22 @@ export const reorderLabs = async (req: Request, res: Response) => {
 // Get all phishing scenarios with statistics
 export const getAllPhishingScenarios = async (req: Request, res: Response) => {
   try {
-    const scenarios = await prisma.phishingScenario.findMany({
-      include: {
-        attempts: {
-          select: { isCorrect: true, userAction: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
+
+    const [scenarios, total] = await Promise.all([
+      prisma.phishingScenario.findMany({
+        include: {
+          attempts: {
+            select: { isCorrect: true, userAction: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset
+      }),
+      prisma.phishingScenario.count()
+    ]);
 
     const scenariosWithStats = scenarios.map(scenario => {
       const totalAttempts = scenario.attempts.length;
@@ -2463,7 +2495,7 @@ export const getAllPhishingScenarios = async (req: Request, res: Response) => {
       };
     });
 
-    res.json({ scenarios: scenariosWithStats });
+    res.json({ scenarios: scenariosWithStats, total, limit, offset });
   } catch (error) {
     logger.error('GetAllPhishingScenarios error:', error);
     res.status(500).json({ error: 'Failed to fetch phishing scenarios' });

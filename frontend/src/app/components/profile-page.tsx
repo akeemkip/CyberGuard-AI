@@ -311,6 +311,11 @@ export function ProfilePage({ onNavigate, onLogout }: ProfilePageProps) {
                           </div>
                         </div>
                       ))}
+                      {enrolledCourses.length > 5 && (
+                        <p className="text-sm text-muted-foreground text-center pt-2">
+                          +{enrolledCourses.length - 5} more course{enrolledCourses.length - 5 !== 1 ? 's' : ''}
+                        </p>
+                      )}
                     </div>
                   )}
                 </Card>
