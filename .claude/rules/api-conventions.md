@@ -19,8 +19,18 @@
 - `auth.service.ts` — login, register, getMe, logout
 - `course.service.ts` — courses, lessons, labs, quizzes, enrollments, progress
 - `assessment.service.ts` — intro assessment, full assessment eligibility
-- `admin.service.ts` — admin CRUD operations
+- `admin.service.ts` — admin CRUD operations, analytics, settings, audit logs
 - `phishing.service.ts` — phishing simulation scenarios
+
+## AI Endpoints (`/api/ai/*`)
+- `POST /chat` — student chat with AI tutor (auth required)
+- `POST /quiz-explanation` — AI review of quiz answers (auth required)
+- `POST /lab-hint` — progressive hints during lab simulations (auth required, max 3)
+- `POST /analytics-insights` — AI-powered analytics summary (admin only)
+- `POST /learning-path` — personalized learning path after intro assessment (auth required)
+- `GET /course-recommendations` — AI course suggestions based on progress (auth required)
+- All AI endpoints use Gemini 2.5 Flash (free tier: 10 RPM, 250 RPD)
+- Dedicated rate limit: 20 req/15min per IP
 
 ## Backend Route Pattern
 - Public routes: no middleware

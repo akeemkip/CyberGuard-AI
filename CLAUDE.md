@@ -39,14 +39,15 @@ No shared types between frontend/backend — they are independent Node.js projec
 - **AI**: Google Gemini (`@google/generative-ai`)
 - **Email**: Nodemailer with AES-256-GCM encrypted SMTP credentials
 - **Validation**: Zod
-- **Security**: CSRF (double-submit cookie), rate limiting (express-rate-limit), sanitize-html
+- **Security**: CSRF (double-submit cookie), rate limiting (express-rate-limit), sanitize-html, DOMPurify
 
 ### Database
 - **Engine**: PostgreSQL
 - **ORM**: Prisma — schema at `backend/prisma/schema.prisma`
 - **Migrations**: Uses `prisma db push` workflow (no migration files)
-- **Key models**: User, Course, Module, Lesson, Quiz, Lab, Enrollment, Certificate, PhishingScenario, IntroAssessment, PlatformSettings
+- **Key models**: User, Course, Module, Lesson, Quiz, Lab, Enrollment, Certificate, PhishingScenario, IntroAssessment, PlatformSettings, SettingsAuditLog, LabProgress
 - **Enums**: Role (STUDENT/ADMIN), LabType (8 types), LabStatus, PhishingAction
+- **Seed data**: 5 students, 6 courses, 18 modules, 48 lessons, 6 quizzes, 11 labs, phishing scenarios/attempts, audit log entries, intro assessment attempts
 
 ## Commands
 
@@ -120,14 +121,21 @@ VITE_API_BASE_URL=http://localhost:3000/api
 
 ### Security (Backend)
 - CSRF: double-submit cookie + `x-csrf-token` header on mutations
-- Rate limiting: 100 req/15min general, 10 req/15min on auth endpoints
-- XSS: sanitize-html on request bodies (rich text fields exempted)
+- Rate limiting: 100 req/15min general, 10 req/15min auth, 20 req/15min AI
+- XSS: sanitize-html on request bodies (rich text fields exempted), DOMPurify on all `dangerouslySetInnerHTML`
 - Password: bcryptjs, min 8 chars with complexity requirements
 - Account lockout after failed login attempts
+- Registration always forces STUDENT role (admins created via seed/DB only)
+- Startup validation: fails fast if `ENCRYPTION_KEY` or `JWT_SECRET` missing
 
 ## Test Accounts (from seed)
 - **Admin**: `admin@cyberguard.com` / `admin123`
-- **Students**: Various `@cyberguard.com` accounts / `student123`
+- **Students** (all use password `student123`):
+  - Rajesh Singh: `rajesh.singh@gmail.com` (Active Learner — 4 enrollments, 2 completed)
+  - Priya Persaud: `priya.persaud@yahoo.com` (High Risk — struggling, failed then passed)
+  - Kumar Ramnauth: `kumar.ramnauth@outlook.com` (Brand New — just started, no assessment)
+  - Arjun Jaipaul: `arjun.jaipaul@yahoo.com` (Fresh — 3 courses halfway, no assessment)
+  - Vishnu Bisram: `vishnu.bisram@outlook.com` (Safe Zone — 3 completed, top scores)
 
 ## File Naming Conventions
 - **Components**: kebab-case files (`student-dashboard.tsx`), PascalCase exports (`StudentDashboard`)
@@ -140,7 +148,7 @@ VITE_API_BASE_URL=http://localhost:3000/api
 - Create shared type packages between frontend/backend — they are fully independent
 - Create separate Axios instances — always use the centralized one from `services/api.ts`
 - Skip CSRF protection on mutation endpoints unless explicitly exempted
-- Add `dangerouslySetInnerHTML` without sanitization
+- Use `dangerouslySetInnerHTML` without `DOMPurify.sanitize()` — always wrap: `DOMPurify.sanitize(marked(content) as string)`
 - Mock the database in tests — use real Prisma client with test database
 
 ## Testing

@@ -12,6 +12,7 @@
 ## Rate Limiting
 - General: 100 req / 15 min on all `/api/` routes
 - Auth: 10 req / 15 min on `/api/auth/*` routes
+- AI: 20 req / 15 min on `/api/ai/*` routes (protects free Gemini quota)
 - Library: `express-rate-limit`
 
 ## Input Sanitization
@@ -51,6 +52,10 @@
 
 ## Startup Validation
 - `ENCRYPTION_KEY` validated at server boot — app fails fast if missing or invalid
+- `JWT_SECRET` validated at server boot — app fails fast if missing
+
+## Registration Security
+- Public registration always forces `role: 'STUDENT'` — admin accounts can only be created via seed or direct DB access
 
 ## Middleware Order (index.ts)
-1. CORS → 2. JSON parsing (10MB) → 3. Cookie parsing → 4. Sanitization → 5. Rate limiting → 6. CSRF → 7. Routes
+1. CORS → 2. JSON parsing (10MB) → 3. Cookie parsing → 4. Sanitization → 5. Rate limiting → 6. CSRF → 7. File uploads → 8. Routes
