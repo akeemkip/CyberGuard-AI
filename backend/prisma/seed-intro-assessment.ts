@@ -248,68 +248,81 @@ async function main() {
     console.log(`👥 Found ${studentsWithCompletedCourses.length} students with completed courses`);
 
     // Deterministic full assessment scores for specific students
-    // These provide meaningful data for the Assessment Comparison analytics
-    const fullAssessmentScores: { [email: string]: { percentage: number; score: number } } = {
-      'rajesh.singh@gmail.com': { percentage: 90, score: 27 },      // 80% intro → 90% final (+10%, Good retention)
-      'vishnu.bisram@outlook.com': { percentage: 95, score: 29 },   // 100% intro → 95% final (-5%, maintained excellence)
-      'priya.persaud@yahoo.com': { percentage: 72, score: 22 },     // 50% intro → 72% final (+22%, Excellent retention)
+    // First attempt and second attempt data for Assessment Comparison analytics
+    // Improvement, Knowledge Retention, and Status compare 1st vs 2nd attempt
+    const fullAssessmentData: { [email: string]: {
+      first: { percentage: number; score: number; date: string };
+      second: { percentage: number; score: number; date: string };
+    } } = {
+      'rajesh.singh@gmail.com': {
+        first: { percentage: 72, score: 22, date: '2026-01-20' },   // 1st attempt: 72%
+        second: { percentage: 90, score: 27, date: '2026-02-05' },  // 2nd attempt: 90% (+18%, Good retention)
+      },
+      'vishnu.bisram@outlook.com': {
+        first: { percentage: 88, score: 26, date: '2026-01-15' },   // 1st attempt: 88%
+        second: { percentage: 95, score: 29, date: '2026-02-01' },  // 2nd attempt: 95% (+7%, Moderate retention)
+      },
+      'priya.persaud@yahoo.com': {
+        first: { percentage: 50, score: 15, date: '2026-02-01' },   // 1st attempt: 50% (failed)
+        second: { percentage: 72, score: 22, date: '2026-02-15' },  // 2nd attempt: 72% (+22%, Excellent retention)
+      },
     };
 
-    // Also seed Priya who doesn't have completed courses but took the final assessment
     const allStudentsForFull = await prisma.user.findMany({
       where: {
         role: 'STUDENT',
-        email: { in: Object.keys(fullAssessmentScores) },
+        email: { in: Object.keys(fullAssessmentData) },
         introAssessmentAttempts: { some: {} }
       },
       include: {
-        fullAssessmentAttempts: true,
-        enrollments: {
-          where: { completedAt: { not: null } },
-          select: { completedAt: true }
-        }
+        fullAssessmentAttempts: true
       }
     });
 
     let backfilledFull = 0;
     for (const student of allStudentsForFull) {
-      // Skip if already has full attempt
+      // Skip if already has full attempts
       if (student.fullAssessmentAttempts.length > 0) {
         continue;
       }
 
-      const scoreData = fullAssessmentScores[student.email];
-      if (!scoreData) continue;
+      const data = fullAssessmentData[student.email];
+      if (!data) continue;
 
-      // Calculate completion date (after their last course completion, or Feb 1 2026)
-      const lastCourseCompletion = student.enrollments.reduce((latest, enrollment) => {
-        return enrollment.completedAt && (!latest || enrollment.completedAt > latest)
-          ? enrollment.completedAt
-          : latest;
-      }, null as Date | null);
-
-      const completedAt = lastCourseCompletion
-        ? new Date(lastCourseCompletion.getTime() + 3 * 24 * 60 * 60 * 1000) // 3 days after course completion
-        : new Date('2026-02-01T00:00:00.000Z');
-
+      // Create first attempt
       await prisma.fullAssessmentAttempt.create({
         data: {
           userId: student.id,
-          score: scoreData.score,
+          score: data.first.score,
           totalQuestions: 30,
-          percentage: scoreData.percentage,
-          passed: scoreData.percentage >= 70,
-          timeSpent: 1200, // 20 minutes
+          percentage: data.first.percentage,
+          passed: data.first.percentage >= 70,
+          timeSpent: 1200,
           timerExpired: false,
-          answers: { simulated: true },
-          completedAt
+          answers: { simulated: true, attempt: 1 },
+          completedAt: new Date(data.first.date)
+        }
+      });
+
+      // Create second attempt
+      await prisma.fullAssessmentAttempt.create({
+        data: {
+          userId: student.id,
+          score: data.second.score,
+          totalQuestions: 30,
+          percentage: data.second.percentage,
+          passed: data.second.percentage >= 70,
+          timeSpent: 1100,
+          timerExpired: false,
+          answers: { simulated: true, attempt: 2 },
+          completedAt: new Date(data.second.date)
         }
       });
 
       backfilledFull++;
     }
 
-    console.log(`✅ Backfilled ${backfilledFull} full assessment attempts`);
+    console.log(`✅ Backfilled ${backfilledFull} students with 1st + 2nd full assessment attempts`);
     console.log('🎉 Seed completed successfully!');
 
   } catch (error) {

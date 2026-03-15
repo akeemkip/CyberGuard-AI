@@ -1685,10 +1685,10 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 <Card className="p-6">
                   <div className="flex items-center gap-3 mb-2">
                     <Trophy className="h-5 w-5 text-green-500" />
-                    <h3 className="font-semibold text-sm">Avg Final Score</h3>
+                    <h3 className="font-semibold text-sm">Avg Final Score (1st)</h3>
                   </div>
-                  <div className="text-3xl font-bold text-green-600">{assessmentComparisonData.summary.avgFullScore}%</div>
-                  <p className="text-xs text-muted-foreground mt-1">After training</p>
+                  <div className="text-3xl font-bold text-green-600">{assessmentComparisonData.summary.avgFirstFullScore || assessmentComparisonData.summary.avgFullScore || 0}%</div>
+                  <p className="text-xs text-muted-foreground mt-1">First attempt</p>
                 </Card>
 
                 <Card className="p-6">
@@ -1696,23 +1696,25 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                     <TrendingUp className="h-5 w-5 text-purple-500" />
                     <h3 className="font-semibold text-sm">Avg Improvement</h3>
                   </div>
-                  <div className="text-3xl font-bold text-purple-600">+{assessmentComparisonData.summary.avgImprovement}%</div>
-                  <p className="text-xs text-muted-foreground mt-1">Score increase</p>
+                  <div className="text-3xl font-bold text-purple-600">{assessmentComparisonData.summary.avgImprovement >= 0 ? '+' : ''}{assessmentComparisonData.summary.avgImprovement}%</div>
+                  <p className="text-xs text-muted-foreground mt-1">1st → 2nd attempt</p>
                 </Card>
               </div>
 
               {/* Score Distribution Chart */}
               <Card className="p-6 mb-6">
-                <h3 className="font-semibold mb-4">Score Distribution: Intro vs Final</h3>
+                <h3 className="font-semibold mb-4">Score Distribution: Final 1st Attempt vs 2nd Attempt</h3>
                 <div className="space-y-4">
-                  {assessmentComparisonData.charts.scoreDistribution.intro.map((range: any, index: number) => {
-                    const fullRange = assessmentComparisonData.charts.scoreDistribution.full[index];
+                  {(assessmentComparisonData.charts.scoreDistribution.firstFull || assessmentComparisonData.charts.scoreDistribution.intro || []).map((range: any, index: number) => {
+                    const secondRange = (assessmentComparisonData.charts.scoreDistribution.secondFull || assessmentComparisonData.charts.scoreDistribution.full || [])[index];
+                    const firstTotal = assessmentComparisonData.summary.studentsWithFirstAttempt || assessmentComparisonData.summary.totalStudents || 1;
+                    const secondTotal = assessmentComparisonData.summary.studentsWithBothAttempts || assessmentComparisonData.summary.studentsWithBothAssessments || 1;
                     return (
                       <div key={range.range}>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium">{range.range}%</span>
                           <span className="text-xs text-muted-foreground">
-                            Intro: {range.count} | Final: {fullRange.count}
+                            1st: {range.count} | 2nd: {secondRange?.count || 0}
                           </span>
                         </div>
                         <div className="flex gap-2">
@@ -1721,7 +1723,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                               <div
                                 className="h-full bg-blue-500 transition-all duration-500"
                                 style={{
-                                  width: `${assessmentComparisonData.summary.totalStudents > 0 ? (range.count / assessmentComparisonData.summary.totalStudents) * 100 : 0}%`
+                                  width: `${firstTotal > 0 ? (range.count / firstTotal) * 100 : 0}%`
                                 }}
                               ></div>
                             </div>
@@ -1731,7 +1733,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                               <div
                                 className="h-full bg-green-500 transition-all duration-500"
                                 style={{
-                                  width: `${assessmentComparisonData.summary.studentsWithBothAssessments > 0 ? (fullRange.count / assessmentComparisonData.summary.studentsWithBothAssessments) * 100 : 0}%`
+                                  width: `${secondTotal > 0 ? ((secondRange?.count || 0) / secondTotal) * 100 : 0}%`
                                 }}
                               ></div>
                             </div>
@@ -1744,11 +1746,11 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 <div className="flex gap-4 mt-4 text-sm">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                    <span>Intro Assessment</span>
+                    <span>Final (1st Attempt)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-green-500 rounded"></div>
-                    <span>Final Assessment</span>
+                    <span>Final (2nd Attempt)</span>
                   </div>
                 </div>
               </Card>
@@ -1762,7 +1764,8 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                       <tr className="border-b">
                         <th className="text-left p-3 text-sm font-semibold">Student</th>
                         <th className="text-center p-3 text-sm font-semibold">Intro Score</th>
-                        <th className="text-center p-3 text-sm font-semibold">Final Score</th>
+                        <th className="text-center p-3 text-sm font-semibold">Final Score (1st attempt)</th>
+                        <th className="text-center p-3 text-sm font-semibold">Final Score (2nd attempt)</th>
                         <th className="text-center p-3 text-sm font-semibold">Improvement</th>
                         <th className="text-center p-3 text-sm font-semibold">Knowledge Retention</th>
                         <th className="text-center p-3 text-sm font-semibold">Status</th>
@@ -1786,12 +1789,24 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                             </div>
                           </td>
                           <td className="text-center p-3">
-                            {student.fullScore !== null ? (
+                            {(student.firstFullScore ?? student.fullScore) !== null ? (
                               <div>
-                                <Badge variant={student.fullPassed ? "default" : "secondary"}>
-                                  {student.fullGrade || `${student.fullScore}%`}
+                                <Badge variant={(student.firstFullPassed ?? student.fullPassed) ? "default" : "secondary"}>
+                                  {student.firstFullGrade || student.fullGrade || `${student.firstFullScore ?? student.fullScore}%`}
                                 </Badge>
-                                <div className="text-xs text-muted-foreground mt-1">{student.fullScore}%</div>
+                                <div className="text-xs text-muted-foreground mt-1">{student.firstFullScore ?? student.fullScore}%</div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Not taken</span>
+                            )}
+                          </td>
+                          <td className="text-center p-3">
+                            {student.secondFullScore !== null && student.secondFullScore !== undefined ? (
+                              <div>
+                                <Badge variant={student.secondFullPassed ? "default" : "secondary"}>
+                                  {student.secondFullGrade || `${student.secondFullScore}%`}
+                                </Badge>
+                                <div className="text-xs text-muted-foreground mt-1">{student.secondFullScore}%</div>
                               </div>
                             ) : (
                               <span className="text-xs text-muted-foreground">Not taken</span>
@@ -1821,9 +1836,9 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                             )}
                           </td>
                           <td className="text-center p-3">
-                            {student.fullScore === null ? (
+                            {(student.secondFullScore ?? student.firstFullScore ?? student.fullScore) === null || (student.secondFullScore ?? student.firstFullScore ?? student.fullScore) === undefined ? (
                               <Badge variant="outline">In Progress</Badge>
-                            ) : student.fullPassed ? (
+                            ) : (student.secondFullPassed ?? student.firstFullPassed ?? student.fullPassed) ? (
                               <Badge variant="default" className="bg-green-600">Passed</Badge>
                             ) : (
                               <Badge variant="destructive">Failed</Badge>

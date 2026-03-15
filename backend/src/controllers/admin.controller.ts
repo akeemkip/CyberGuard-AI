@@ -2924,7 +2924,7 @@ export const getAllPhishingAttempts = async (req: Request, res: Response) => {
 // Get assessment comparison report (intro vs full)
 export const getAssessmentComparison = async (req: Request, res: Response) => {
   try {
-    // Get all students who have taken both assessments
+    // Get all students with intro and full assessment attempts
     const students = await prisma.user.findMany({
       where: {
         role: 'STUDENT',
@@ -2943,8 +2943,7 @@ export const getAssessmentComparison = async (req: Request, res: Response) => {
           }
         },
         fullAssessmentAttempts: {
-          orderBy: { completedAt: 'desc' },
-          take: 1
+          orderBy: { completedAt: 'asc' } // oldest first so [0]=first, [1]=second
         }
       }
     });
@@ -2954,13 +2953,18 @@ export const getAssessmentComparison = async (req: Request, res: Response) => {
       .filter(s => s.introAssessmentAttempts.length > 0)
       .map(student => {
         const introAttempt = student.introAssessmentAttempts[0];
-        const fullAttempt = student.fullAssessmentAttempts[0];
+        const firstFull = student.fullAssessmentAttempts[0] ?? null;
+        const secondFull = student.fullAssessmentAttempts[1] ?? null;
 
         const introPercentage = introAttempt.percentage;
-        const fullPercentage = fullAttempt?.percentage ?? null;
-        const improvement = fullPercentage !== null ? fullPercentage - introPercentage : null;
+        const firstFullPercentage = firstFull?.percentage ?? null;
+        const secondFullPercentage = secondFull?.percentage ?? null;
 
-        // Knowledge retention: compare intro to final
+        // Improvement and retention compare first attempt vs second attempt
+        const improvement = (firstFullPercentage !== null && secondFullPercentage !== null)
+          ? secondFullPercentage - firstFullPercentage
+          : null;
+
         let retention: string | null = null;
         if (improvement !== null) {
           if (improvement >= 20) retention = 'Excellent';
@@ -2975,59 +2979,69 @@ export const getAssessmentComparison = async (req: Request, res: Response) => {
           email: student.email,
           introScore: introPercentage,
           introGrade: `${introAttempt.score}/${introAttempt.totalQuestions}`,
-          fullScore: fullPercentage,
-          fullGrade: fullAttempt ? `${fullAttempt.score}/${fullAttempt.totalQuestions}` : null,
+          firstFullScore: firstFullPercentage,
+          firstFullGrade: firstFull ? `${firstFull.score}/${firstFull.totalQuestions}` : null,
+          secondFullScore: secondFullPercentage,
+          secondFullGrade: secondFull ? `${secondFull.score}/${secondFull.totalQuestions}` : null,
           improvement,
           retention,
           introPassed: introAttempt.passed,
-          fullPassed: fullAttempt?.passed ?? null,
+          firstFullPassed: firstFull?.passed ?? null,
+          secondFullPassed: secondFull?.passed ?? null,
           introCompletedAt: introAttempt.completedAt,
-          fullCompletedAt: fullAttempt?.completedAt ?? null
+          firstFullCompletedAt: firstFull?.completedAt ?? null,
+          secondFullCompletedAt: secondFull?.completedAt ?? null
         };
       });
 
     // Calculate summary statistics
-    const studentsWithBoth = comparisonData.filter(d => d.fullScore !== null);
+    const studentsWithFirst = comparisonData.filter(d => d.firstFullScore !== null);
+    const studentsWithBoth = comparisonData.filter(d => d.secondFullScore !== null);
     const avgIntroScore = comparisonData.length > 0
       ? Math.round(comparisonData.reduce((sum, d) => sum + d.introScore, 0) / comparisonData.length)
       : 0;
-    const avgFullScore = studentsWithBoth.length > 0
-      ? Math.round(studentsWithBoth.reduce((sum, d) => sum + (d.fullScore || 0), 0) / studentsWithBoth.length)
+    const avgFirstFullScore = studentsWithFirst.length > 0
+      ? Math.round(studentsWithFirst.reduce((sum, d) => sum + (d.firstFullScore || 0), 0) / studentsWithFirst.length)
+      : 0;
+    const avgSecondFullScore = studentsWithBoth.length > 0
+      ? Math.round(studentsWithBoth.reduce((sum, d) => sum + (d.secondFullScore || 0), 0) / studentsWithBoth.length)
       : 0;
     const avgImprovement = studentsWithBoth.length > 0
       ? Math.round(studentsWithBoth.reduce((sum, d) => sum + (d.improvement || 0), 0) / studentsWithBoth.length)
       : 0;
 
-    // Score distribution for chart
+    // Score distribution: Final first attempt vs Final second attempt
     const scoreRanges = ['0-20', '21-40', '41-60', '61-80', '81-100'];
-    const introDistribution = scoreRanges.map(range => {
+    const firstFullDistribution = scoreRanges.map(range => {
       const [min, max] = range.split('-').map(Number);
       return {
         range,
-        count: comparisonData.filter(d => d.introScore >= min && d.introScore <= max).length
+        count: studentsWithFirst.filter(d => (d.firstFullScore || 0) >= min && (d.firstFullScore || 0) <= max).length
       };
     });
-    const fullDistribution = scoreRanges.map(range => {
+    const secondFullDistribution = scoreRanges.map(range => {
       const [min, max] = range.split('-').map(Number);
       return {
         range,
-        count: studentsWithBoth.filter(d => (d.fullScore || 0) >= min && (d.fullScore || 0) <= max).length
+        count: studentsWithBoth.filter(d => (d.secondFullScore || 0) >= min && (d.secondFullScore || 0) <= max).length
       };
     });
 
     res.json({
       summary: {
         totalStudents: comparisonData.length,
-        studentsWithBothAssessments: studentsWithBoth.length,
+        studentsWithFirstAttempt: studentsWithFirst.length,
+        studentsWithBothAttempts: studentsWithBoth.length,
         avgIntroScore,
-        avgFullScore,
+        avgFirstFullScore,
+        avgSecondFullScore,
         avgImprovement
       },
       students: comparisonData,
       charts: {
         scoreDistribution: {
-          intro: introDistribution,
-          full: fullDistribution
+          firstFull: firstFullDistribution,
+          secondFull: secondFullDistribution
         }
       }
     });
