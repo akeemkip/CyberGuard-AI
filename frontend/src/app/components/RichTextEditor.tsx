@@ -102,8 +102,9 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your co
   // Sanitize HTML content to prevent XSS attacks
   const sanitizeHtml = (html: string): string => {
     return DOMPurify.sanitize(html, {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img'],
-      ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target', 'rel'],
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'span', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target', 'rel', 'width', 'height', 'colspan', 'rowspan'],
+      ADD_DATA_URI_TAGS: ['img'],
       ALLOWED_STYLES: {
         '*': {
           'text-align': [/^left$/, /^right$/, /^center$/, /^justify$/],
