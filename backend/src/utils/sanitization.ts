@@ -18,11 +18,16 @@ export const sanitizeInput = (input: string): string => {
  */
 export const sanitizeRichText = (input: string): string => {
   return sanitizeHtml(input, {
-    allowedTags: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li', 'a'],
+    allowedTags: ['b', 'i', 'em', 'strong', 'u', 's', 'p', 'br', 'ul', 'ol', 'li', 'a', 'img', 'h1', 'h2', 'h3', 'h4', 'blockquote', 'code', 'pre', 'span', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
     allowedAttributes: {
-      'a': ['href', 'title', 'target']
+      'a': ['href', 'title', 'target', 'rel'],
+      'img': ['src', 'alt', 'title', 'width', 'height'],
+      'span': ['class', 'style'],
+      'div': ['class', 'style'],
+      'td': ['colspan', 'rowspan'],
+      'th': ['colspan', 'rowspan']
     },
-    allowedSchemes: ['http', 'https', 'mailto'],
+    allowedSchemes: ['http', 'https', 'mailto', 'data'],
     disallowedTagsMode: 'discard'
   });
 };

@@ -121,6 +121,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your co
         heading: {
           levels: [1, 2, 3],
         },
+        link: false,
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
