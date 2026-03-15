@@ -281,6 +281,162 @@ Keep each insight to 2-3 sentences. Be specific with numbers. Use markdown forma
 }
 
 /**
+ * Generate AI learning path based on intro assessment results
+ */
+export async function getLearningPath(
+  courseScores: { courseTitle: string; correct: number; total: number; percentage: number }[],
+  overallScore: number,
+  passed: boolean
+): Promise<string> {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return 'AI service is not configured.';
+    }
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const scoreBreakdown = courseScores.map(s =>
+      `- ${s.courseTitle}: ${s.correct}/${s.total} (${s.percentage}%)`
+    ).join('\n');
+
+    const prompt = `You are a cybersecurity training advisor creating a personalized learning path for a new student.
+
+The student just completed an initial skills assessment.
+Overall Score: ${overallScore}% (${passed ? 'PASSED' : 'NEEDS IMPROVEMENT'})
+
+Scores by topic:
+${scoreBreakdown}
+
+Based on these results, create a personalized learning path:
+
+1. **Start with**: Recommend which course to take FIRST (their weakest area). Explain why in 1 sentence.
+2. **Then**: List the remaining courses in recommended order, with a brief reason for each.
+3. **Key focus areas**: In 2-3 sentences, highlight the specific concepts they should pay extra attention to based on their weak spots.
+4. **Encouragement**: End with 1 encouraging sentence.
+
+Keep it concise — under 200 words total. Use markdown formatting. Address the student directly as "you".`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error: any) {
+    console.error('Error generating learning path:', error.message);
+    if (error.message?.includes('429')) {
+      return 'AI is temporarily busy. Please try again in a moment.';
+    }
+    return 'Unable to generate learning path right now. Please try again later.';
+  }
+}
+
+/**
+ * Generate AI course recommendations based on user progress
+ */
+export async function getCourseRecommendations(userId: string): Promise<string> {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return 'AI service is not configured.';
+    }
+
+    // Fetch user data
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        firstName: true,
+        enrollments: {
+          include: {
+            course: { select: { id: true, title: true, difficulty: true } }
+          }
+        },
+        progress: {
+          where: { completed: true },
+          select: { lessonId: true }
+        },
+        quizAttempts: {
+          include: {
+            quiz: { include: { lesson: { select: { title: true, courseId: true } } } }
+          },
+          orderBy: { attemptedAt: 'desc' },
+          take: 10
+        }
+      }
+    });
+
+    if (!user) return 'User not found.';
+
+    // Fetch all published courses
+    const allCourses = await prisma.course.findMany({
+      where: { isPublished: true },
+      select: { id: true, title: true, difficulty: true, description: true, duration: true }
+    });
+
+    // Fetch intro assessment attempt
+    const assessmentAttempt = await prisma.introAssessmentAttempt.findFirst({
+      where: { userId },
+      orderBy: { completedAt: 'desc' },
+      select: { score: true, totalQuestions: true, percentage: true, answers: true }
+    });
+
+    // Build context
+    const enrolledIds = new Set(user.enrollments.map(e => e.course.id));
+    const completedIds = new Set(user.enrollments.filter(e => e.completedAt).map(e => e.course.id));
+    const notEnrolled = allCourses.filter(c => !enrolledIds.has(c.id));
+    const inProgress = user.enrollments.filter(e => !e.completedAt);
+
+    const quizScoresByTopic: { [key: string]: number[] } = {};
+    for (const attempt of user.quizAttempts) {
+      const courseId = attempt.quiz.lesson.courseId;
+      const course = allCourses.find(c => c.id === courseId);
+      if (course) {
+        if (!quizScoresByTopic[course.title]) quizScoresByTopic[course.title] = [];
+        quizScoresByTopic[course.title].push(attempt.score);
+      }
+    }
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const prompt = `You are a cybersecurity training advisor. Give personalized course recommendations for ${user.firstName || 'this student'}.
+
+STUDENT PROGRESS:
+- Enrolled in: ${user.enrollments.length} courses
+- Completed: ${completedIds.size} courses
+- Lessons completed: ${user.progress.length}
+${assessmentAttempt ? `- Initial assessment score: ${assessmentAttempt.percentage}%` : '- No initial assessment taken'}
+
+IN-PROGRESS COURSES:
+${inProgress.map(e => `- ${e.course.title} (${e.course.difficulty})`).join('\n') || 'None'}
+
+COMPLETED COURSES:
+${user.enrollments.filter(e => e.completedAt).map(e => `- ${e.course.title}`).join('\n') || 'None'}
+
+QUIZ PERFORMANCE:
+${Object.entries(quizScoresByTopic).map(([topic, scores]) => `- ${topic}: avg ${Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)}%`).join('\n') || 'No quizzes taken yet'}
+
+AVAILABLE (NOT ENROLLED):
+${notEnrolled.map(c => `- ${c.title} (${c.difficulty}) - ${c.description}`).join('\n') || 'All courses enrolled'}
+
+Give exactly 2-3 specific recommendations. For each:
+- Name the course
+- Why it's right for them NOW (based on their progress/gaps)
+- What they'll gain
+
+If they're enrolled in everything, suggest what to focus on next within their current courses.
+
+Keep it under 150 words. Use markdown. Be specific and encouraging.`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error: any) {
+    console.error('Error generating course recommendations:', error.message || error);
+    if (error.status === 429 || error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('rate')) {
+      return 'AI is temporarily busy due to rate limits. Please wait a minute and try again.';
+    }
+    if (error.message?.includes('SAFETY')) {
+      return 'The AI response was blocked by safety filters. Please try again.';
+    }
+    return 'Unable to generate recommendations right now. Please try again later.';
+  }
+}
+
+/**
  * Build platform context string with course information
  */
 function buildPlatformContext(courses: any[]): string {

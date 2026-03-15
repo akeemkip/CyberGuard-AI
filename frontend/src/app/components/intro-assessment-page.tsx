@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Trophy, TrendingUp } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, ArrowLeft, Trophy, TrendingUp, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { marked } from 'marked';
+import api from '../services/api';
 import {
   getIntroAssessment,
   submitIntroAssessment,
@@ -21,6 +23,9 @@ export const IntroAssessmentPage: React.FC<IntroAssessmentPageProps> = ({ onComp
   const [result, setResult] = useState<IntroAssessmentResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [aiLearningPath, setAiLearningPath] = useState<string | null>(null);
+  const [isLoadingPath, setIsLoadingPath] = useState(false);
+  const [learningPathError, setLearningPathError] = useState(false);
 
   useEffect(() => {
     loadAssessment();
@@ -37,6 +42,59 @@ export const IntroAssessmentPage: React.FC<IntroAssessmentPageProps> = ({ onComp
       setLoading(false);
     }
   };
+
+  const fetchLearningPath = async (resultData: IntroAssessmentResult) => {
+    if (!assessment) return;
+    try {
+      setIsLoadingPath(true);
+      // Build a map of questionId -> courseTitle from the assessment questions
+      const questionCourseMap: { [questionId: string]: string } = {};
+      for (const q of assessment.questions) {
+        questionCourseMap[q.id] = q.courseTitle;
+      }
+
+      // Group scores by course
+      const courseStats: { [courseTitle: string]: { correct: number; total: number } } = {};
+      for (const answer of resultData.answers) {
+        const courseTitle = questionCourseMap[answer.questionId];
+        if (!courseTitle) continue;
+        if (!courseStats[courseTitle]) {
+          courseStats[courseTitle] = { correct: 0, total: 0 };
+        }
+        courseStats[courseTitle].total += 1;
+        if (answer.isCorrect) {
+          courseStats[courseTitle].correct += 1;
+        }
+      }
+
+      // Convert to array with percentages
+      const courseScores = Object.entries(courseStats).map(([courseTitle, stats]) => ({
+        courseTitle,
+        correct: stats.correct,
+        total: stats.total,
+        percentage: Math.round((stats.correct / stats.total) * 100)
+      }));
+
+      const response = await api.post('/ai/learning-path', {
+        courseScores,
+        overallScore: resultData.percentage,
+        passed: resultData.passed
+      });
+      setAiLearningPath(response.data.learningPath || response.data);
+    } catch (err) {
+      console.error('Failed to generate learning path:', err);
+      setAiLearningPath(null);
+      setLearningPathError(true);
+    } finally {
+      setIsLoadingPath(false);
+    }
+  };
+
+  useEffect(() => {
+    if (result) {
+      fetchLearningPath(result);
+    }
+  }, [result]);
 
   const handleAnswerSelect = (questionId: string, answerIndex: number) => {
     setSelectedAnswers(prev => ({
@@ -194,6 +252,41 @@ export const IntroAssessmentPage: React.FC<IntroAssessmentPageProps> = ({ onComp
               ))}
             </div>
           </div>
+
+          {/* AI Learning Path */}
+          {isLoadingPath && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center space-x-4">
+                <Loader2 className="h-6 w-6 text-purple-600 animate-spin flex-shrink-0" />
+                <p className="text-gray-600 dark:text-gray-300 font-medium">
+                  Creating your personalized learning path...
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!isLoadingPath && aiLearningPath && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <Sparkles className="h-6 w-6 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Your Personalized Learning Path
+                </h2>
+              </div>
+              <div
+                className="prose prose-sm dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: marked(aiLearningPath) as string }}
+              />
+            </div>
+          )}
+
+          {!isLoadingPath && learningPathError && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
+              Unable to generate a personalized learning path. You can still continue to the dashboard.
+            </p>
+          )}
 
           {/* Continue Button */}
           <div className="text-center">

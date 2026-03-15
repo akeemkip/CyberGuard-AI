@@ -21,8 +21,11 @@ import {
   ClipboardCheck,
   Mail,
   AlertCircle,
-  Lock
+  Lock,
+  Sparkles
 } from "lucide-react";
+import { marked } from "marked";
+import api from "../services/api";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +64,8 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
   const [showAssessmentLockedModal, setShowAssessmentLockedModal] = useState(false);
   const [hasCompletedPhishing, setHasCompletedPhishing] = useState(false);
   const [hasCertificates, setHasCertificates] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState<string | null>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -142,6 +147,18 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
     } else {
       // If not enrolled, go to catalog
       onNavigate("course-catalog");
+    }
+  };
+
+  const handleGetRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    try {
+      const response = await api.get('/ai/course-recommendations');
+      setAiRecommendations(response.data.recommendations);
+    } catch (error) {
+      console.error('Error getting AI recommendations:', error);
+    } finally {
+      setIsLoadingRecommendations(false);
     }
   };
 
@@ -556,6 +573,39 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 </div>
               </Card>
             )}
+
+            {/* AI Course Recommendations */}
+            <Card className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  AI Recommended
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGetRecommendations}
+                  disabled={isLoadingRecommendations}
+                >
+                  {isLoadingRecommendations ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    aiRecommendations ? 'Refresh' : 'Get Tips'
+                  )}
+                </Button>
+              </div>
+              {isLoadingRecommendations ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : aiRecommendations ? (
+                <div className="prose prose-sm dark:prose-invert max-w-none text-sm" dangerouslySetInnerHTML={{ __html: marked(aiRecommendations) as string }} />
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Get personalized course suggestions based on your progress
+                </p>
+              )}
+            </Card>
 
             {/* AI Assistant CTA */}
             <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">

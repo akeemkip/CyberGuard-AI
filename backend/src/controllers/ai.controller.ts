@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
-import { sendChatMessage, getQuizExplanation, getLabHint, getAnalyticsInsights } from '../services/ai.service';
+import { sendChatMessage, getQuizExplanation, getLabHint, getAnalyticsInsights, getLearningPath, getCourseRecommendations } from '../services/ai.service';
 
 /**
  * Handle AI chat message endpoint
@@ -110,5 +110,53 @@ export async function handleAnalyticsInsights(req: AuthRequest, res: Response) {
   } catch (error) {
     logger.error('AI Analytics Insights Error:', error);
     return res.status(500).json({ error: 'Failed to generate analytics insights' });
+  }
+}
+
+/**
+ * Handle AI learning path endpoint
+ * POST /api/ai/learning-path
+ */
+export async function handleLearningPath(req: AuthRequest, res: Response) {
+  try {
+    const { courseScores, overallScore, passed } = req.body;
+
+    if (!Array.isArray(courseScores) || typeof overallScore !== 'number') {
+      return res.status(400).json({ error: 'courseScores and overallScore are required' });
+    }
+
+    const learningPath = await getLearningPath(courseScores, overallScore, passed);
+
+    return res.status(200).json({
+      learningPath,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI Learning Path Error:', error);
+    return res.status(500).json({ error: 'Failed to generate learning path' });
+  }
+}
+
+/**
+ * Handle AI course recommendations endpoint
+ * GET /api/ai/course-recommendations
+ */
+export async function handleCourseRecommendations(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.userId!;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const recommendations = await getCourseRecommendations(userId);
+
+    return res.status(200).json({
+      recommendations,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI Course Recommendations Error:', error);
+    return res.status(500).json({ error: 'Failed to generate recommendations' });
   }
 }
