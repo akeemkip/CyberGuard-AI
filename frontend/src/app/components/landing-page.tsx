@@ -204,8 +204,8 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
               Choose the plan that fits your organization
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="p-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto group/pricing">
+            <Card className="p-8 transition-all duration-300 hover:border-primary hover:border-2 hover:shadow-xl hover:-translate-y-2 group-hover/pricing:opacity-70 hover:!opacity-100 cursor-pointer">
               <h3 className="text-2xl font-bold mb-2">Starter</h3>
               <div className="mb-4">
                 <span className="text-4xl font-bold">$29</span>
@@ -233,7 +233,7 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
               </ul>
               <Button className="w-full" variant="outline" onClick={() => onNavigate("register")}>Get Started</Button>
             </Card>
-            <Card className="p-8 border-2 border-primary relative">
+            <Card className="p-8 border-2 border-primary relative transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group-hover/pricing:opacity-70 hover:!opacity-100">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm">
                 Popular
               </div>
@@ -270,7 +270,7 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
               </ul>
               <Button className="w-full" onClick={() => onNavigate("register")}>Get Started</Button>
             </Card>
-            <Card className="p-8">
+            <Card className="p-8 transition-all duration-300 hover:border-primary hover:border-2 hover:shadow-xl hover:-translate-y-2 group-hover/pricing:opacity-70 hover:!opacity-100 cursor-pointer">
               <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
               <div className="mb-4">
                 <span className="text-4xl font-bold">Custom</span>
