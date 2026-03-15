@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
-import { sendChatMessage } from '../services/ai.service';
+import { sendChatMessage, getQuizExplanation, getLabHint, getAnalyticsInsights } from '../services/ai.service';
 
 /**
  * Handle AI chat message endpoint
@@ -33,5 +33,82 @@ export async function handleChatMessage(req: AuthRequest, res: Response) {
   } catch (error) {
     logger.error('AI Controller Error:', error);
     return res.status(500).json({ error: 'Failed to process chat message' });
+  }
+}
+
+/**
+ * Handle AI quiz explanation endpoint
+ * POST /api/ai/quiz-explanation
+ */
+export async function handleQuizExplanation(req: AuthRequest, res: Response) {
+  try {
+    const { quizTitle, questions, results, score, passed } = req.body;
+
+    if (!quizTitle || !Array.isArray(questions) || !Array.isArray(results)) {
+      return res.status(400).json({ error: 'quizTitle, questions, and results are required' });
+    }
+
+    const explanation = await getQuizExplanation(quizTitle, questions, results, score, passed);
+
+    return res.status(200).json({
+      explanation,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI Quiz Explanation Error:', error);
+    return res.status(500).json({ error: 'Failed to generate quiz explanation' });
+  }
+}
+
+/**
+ * Handle AI lab hint endpoint
+ * POST /api/ai/lab-hint
+ */
+export async function handleLabHint(req: AuthRequest, res: Response) {
+  try {
+    const { labTitle, labType, configSummary, hintNumber } = req.body;
+
+    if (!labTitle || !labType || typeof hintNumber !== 'number') {
+      return res.status(400).json({ error: 'labTitle, labType, and hintNumber are required' });
+    }
+
+    if (hintNumber < 1 || hintNumber > 3) {
+      return res.status(400).json({ error: 'hintNumber must be between 1 and 3' });
+    }
+
+    const hint = await getLabHint(labTitle, labType, configSummary || '', hintNumber);
+
+    return res.status(200).json({
+      hint,
+      hintNumber,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI Lab Hint Error:', error);
+    return res.status(500).json({ error: 'Failed to generate lab hint' });
+  }
+}
+
+/**
+ * Handle AI analytics insights endpoint
+ * POST /api/ai/analytics-insights
+ */
+export async function handleAnalyticsInsights(req: AuthRequest, res: Response) {
+  try {
+    const { analyticsData } = req.body;
+
+    if (!analyticsData) {
+      return res.status(400).json({ error: 'analyticsData is required' });
+    }
+
+    const insights = await getAnalyticsInsights(analyticsData);
+
+    return res.status(200).json({
+      insights,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('AI Analytics Insights Error:', error);
+    return res.status(500).json({ error: 'Failed to generate analytics insights' });
   }
 }

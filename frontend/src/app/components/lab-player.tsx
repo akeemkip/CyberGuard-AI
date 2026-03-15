@@ -23,6 +23,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import courseService, { LabDetails } from "../services/course.service";
+import api from "../services/api";
 import { PhishingEmailConfig, SuspiciousLinksConfig, PasswordStrengthConfig, SocialEngineeringConfig, SecurityAlertsConfig, WifiSafetyConfig, IncidentResponseConfig } from "../services/admin.service";
 import { PhishingEmailSimulation } from "./lab-templates/PhishingEmailSimulation";
 import { SuspiciousLinksSimulation } from "./lab-templates/SuspiciousLinksSimulation";
@@ -192,6 +193,9 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
   const [showHints, setShowHints] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [labHints, setLabHints] = useState<string[]>([]);
+  const [isLoadingHint, setIsLoadingHint] = useState(false);
+  const [showHintPanel, setShowHintPanel] = useState(false);
 
   // Refs for auto-save functionality
   const notesRef = useRef(notes);
@@ -357,6 +361,36 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
     }
   };
 
+  const handleGetHint = async () => {
+    if (!labData || labHints.length >= 3) return;
+    setIsLoadingHint(true);
+    try {
+      const lab = labData.lab;
+      // Build a summary of the config without revealing answers
+      const configSummary = lab.labType === 'PHISHING_EMAIL' ? `Email analysis simulation with ${(lab.simulationConfig as any)?.emails?.length || 0} emails to review`
+        : lab.labType === 'SUSPICIOUS_LINKS' ? `URL analysis simulation with ${(lab.simulationConfig as any)?.links?.length || 0} links to evaluate`
+        : lab.labType === 'PASSWORD_STRENGTH' ? 'Password creation exercise with security requirements'
+        : lab.labType === 'SOCIAL_ENGINEERING' ? `Social engineering conversation simulation`
+        : lab.labType === 'SECURITY_ALERTS' ? `Security alert triage simulation with ${(lab.simulationConfig as any)?.alerts?.length || 0} alerts`
+        : lab.labType === 'WIFI_SAFETY' ? `WiFi network selection exercise with ${(lab.simulationConfig as any)?.networks?.length || 0} networks`
+        : lab.labType === 'INCIDENT_RESPONSE' ? `Incident response decision tree simulation`
+        : 'Interactive cybersecurity simulation';
+
+      const response = await api.post('/ai/lab-hint', {
+        labTitle: lab.title,
+        labType: lab.labType,
+        configSummary,
+        hintNumber: labHints.length + 1
+      });
+      setLabHints(prev => [...prev, response.data.hint]);
+      setShowHintPanel(true);
+    } catch (error) {
+      console.error('Error getting AI hint:', error);
+    } finally {
+      setIsLoadingHint(false);
+    }
+  };
+
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -384,7 +418,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground">Lab not found</p>
-          <Button onClick={() => window.history.back()} className="mt-4">
+          <Button onClick={() => onNavigate?.("student-dashboard")} className="mt-4">
             Go Back
           </Button>
         </div>
@@ -412,7 +446,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => window.history.back()}
+                  onClick={() => onNavigate?.("course-player", lab.courseId)}
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back
@@ -464,10 +498,50 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                     </>
                   )}
                 </Badge>
+
+                {/* AI Hint Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGetHint}
+                  disabled={isLoadingHint || labHints.length >= 3}
+                >
+                  {isLoadingHint ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                  )}
+                  Hint ({3 - labHints.length} left)
+                </Button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* AI Hint Panel */}
+        {showHintPanel && labHints.length > 0 && (
+          <div className="border-b bg-amber-50 dark:bg-amber-950/20">
+            <div className="container mx-auto px-4 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-amber-600" />
+                  <span className="font-medium text-sm">AI Hints ({labHints.length}/3)</span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowHintPanel(false)}>
+                  Hide
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {labHints.map((hint, i) => (
+                  <div key={i} className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                    <strong>Hint {i + 1}:</strong>{' '}
+                    <span dangerouslySetInnerHTML={{ __html: marked(hint) }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Simulation Content */}
         <div className="relative">
@@ -626,7 +700,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.history.back()}
+                onClick={() => onNavigate?.("course-player", lab.courseId)}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back

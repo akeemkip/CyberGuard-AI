@@ -2722,7 +2722,6 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                             </div>
                           </div>
                         ))}
-                      </div>
                       {phishingAttempts.length < attemptsTotal && (
                         <div className="text-center pt-3">
                           <Button
@@ -2738,6 +2737,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                           </Button>
                         </div>
                       )}
+                      </div>
                     )}
                   </div>
                 )}

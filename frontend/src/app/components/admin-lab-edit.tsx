@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { marked } from "marked";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -29,8 +30,21 @@ import {
   GitBranch,
   FileText,
   Eye,
+  Target,
+  BookOpen,
+  Lightbulb,
+  HelpCircle,
+  Clock,
 } from "lucide-react";
 import { AdminSidebar } from "./admin-sidebar";
+import { SimulationErrorBoundary } from "./SimulationErrorBoundary";
+import { PhishingEmailSimulation } from "./lab-templates/PhishingEmailSimulation";
+import { SuspiciousLinksSimulation } from "./lab-templates/SuspiciousLinksSimulation";
+import { PasswordStrengthSimulation } from "./lab-templates/PasswordStrengthSimulation";
+import { SocialEngineeringSimulation } from "./lab-templates/SocialEngineeringSimulation";
+import { SecurityAlertsSimulation } from "./lab-templates/SecurityAlertsSimulation";
+import { WifiSafetySimulation } from "./lab-templates/WifiSafetySimulation";
+import { IncidentResponseSimulation } from "./lab-templates/IncidentResponseSimulation";
 import adminService, {
   LabFull,
   LabType,
@@ -121,6 +135,162 @@ const LAB_TYPES: { value: LabType; label: string; icon: React.ReactNode; descrip
     description: 'Decision tree scenario for incident response training'
   },
 ];
+
+// Type guard functions for simulation configs (copied from lab-player.tsx)
+function isPhishingEmailConfig(config: any): config is PhishingEmailConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.emailInterface &&
+    Array.isArray(config.emails) &&
+    config.emails.length > 0 &&
+    config.emails.every((email: any) =>
+      email.id &&
+      email.from &&
+      email.from.name &&
+      email.from.email &&
+      email.subject &&
+      email.body &&
+      typeof email.isPhishing === 'boolean' &&
+      Array.isArray(email.redFlags)
+    )
+  );
+}
+
+function isSuspiciousLinksConfig(config: any): config is SuspiciousLinksConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    Array.isArray(config.links) &&
+    config.links.length > 0 &&
+    config.links.every((link: any) =>
+      link.displayText &&
+      link.actualUrl &&
+      typeof link.isMalicious === 'boolean' &&
+      link.explanation
+    ) &&
+    config.scenario &&
+    config.instructions
+  );
+}
+
+function isPasswordStrengthConfig(config: any): config is PasswordStrengthConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.requirements &&
+    typeof config.requirements === 'object' &&
+    typeof config.requirements.minLength === 'number' &&
+    typeof config.requirements.requireUppercase === 'boolean' &&
+    typeof config.requirements.requireNumbers === 'boolean' &&
+    typeof config.requirements.requireSpecial === 'boolean' &&
+    Array.isArray(config.bannedPasswords) &&
+    Array.isArray(config.hints)
+  );
+}
+
+function isSocialEngineeringConfig(config: any): config is SocialEngineeringConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.context &&
+    config.attackerName &&
+    config.attackerRole &&
+    Array.isArray(config.messages) &&
+    config.messages.length > 0 &&
+    config.messages.every((msg: any) =>
+      msg.id &&
+      msg.attackerMessage &&
+      msg.tacticUsed &&
+      msg.tacticExplanation &&
+      Array.isArray(msg.responses) &&
+      msg.responses.every((resp: any) =>
+        resp.text &&
+        typeof resp.isCorrect === 'boolean' &&
+        resp.feedback
+      )
+    ) &&
+    config.instructions
+  );
+}
+
+function isSecurityAlertsConfig(config: any): config is SecurityAlertsConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.instructions &&
+    Array.isArray(config.alerts) &&
+    config.alerts.length > 0 &&
+    config.alerts.every((alert: any) =>
+      alert.id &&
+      alert.alertType &&
+      alert.title &&
+      alert.message &&
+      alert.source &&
+      typeof alert.isLegitimate === 'boolean' &&
+      alert.explanation
+    )
+  );
+}
+
+function isWifiSafetyConfig(config: any): config is WifiSafetyConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    config.instructions &&
+    config.location &&
+    Array.isArray(config.networks) &&
+    config.networks.length > 0 &&
+    config.networks.every((network: any) =>
+      network.id &&
+      network.ssid &&
+      network.signalStrength &&
+      network.securityType &&
+      typeof network.isHidden === 'boolean' &&
+      typeof network.requiresPassword === 'boolean' &&
+      typeof network.isSafe === 'boolean' &&
+      network.explanation
+    )
+  );
+}
+
+function isIncidentResponseConfig(config: any): config is IncidentResponseConfig {
+  return (
+    config &&
+    typeof config === 'object' &&
+    config.scenario &&
+    Array.isArray(config.steps) &&
+    config.steps.length > 0 &&
+    config.steps.every((step: any) =>
+      step.id &&
+      step.situation &&
+      Array.isArray(step.options) &&
+      step.options.length > 0 &&
+      step.options.every((option: any) =>
+        option.text &&
+        typeof option.isCorrect === 'boolean' &&
+        option.feedback
+      )
+    )
+  );
+}
+
+function isConfigValid(labType: LabType, config: any): boolean {
+  switch (labType) {
+    case 'PHISHING_EMAIL': return isPhishingEmailConfig(config);
+    case 'SUSPICIOUS_LINKS': return isSuspiciousLinksConfig(config);
+    case 'PASSWORD_STRENGTH': return isPasswordStrengthConfig(config);
+    case 'SOCIAL_ENGINEERING': return isSocialEngineeringConfig(config);
+    case 'SECURITY_ALERTS': return isSecurityAlertsConfig(config);
+    case 'WIFI_SAFETY': return isWifiSafetyConfig(config);
+    case 'INCIDENT_RESPONSE': return isIncidentResponseConfig(config);
+    default: return false;
+  }
+}
 
 export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLabEditProps) {
   const isEditMode = !!labId;
@@ -1009,16 +1179,212 @@ export function AdminLabEdit({ labId, userEmail, onNavigate, onLogout }: AdminLa
 
           {/* Preview Tab */}
           <TabsContent value="preview">
-            <Card className="p-6">
-              <div className="text-center py-12">
-                <Eye className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Preview Mode</h3>
-                <p className="text-muted-foreground mb-4">
-                  See how the lab will appear to students
-                </p>
-                <Badge variant="secondary">Preview available after saving</Badge>
+            {labType === 'CONTENT' ? (
+              // Content lab preview — mirrors the student lab-player layout
+              (instructions || scenario || objectives.some(o => o.trim())) ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-semibold">Student Preview</h3>
+                    <Badge variant="secondary">Content Lab</Badge>
+                  </div>
+
+                  {/* Lab Info Card — matches lab-player layout */}
+                  <Card className="p-6">
+                    <div className="flex items-start gap-4 mb-4">
+                      <Badge variant="outline">{difficulty}</Badge>
+                      {estimatedTime && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Clock className="w-4 h-4" />
+                          {estimatedTime} minutes
+                        </div>
+                      )}
+                    </div>
+
+                    {description && (
+                      <p className="text-muted-foreground mb-6">{description}</p>
+                    )}
+
+                    {scenario && (
+                      <div className="mb-6 p-4 bg-muted rounded-lg">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          Scenario
+                        </h3>
+                        <p className="text-sm">{scenario}</p>
+                      </div>
+                    )}
+
+                    {objectives.some(o => o.trim()) && (
+                      <div className="mb-6">
+                        <h3 className="font-semibold mb-3 flex items-center gap-2">
+                          <Target className="w-4 h-4" />
+                          Learning Objectives
+                        </h3>
+                        <ul className="space-y-2">
+                          {objectives.filter(o => o.trim()).map((obj, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-xs font-semibold text-primary">{i + 1}</span>
+                              </div>
+                              <span className="text-sm">{obj}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </Card>
+
+                  {/* Instructions/Resources/Hints Tabs — matches lab-player */}
+                  {(instructions || resources || hints) && (
+                    <Card className="p-6">
+                      <Tabs defaultValue="instructions">
+                        <TabsList className="mb-4">
+                          {instructions && (
+                            <TabsTrigger value="instructions">
+                              <BookOpen className="w-4 h-4 mr-2" />
+                              Instructions
+                            </TabsTrigger>
+                          )}
+                          {resources && (
+                            <TabsTrigger value="resources">
+                              <Lightbulb className="w-4 h-4 mr-2" />
+                              Resources
+                            </TabsTrigger>
+                          )}
+                          {hints && (
+                            <TabsTrigger value="hints">
+                              <HelpCircle className="w-4 h-4 mr-2" />
+                              Hints
+                            </TabsTrigger>
+                          )}
+                        </TabsList>
+
+                        {instructions && (
+                          <TabsContent value="instructions" className="prose prose-sm dark:prose-invert max-w-none">
+                            <div dangerouslySetInnerHTML={{ __html: marked(instructions) }} />
+                          </TabsContent>
+                        )}
+
+                        {resources && (
+                          <TabsContent value="resources" className="prose prose-sm dark:prose-invert max-w-none">
+                            <div dangerouslySetInnerHTML={{ __html: marked(resources) }} />
+                          </TabsContent>
+                        )}
+
+                        {hints && (
+                          <TabsContent value="hints" className="prose prose-sm dark:prose-invert max-w-none">
+                            <div dangerouslySetInnerHTML={{ __html: marked(hints) }} />
+                          </TabsContent>
+                        )}
+                      </Tabs>
+                    </Card>
+                  )}
+                </div>
+              ) : (
+                <Card className="p-6">
+                  <div className="text-center py-12">
+                    <Eye className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No Content Yet</h3>
+                    <p className="text-muted-foreground">
+                      Add content in the Content tab to see a preview
+                    </p>
+                  </div>
+                </Card>
+              )
+            ) : !simulationConfig ? (
+              // No config at all
+              <Card className="p-6">
+                <div className="text-center py-12">
+                  <Eye className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No Configuration</h3>
+                  <p className="text-muted-foreground">
+                    Configure the simulation in the Simulation tab to see a preview
+                  </p>
+                </div>
+              </Card>
+            ) : !isConfigValid(labType, simulationConfig) ? (
+              // Config exists but incomplete
+              <Card className="p-6">
+                <div className="text-center py-12">
+                  <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
+                  <h3 className="text-lg font-semibold mb-2">Incomplete Configuration</h3>
+                  <p className="text-muted-foreground">
+                    Complete the configuration in the Simulation tab to see a live preview
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              // Valid config — render the actual simulation
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Student Preview</h3>
+                  <Badge variant="secondary">{LAB_TYPES.find(t => t.value === labType)?.label}</Badge>
+                  <Badge variant="outline">Interactive</Badge>
+                </div>
+                <div className="max-h-[600px] overflow-y-auto rounded-lg border">
+                  <SimulationErrorBoundary>
+                    {labType === 'PHISHING_EMAIL' && (
+                      <PhishingEmailSimulation
+                        key={JSON.stringify(simulationConfig)}
+                        config={simulationConfig as PhishingEmailConfig}
+                        passingScore={passingScore}
+                        onComplete={() => {}}
+                      />
+                    )}
+                    {labType === 'SUSPICIOUS_LINKS' && (
+                      <SuspiciousLinksSimulation
+                        key={JSON.stringify(simulationConfig)}
+                        config={simulationConfig as SuspiciousLinksConfig}
+                        passingScore={passingScore}
+                        onComplete={() => {}}
+                      />
+                    )}
+                    {labType === 'PASSWORD_STRENGTH' && (
+                      <PasswordStrengthSimulation
+                        key={JSON.stringify(simulationConfig)}
+                        config={simulationConfig as PasswordStrengthConfig}
+                        passingScore={passingScore}
+                        onComplete={() => {}}
+                      />
+                    )}
+                    {labType === 'SOCIAL_ENGINEERING' && (
+                      <SocialEngineeringSimulation
+                        key={JSON.stringify(simulationConfig)}
+                        config={simulationConfig as SocialEngineeringConfig}
+                        passingScore={passingScore}
+                        onComplete={() => {}}
+                      />
+                    )}
+                    {labType === 'SECURITY_ALERTS' && (
+                      <SecurityAlertsSimulation
+                        key={JSON.stringify(simulationConfig)}
+                        config={simulationConfig as SecurityAlertsConfig}
+                        passingScore={passingScore}
+                        onComplete={() => {}}
+                      />
+                    )}
+                    {labType === 'WIFI_SAFETY' && (
+                      <WifiSafetySimulation
+                        key={JSON.stringify(simulationConfig)}
+                        config={simulationConfig as WifiSafetyConfig}
+                        passingScore={passingScore}
+                        onComplete={() => {}}
+                      />
+                    )}
+                    {labType === 'INCIDENT_RESPONSE' && (
+                      <IncidentResponseSimulation
+                        key={JSON.stringify(simulationConfig)}
+                        config={simulationConfig as IncidentResponseConfig}
+                        passingScore={passingScore}
+                        onComplete={() => {}}
+                      />
+                    )}
+                  </SimulationErrorBoundary>
+                </div>
               </div>
-            </Card>
+            )}
           </TabsContent>
         </Tabs>
         </div>

@@ -128,6 +128,159 @@ export async function sendChatMessage(userMessage: string, userId: string): Prom
 }
 
 /**
+ * Generate AI explanation for quiz results
+ */
+export async function getQuizExplanation(
+  quizTitle: string,
+  questions: { question: string; options: string[] }[],
+  results: { questionId: string; userAnswer: number; correctAnswer: number; isCorrect: boolean }[],
+  score: number,
+  passed: boolean
+): Promise<string> {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return 'AI service is not configured.';
+    }
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    // Build question review
+    const questionReview = results.map((r, i) => {
+      const q = questions[i];
+      if (!q) return '';
+      const userAnswerText = q.options[r.userAnswer] || 'No answer';
+      const correctAnswerText = q.options[r.correctAnswer] || 'Unknown';
+      return `Q${i + 1}: ${q.question}
+  Student answered: "${userAnswerText}" ${r.isCorrect ? '(CORRECT)' : '(WRONG)'}
+  Correct answer: "${correctAnswerText}"`;
+    }).join('\n\n');
+
+    const prompt = `You are a cybersecurity tutor reviewing a student's quiz results.
+
+Quiz: "${quizTitle}"
+Score: ${score}% (${passed ? 'PASSED' : 'FAILED'})
+
+${questionReview}
+
+Provide a brief, encouraging review:
+1. For each WRONG answer, explain why the correct answer is right in 1-2 sentences. Focus on teaching the concept.
+2. Skip correct answers — just acknowledge them briefly.
+3. End with 1-2 sentences of encouragement and a specific study tip.
+
+Keep the total response under 300 words. Use markdown formatting.`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error: any) {
+    console.error('Error generating quiz explanation:', error.message);
+    if (error.message?.includes('429')) {
+      return 'AI is temporarily busy. Please try again in a moment.';
+    }
+    return 'Unable to generate explanation right now. Please try again later.';
+  }
+}
+
+/**
+ * Generate AI hint for a lab simulation
+ */
+export async function getLabHint(
+  labTitle: string,
+  labType: string,
+  configSummary: string,
+  hintNumber: number
+): Promise<string> {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return 'AI service is not configured.';
+    }
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const prompt = `You are a cybersecurity tutor helping a student with an interactive lab simulation.
+
+Lab: "${labTitle}"
+Type: ${labType.replace(/_/g, ' ')}
+Context: ${configSummary}
+
+This is hint #${hintNumber} of 3 maximum.
+${hintNumber === 1 ? 'Give a GENTLE hint — point them in the right direction without revealing answers.' : ''}
+${hintNumber === 2 ? 'Give a MORE SPECIFIC hint — narrow down what to look for, but still don\'t give the answer.' : ''}
+${hintNumber === 3 ? 'Give a DETAILED hint — explain the key concepts they should apply, with a concrete example of what to look for.' : ''}
+
+Keep the hint to 2-3 sentences. Be encouraging. Use markdown formatting.
+Do NOT reveal specific answers from the simulation.`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error: any) {
+    console.error('Error generating lab hint:', error.message);
+    if (error.message?.includes('429')) {
+      return 'AI is temporarily busy. Please try again in a moment.';
+    }
+    return 'Unable to generate hint right now. Please try again later.';
+  }
+}
+
+/**
+ * Generate AI insights from analytics data
+ */
+export async function getAnalyticsInsights(analyticsData: {
+  totalUsers: number;
+  avgCompletionRate: number;
+  avgQuizScore: number;
+  totalLessonsCompleted: number;
+  topUsers: { name: string; score: number; coursesCompleted: number }[];
+  retention: { week: string; retention: number | null; avgScore: number | null }[];
+  skillProficiency: { course: string; avgScore: number; enrolled: number; completed: number }[];
+  engagement: { date: string; activeUsers: number }[];
+}): Promise<string> {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return 'AI service is not configured.';
+    }
+
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const prompt = `You are a cybersecurity training platform analyst. Analyze this training data and provide actionable insights.
+
+PLATFORM METRICS:
+- Total Users: ${analyticsData.totalUsers}
+- Average Completion Rate: ${analyticsData.avgCompletionRate}%
+- Average Quiz Score: ${analyticsData.avgQuizScore}%
+- Total Lessons Completed: ${analyticsData.totalLessonsCompleted}
+
+COURSE PERFORMANCE:
+${analyticsData.skillProficiency.map(s => `- ${s.course}: Avg Score ${s.avgScore}%, ${s.enrolled} enrolled, ${s.completed} completed`).join('\n')}
+
+KNOWLEDGE RETENTION (weekly quiz retake trends):
+${analyticsData.retention.filter(r => r.retention !== null).map(r => `- ${r.week}: Retention ${r.retention}%, Avg Score ${r.avgScore}%`).join('\n') || 'No retention data available'}
+
+TOP PERFORMERS:
+${analyticsData.topUsers.slice(0, 5).map(u => `- ${u.name}: Score ${u.score}%, ${u.coursesCompleted} courses completed`).join('\n')}
+
+ENGAGEMENT TREND:
+${analyticsData.engagement.slice(-7).map(e => `- ${e.date}: ${e.activeUsers} active users`).join('\n')}
+
+Provide exactly 4 insights in this format:
+1. **[Strength/Win]**: Something positive about the data
+2. **[Concern]**: A potential issue or risk you see
+3. **[Opportunity]**: An actionable recommendation
+4. **[Trend]**: A pattern you notice in the data
+
+Keep each insight to 2-3 sentences. Be specific with numbers. Use markdown formatting.`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error: any) {
+    console.error('Error generating analytics insights:', error.message);
+    if (error.message?.includes('429')) {
+      return 'AI is temporarily busy. Please try again in a moment.';
+    }
+    return 'Unable to generate insights right now. Please try again later.';
+  }
+}
+
+/**
  * Build platform context string with course information
  */
 function buildPlatformContext(courses: any[]): string {

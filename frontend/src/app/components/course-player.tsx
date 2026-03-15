@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import DOMPurify from "dompurify";
+import { marked } from "marked";
+import api from "../services/api";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -19,7 +21,8 @@ import {
   Circle,
   Loader2,
   AlertCircle,
-  Target
+  Target,
+  Sparkles
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useSettings } from "../context/SettingsContext";
@@ -92,6 +95,8 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   const [quizAnswers, setQuizAnswers] = useState<{ [questionId: string]: number }>({});
   const [quizResult, setQuizResult] = useState<QuizSubmissionResponse | null>(null);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
 
   // Module collapse state (track which modules are collapsed)
   const [collapsedModules, setCollapsedModules] = useState<Set<string>>(new Set());
@@ -281,6 +286,26 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
       toast.error('Failed to submit quiz. Please try again.');
     } finally {
       setSubmittingQuiz(false);
+    }
+  };
+
+  const handleGetExplanation = async () => {
+    if (!quiz || !quizResult) return;
+    setIsLoadingExplanation(true);
+    try {
+      const response = await api.post('/ai/quiz-explanation', {
+        quizTitle: quiz.title,
+        questions: quiz.questions.map(q => ({ question: q.question, options: q.options })),
+        results: quizResult.results,
+        score: quizResult.summary.score,
+        passed: quizResult.summary.passed
+      });
+      setAiExplanation(response.data.explanation);
+    } catch (error) {
+      console.error('Error getting AI explanation:', error);
+      setAiExplanation('Unable to generate explanation. Please try again.');
+    } finally {
+      setIsLoadingExplanation(false);
     }
   };
 
@@ -691,11 +716,44 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                             })}
                           </div>
 
+                          {/* AI Explanation */}
+                          <div className="mt-6">
+                            {!aiExplanation ? (
+                              <Button
+                                onClick={handleGetExplanation}
+                                disabled={isLoadingExplanation}
+                                variant="outline"
+                                className="w-full"
+                              >
+                                {isLoadingExplanation ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Generating AI Review...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-4 h-4 mr-2" />
+                                    Get AI Review of Your Answers
+                                  </>
+                                )}
+                              </Button>
+                            ) : (
+                              <Card className="p-4 bg-primary/5 border-primary/20">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Sparkles className="w-4 h-4 text-primary" />
+                                  <h4 className="font-semibold text-sm">AI Review</h4>
+                                </div>
+                                <div className="prose prose-sm dark:prose-invert max-w-none text-sm" dangerouslySetInnerHTML={{ __html: marked(aiExplanation) as string }} />
+                              </Card>
+                            )}
+                          </div>
+
                           {!quizResult.summary.passed && (
                             <Button
                               onClick={() => {
                                 setQuizResult(null);
                                 setQuizAnswers({});
+                                setAiExplanation(null);
                               }}
                               className="w-full mt-6"
                             >

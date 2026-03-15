@@ -54,9 +54,12 @@ import {
   Brain,
   Trophy,
   Target,
+  Sparkles,
 } from "lucide-react";
+import { marked } from "marked";
 import { toast } from "sonner";
 import { useTheme } from "./theme-provider";
+import api from "../services/api";
 import adminService, {
   AdminDashboardData,
   AnalyticsResponse
@@ -120,6 +123,10 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
   // Priority 5: Comparison mode toggle
   const [showComparison, setShowComparison] = useState(true);
 
+  // AI Insights state
+  const [aiInsights, setAiInsights] = useState<string | null>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -158,6 +165,31 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
 
     fetchData();
   }, [dateRange, reportType, appliedStartDate, appliedEndDate]);
+
+  const handleGetInsights = async () => {
+    if (!analyticsData || !dashboardData) return;
+    setIsLoadingInsights(true);
+    try {
+      const response = await api.post('/ai/analytics-insights', {
+        analyticsData: {
+          totalUsers: dashboardData.stats.totalUsers,
+          avgCompletionRate: dashboardData.stats.avgCompletionRate,
+          avgQuizScore: dashboardData.stats.avgQuizScore,
+          totalLessonsCompleted: dashboardData.stats.completedLessonProgress,
+          topUsers: analyticsData.topUsers?.map(u => ({ name: u.name, score: u.avgScore, coursesCompleted: u.coursesCompleted })) || [],
+          retention: analyticsData.retention || [],
+          skillProficiency: analyticsData.skillProficiency || [],
+          engagement: analyticsData.engagement || []
+        }
+      });
+      setAiInsights(response.data.insights);
+    } catch (error) {
+      console.error('Error getting AI insights:', error);
+      setAiInsights('Unable to generate insights. Please try again.');
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
 
   const handleExportPDF = async () => {
     try {
@@ -706,6 +738,42 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
               </Badge>
             </Card>
           </div>
+
+          {/* AI Insights Card */}
+          <Card className="p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold">AI Insights</h3>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGetInsights}
+                disabled={isLoadingInsights || !analyticsData}
+              >
+                {isLoadingInsights ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {aiInsights ? 'Refresh' : 'Generate Insights'}
+                  </>
+                )}
+              </Button>
+            </div>
+            {aiInsights ? (
+              <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: marked(aiInsights) as string }} />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Brain className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">Click "Generate Insights" to get AI-powered analysis of your training data</p>
+              </div>
+            )}
+          </Card>
 
           {/* Render different views based on report type */}
           {reportType === "overview" && (
