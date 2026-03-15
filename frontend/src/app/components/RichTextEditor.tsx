@@ -100,11 +100,12 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your co
   const [, setEditorState] = useState(0);
 
   // Sanitize HTML content to prevent XSS attacks
+  // Allow data: URIs on img tags for base64 uploaded images
   const sanitizeHtml = (html: string): string => {
     return DOMPurify.sanitize(html, {
       ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'span', 'div', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
       ALLOWED_ATTR: ['href', 'src', 'alt', 'class', 'style', 'target', 'rel', 'width', 'height', 'colspan', 'rowspan'],
-      ADD_DATA_URI_TAGS: ['img'],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|data):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
       ALLOWED_STYLES: {
         '*': {
           'text-align': [/^left$/, /^right$/, /^center$/, /^justify$/],
@@ -134,6 +135,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your co
         },
       }),
       Image.configure({
+        allowBase64: true,
         HTMLAttributes: {
           class: 'rounded-lg max-w-full h-auto',
         },
