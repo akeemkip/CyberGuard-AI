@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
+import { usePlatformSettings } from "../context/PlatformSettingsContext";
+import { PlatformLogo } from "./PlatformLogo";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import courseService, { Course, EnrolledCourse } from "../services/course.service";
 
@@ -38,6 +40,7 @@ const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
 export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalogProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { settings: platformSettings } = usePlatformSettings();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
@@ -120,10 +123,8 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
               <Menu className="w-5 h-5" />
             </Button>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-semibold">CyberGuard AI</span>
+              <PlatformLogo className="w-10 h-10" iconClassName="w-6 h-6" />
+              <span className="text-xl font-semibold">{platformSettings.platformName}</span>
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-6">
@@ -157,10 +158,8 @@ export function CourseCatalog({ userEmail, onNavigate, onLogout }: CourseCatalog
           <div className="fixed inset-y-0 left-0 w-64 bg-card border-r border-border shadow-lg">
             <div className="flex items-center justify-between p-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <span className="font-semibold">CyberGuard AI</span>
+                <PlatformLogo className="w-8 h-8" iconClassName="w-5 h-5" />
+                <span className="font-semibold">{platformSettings.platformName}</span>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setShowMobileMenu(false)} aria-label="Close menu">
                 <X className="w-5 h-5" />

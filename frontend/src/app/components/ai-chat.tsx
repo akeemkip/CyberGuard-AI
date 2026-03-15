@@ -13,6 +13,8 @@ import {
   User,
   Lightbulb
 } from "lucide-react";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { useTheme } from "./theme-provider";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import api from "../services/api";
@@ -112,7 +114,7 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
 
     // Add user message
     const userMessage: Message = {
-      id: messages.length + 1,
+      id: Date.now(),
       role: "user",
       content: messageContent,
       timestamp: new Date(),
@@ -130,7 +132,7 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
 
     // Add AI response
     const assistantMessage: Message = {
-      id: messages.length + 2,
+      id: Date.now() + 1,
       role: "assistant",
       content: aiResponse,
       timestamp: new Date(),
@@ -205,7 +207,14 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
                     ? "bg-primary text-primary-foreground"
                     : "bg-card"
                 }`}>
-                  <p className="whitespace-pre-wrap">{message.content}</p>
+                  {message.role === "assistant" ? (
+                    <div
+                      className="prose prose-sm dark:prose-invert max-w-none [&>p:first-child]:mt-0 [&>p:last-child]:mb-0"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(message.content) as string) }}
+                    />
+                  ) : (
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                  )}
                   <p className={`text-xs mt-2 ${
                     message.role === "user"
                       ? "text-primary-foreground/70"
@@ -267,7 +276,7 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
               placeholder="Ask me anything about cybersecurity..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               className="flex-1 bg-input-background"
               disabled={isTyping}
             />
@@ -279,7 +288,7 @@ export function AIChat({ userEmail, onNavigate, onLogout }: AIChatProps) {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            Press Enter to send, Shift + Enter for new line
+            Press Enter to send
           </p>
         </Card>
       </div>

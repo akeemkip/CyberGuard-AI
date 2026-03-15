@@ -510,6 +510,7 @@ function AppContent() {
         return (
           <WelcomePage
             onStartAssessment={() => handleNavigate("intro-assessment")}
+            onLogout={handleLogout}
             userName={user?.firstName || "Student"}
           />
         );
@@ -517,6 +518,7 @@ function AppContent() {
         return (
           <IntroAssessmentPage
             onComplete={() => handleNavigate("student-dashboard")}
+            onLogout={handleLogout}
           />
         );
       case "student-dashboard":

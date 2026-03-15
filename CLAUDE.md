@@ -131,11 +131,11 @@ VITE_API_BASE_URL=http://localhost:3000/api
 ## Test Accounts (from seed)
 - **Admin**: `admin@cyberguard.com` / `admin123`
 - **Students** (all use password `student123`):
-  - Rajesh Singh: `rajesh.singh@gmail.com` (Active Learner — 4 enrollments, 2 completed)
-  - Priya Persaud: `priya.persaud@yahoo.com` (High Risk — struggling, failed then passed)
-  - Kumar Ramnauth: `kumar.ramnauth@outlook.com` (Brand New — just started, no assessment)
-  - Arjun Jaipaul: `arjun.jaipaul@yahoo.com` (Fresh — 3 courses halfway, no assessment)
-  - Vishnu Bisram: `vishnu.bisram@outlook.com` (Safe Zone — 3 completed, top scores)
+  - Rajesh Singh: `rajesh.singh@gmail.com` (Active Learner — 4 enrollments, 2 completed, quizzes 85/90%)
+  - Priya Persaud: `priya.persaud@yahoo.com` (Improving — 2 enrollments, failed quiz then retook and passed)
+  - Kumar Ramnauth: `kumar.ramnauth@outlook.com` (High Risk — minimal engagement, 1 lesson done, no assessment)
+  - Arjun Jaipaul: `arjun.jaipaul@yahoo.com` (In Progress — 3 courses halfway, mixed quiz results, no assessment)
+  - Vishnu Bisram: `vishnu.bisram@outlook.com` (Safe Zone — 3 completed, top scores 100/95/92%)
 
 ## File Naming Conventions
 - **Components**: kebab-case files (`student-dashboard.tsx`), PascalCase exports (`StudentDashboard`)

@@ -98,6 +98,10 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
 
+  // Video availability state
+  const [videoError, setVideoError] = useState(false);
+  const [videoChecked, setVideoChecked] = useState(false);
+
   // Module collapse state (track which modules are collapsed)
   const [collapsedModules, setCollapsedModules] = useState<Set<string>>(new Set());
 
@@ -187,6 +191,36 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   const overallProgress = progress?.summary?.percentage || 0;
 
   // Load quiz when lesson changes (if lesson has a quiz)
+  // Check if video URL is valid when lesson changes
+  useEffect(() => {
+    setVideoError(false);
+    setVideoChecked(false);
+
+    if (!currentLesson?.videoUrl) return;
+
+    // Extract video ID and check via oEmbed
+    const match = currentLesson.videoUrl.match(/[?&]v=([^&]+)/);
+    if (!match) {
+      setVideoChecked(true);
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${match[1]}&format=json`)
+      .then(res => {
+        if (cancelled) return;
+        if (!res.ok) setVideoError(true);
+        setVideoChecked(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Network error - show iframe anyway, let YouTube handle it
+        setVideoChecked(true);
+      });
+
+    return () => { cancelled = true; };
+  }, [currentLesson?.id]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -562,15 +596,31 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
               </div>
 
               {/* Video embed if available */}
-              {currentLesson?.videoUrl && (
-                <div className="aspect-video bg-muted rounded-lg mb-6 overflow-hidden">
-                  <iframe
-                    src={`${currentLesson.videoUrl.replace('watch?v=', 'embed/')}${savedSettings.autoPlayVideos ? '?autoplay=1' : ''}`}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={currentLesson.title}
-                  />
+              {currentLesson?.videoUrl && videoChecked && (
+                <div className="aspect-video bg-muted rounded-lg mb-6 overflow-hidden relative">
+                  {videoError ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-muted text-muted-foreground">
+                      <Play className="w-12 h-12 mb-3 opacity-40" />
+                      <p className="font-medium mb-1">Video Unavailable</p>
+                      <p className="text-sm opacity-70">This video could not be loaded or may have been removed</p>
+                      <a
+                        href={currentLesson.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 text-sm text-primary hover:underline"
+                      >
+                        Try opening on YouTube
+                      </a>
+                    </div>
+                  ) : (
+                    <iframe
+                      src={`${currentLesson.videoUrl.replace('watch?v=', 'embed/')}${savedSettings.autoPlayVideos ? '?autoplay=1' : ''}`}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title={currentLesson.title}
+                    />
+                  )}
                 </div>
               )}
 
@@ -701,7 +751,9 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                                       <p className="text-sm text-muted-foreground mb-2">
                                         Your answer:{" "}
                                         <span className={result?.isCorrect ? "text-green-600" : "text-red-600"}>
-                                          {q.options[result?.userAnswer ?? 0] ?? "Unknown"}
+                                          {result?.userAnswer === undefined || result?.userAnswer === -1
+                                          ? "Not answered"
+                                          : (q.options[result.userAnswer] ?? "Unknown")}
                                         </span>
                                       </p>
                                       {!result?.isCorrect && (

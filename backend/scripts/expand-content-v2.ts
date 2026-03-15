@@ -299,7 +299,7 @@ Answer: Only #1 is legitimate!
 - When in doubt, type the URL yourself
 - Use bookmarks for important sites
 - Modern browsers help, but stay vigilant`,
-      videoUrl: 'https://www.youtube.com/watch?v=qBN7JfV_FvI'
+      videoUrl: 'https://www.youtube.com/watch?v=YfiM8rXg3ug'
     },
 
     'Spear Phishing Attacks': {
@@ -4617,7 +4617,7 @@ Ask Questions:
 - Always verify requests for PII before providing information
 - You have legal rights to access, correct, and delete your data
 - Think of PII protection as a lifelong practice, not a one-time task`,
-      videoUrl: 'https://www.youtube.com/watch?v=Fb_5TubCDPs'
+      videoUrl: 'https://www.youtube.com/watch?v=sdpxddDzXfE'
     },
 
     'Secure File Storage': {
@@ -4953,7 +4953,7 @@ Cloud Sync:
 - Share files via secure links with expiration, not email attachments
 - Review sharing permissions regularly and revoke when not needed
 - Mobile devices need encryption and careful app permissions`,
-      videoUrl: 'https://www.youtube.com/watch?v=VNHbY5AWFxw'
+      videoUrl: 'https://www.youtube.com/watch?v=O4xNJsjtN6E'
     },
 
     'Social Media Privacy': {
@@ -5330,7 +5330,7 @@ Parent Monitoring:
 - Remove metadata from photos before posting
 - Make accounts private and approve followers manually
 - Regularly review tagged photos and remove unwanted tags`,
-      videoUrl: 'https://www.youtube.com/watch?v=tpvkFC2U_EY'
+      videoUrl: 'https://www.youtube.com/watch?v=5k24We8pED8'
     },
 
     'Identity Theft Prevention': {
@@ -5680,7 +5680,7 @@ If Needed:
 - If victimized, act immediately: fraud alert, credit freeze, FTC report
 - Recovery takes time but is possible with persistence and documentation
 - Prevention is far easier than recovery - stay vigilant`,
-      videoUrl: 'https://www.youtube.com/watch?v=SH5ZCrwq5yw'
+      videoUrl: 'https://www.youtube.com/watch?v=4J6FNRft9pQ'
     },
 
     'PII Explained': {
@@ -5873,7 +5873,7 @@ Ask Questions:
 - Minimize PII sharing, secure what you do share, and monitor regularly
 - Always verify requests for PII before providing information
 - Think of PII protection as a lifelong practice, not a one-time task`,
-      videoUrl: 'https://www.youtube.com/watch?v=Fb_5TubCDPs'
+      videoUrl: 'https://www.youtube.com/watch?v=sdpxddDzXfE'
     },
 
     'Secure File Sharing': {
@@ -6177,7 +6177,7 @@ Prevention:
 - Use enterprise solutions for business-critical data
 - Mobile sharing requires extra caution (encryption, VPN)
 - Follow compliance requirements (HIPAA, PCI-DSS, GDPR)`,
-      videoUrl: 'https://www.youtube.com/watch?v=0BRx_nL-7co'
+      videoUrl: 'https://www.youtube.com/watch?v=ZghMPWGXexs'
     },
 
     'Identity Theft': {
@@ -6451,7 +6451,7 @@ Social Security Administration:
 - If victimized, act immediately: fraud alert, credit freeze, FTC report
 - Recovery takes time but is possible with persistence and documentation
 - Prevention is far easier than recovery - stay vigilant`,
-      videoUrl: 'https://www.youtube.com/watch?v=SH5ZCrwq5yw'
+      videoUrl: 'https://www.youtube.com/watch?v=4J6FNRft9pQ'
     },
 
     'Data Regulations': {
@@ -6833,7 +6833,7 @@ Your Rights Organizations:
 - These laws apply even if you're not in EU/California (if company operates there)
 - Read privacy policies to understand your rights under each law
 - More comprehensive federal US privacy law may come in the future`,
-      videoUrl: 'https://www.youtube.com/watch?v=HXREU0xHlgI'
+      videoUrl: 'https://www.youtube.com/watch?v=AuYNXgO_f3Y'
     },
 
     'Phishing Simulation Training': {
@@ -6886,7 +6886,7 @@ Don't:
 - Monthly or quarterly frequency is ideal
 - Immediate feedback is critical
 - Celebrate and reward reporting`,
-      videoUrl: 'https://www.youtube.com/watch?v=sxsaBwHLlA0'
+      videoUrl: 'https://www.youtube.com/watch?v=GSIDS_lvRv4'
     },
 
     'Passkey Technology': {
@@ -6933,7 +6933,7 @@ Process:
 - Sync across devices via cloud
 - Major sites adding support (Google, PayPal, GitHub)
 - Try passkeys today on supported sites`,
-      videoUrl: 'https://www.youtube.com/watch?v=5Yp36kx4dsY'
+      videoUrl: 'https://www.youtube.com/watch?v=3QnD2c4Xovk'
     },
 
     'MITRE ATT&CK': {
@@ -7034,7 +7034,7 @@ Each stage offers opportunities to disrupt:
 - Focus on early stages for prevention
 - Use with MITRE ATT&CK for comprehensive defense
 - Map security controls to each stage`,
-      videoUrl: 'https://www.youtube.com/watch?v=bZqaGd-b4lM'
+      videoUrl: 'https://www.youtube.com/watch?v=bPVaOlJ6ln0'
     },
 
     'Indicators of Compromise': {
@@ -7100,7 +7100,7 @@ Focus on detecting behaviors (TTPs) over signatures.
 - Use for threat hunting and incident response
 - Share via standardized formats (STIX/TAXII)
 - Automate IOC collection and distribution`,
-      videoUrl: 'https://www.youtube.com/watch?v=SjMBxJDVgJ8'
+      videoUrl: 'https://www.youtube.com/watch?v=_GzE99AmAQU'
     },
 
     'Data Backup Strategies': {
@@ -7192,7 +7192,7 @@ This ensures you can recover from any disaster.
 - Keep offline backup for ransomware protection
 - Multiple versions protect against corruption
 - Cloud + local provides best of both worlds`,
-      videoUrl: 'https://www.youtube.com/watch?v=WuqmXaCNw7M'
+      videoUrl: 'https://www.youtube.com/watch?v=ULGILG-ZhO0'
     },
 
     'Containment': {
@@ -7450,7 +7450,7 @@ But first ensure:
 - Don't alert attacker - coordinate simultaneous actions
 - Have pre-approved playbooks for common scenarios
 - Containment must be thorough - partial containment fails`,
-      videoUrl: 'https://www.youtube.com/watch?v=VJ1s3fXVJ3g'
+      videoUrl: 'https://www.youtube.com/watch?v=rcDO8km6R6c'
     },
 
     'Post-Incident Review': {
@@ -7734,7 +7734,7 @@ Protect as privileged: Legal/attorney-client privilege
 - Include technical, process, and training action items
 - Review is required for major incidents, recommended for all
 - Don't skip this step - organizations that don't learn from incidents repeat them`,
-      videoUrl: 'https://www.youtube.com/watch?v=cUrjcCxWoIc'
+      videoUrl: 'https://www.youtube.com/watch?v=njPY7pQTRWg'
     },
 
     'Whaling Attacks': {
@@ -8005,7 +8005,7 @@ If you receive request from executive:
 - Train executives on their unique risks
 - Attackers research extensively using LinkedIn, press releases, social media
 - No one is too important for security policies`,
-      videoUrl: 'https://www.youtube.com/watch?v=lm6tTEcqR1c'
+      videoUrl: 'https://www.youtube.com/watch?v=NuyzuNBFWxQ'
     },
 
     'SMS and Voice Phishing': {
@@ -8327,7 +8327,7 @@ Defense:
 - Enable MFA but use authenticator apps not SMS when possible
 - Establish verbal passwords for high-risk scenarios
 - Report smishing to 7726 (SPAM) and vishing to FTC`,
-      videoUrl: 'https://www.youtube.com/watch?v=QmJn4C2ZMKU'
+      videoUrl: 'https://www.youtube.com/watch?v=jkV1KEJGKRA'
     },
 
     'Password Recovery and Reset': {
@@ -8679,7 +8679,7 @@ Your Email is the Keys to the Kingdom:
 - Monitor accounts regularly for unauthorized access
 - For organizations: multi-factor verification, rate limiting, and notifications required
 - Your email is the keys to the kingdom - protect it above all else`,
-      videoUrl: 'https://www.youtube.com/watch?v=aHaBH4LqGsw'
+      videoUrl: 'https://www.youtube.com/watch?v=8ZtInClXe1Q'
     },
 
     'Security Questions Best Practices': {
@@ -9078,7 +9078,7 @@ Some situations you can't avoid them:
 - Multi-factor recovery combines questions with email/SMS verification
 - Future: security questions declining as MFA and passwordless auth become standard
 - Password managers can store and generate security question answers`,
-      videoUrl: 'https://www.youtube.com/watch?v=_cHbL2lsUHU'
+      videoUrl: 'https://www.youtube.com/watch?v=7U-RbOKanYs'
     },
 
     'Security-Aware Culture': {
@@ -9518,7 +9518,7 @@ Volunteers from business units who:
 - Balance security with usability - unreasonable policies get bypassed
 - Takes 12-18 months to establish strong security culture
 - Security is everyone's job, not just IT security team`,
-      videoUrl: 'https://www.youtube.com/watch?v=qwFnVqQfkQI'
+      videoUrl: 'https://www.youtube.com/watch?v=CivG_2UqKMg'
     },
 
     'Quid Pro Quo Attacks': {
@@ -10269,7 +10269,7 @@ Organizations can test defenses with authorized quid pro quo simulations:
 - Report unusual behavior even on trusted sites - helps catch attacks early
 - High-value targets should consider dedicated devices for sensitive work
 - Assume any website could be compromised - trust but verify`,
-      videoUrl: 'https://www.youtube.com/watch?v=8jq5eWKw39I'
+      videoUrl: 'https://www.youtube.com/watch?v=9GZlVOafYTg'
     },
 
     'Social Engineering Red Flags': {
@@ -10673,7 +10673,7 @@ Organizations can test defenses with authorized quid pro quo simulations:
 - Report all suspicious contacts - helps protect others and tracks attack patterns
 - No legitimate organization asks for passwords or credentials via email/phone
 - When in doubt, verify independently through official channels before taking any action`,
-      videoUrl: 'https://www.youtube.com/watch?v=oMzZK3YoYLc'
+      videoUrl: 'https://www.youtube.com/watch?v=BcDZS7iYNsA'
     },
 
     'Understanding Web Trackers': {
@@ -11211,7 +11211,7 @@ Search for product on phone → see ads for it on laptop
 - VPNs hide your IP but don't prevent cookie tracking or fingerprinting
 - Check what's tracking you with browser developer tools or Blacklight scanner
 - Some tracking enables useful functionality - find your own privacy/convenience balance`,
-      videoUrl: 'https://www.youtube.com/watch?v=OQOsrsUXNEk'
+      videoUrl: 'https://www.youtube.com/watch?v=UVFmC178_Vs'
     },
 
     'Safe Online Shopping': {
@@ -11767,7 +11767,7 @@ Search for product on phone → see ads for it on laptop
 - Watch for fake tracking numbers that show delivered to wrong address
 - Contact credit card company immediately if you suspect fraud - have 60 days to dispute
 - Trust your instincts - if something feels off, shop elsewhere`,
-      videoUrl: 'https://www.youtube.com/watch?v=HobRgR5PkCg'
+      videoUrl: 'https://www.youtube.com/watch?v=Opqgwn8TdlM'
     },
 
     'Protecting Against Malvertising': {
@@ -12948,7 +12948,7 @@ Ad displays: "Warning! 5 viruses detected! Click to scan and remove"
 - No blame culture essential - punishment discourages reporting and learning
 - Stay current on phishing techniques - attackers constantly evolve tactics
 - Learn from mistakes - if phished, report immediately and use experience to improve defenses`,
-      videoUrl: 'https://www.youtube.com/watch?v=OB5L8pVvCZs'
+      videoUrl: 'https://www.youtube.com/watch?v=pq2VAaLlZEs'
     },
 
     'Privacy by Design': {
@@ -13522,7 +13522,7 @@ Ad displays: "Warning! 5 viruses detected! Click to scan and remove"
 - Privacy policies must be clear, accurate, and easily accessible to users
 - User control is essential - provide data access, portability, and deletion capabilities
 - Build privacy culture through leadership commitment, training, and processes`,
-      videoUrl: 'https://www.youtube.com/watch?v=vNyJFdzXpnQ'
+      videoUrl: 'https://www.youtube.com/watch?v=E3imvkP3IC0'
     },
 
     'Secure Data Disposal': {
@@ -14186,7 +14186,7 @@ Ad displays: "Warning! 5 viruses detected! Click to scan and remove"
 - Remove SIM cards and SD cards before disposing mobile devices
 - Cross-cut shred all paper documents with personal information
 - Physical destruction (shredding) is most secure but makes drives unusable`,
-      videoUrl: 'https://www.youtube.com/watch?v=0ecoGqVHFIg'
+      videoUrl: 'https://www.youtube.com/watch?v=IxjWR_uexOc'
     }
   };
 

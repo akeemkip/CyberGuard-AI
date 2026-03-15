@@ -679,7 +679,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                 <Mail className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <h2 className="text-xl font-semibold mb-2">Simulation Coming Soon</h2>
                 <p className="text-muted-foreground">
-                  The {labType.toLowerCase().replace('_', ' ')} simulation is under development.
+                  The {labType.toLowerCase().replace(/_/g, ' ')} simulation is under development.
                 </p>
               </Card>
             </div>
@@ -947,7 +947,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                 />
 
                 <p className="text-xs text-muted-foreground mt-2">
-                  {isTimerRunning && "Notes auto-save every 30 seconds"}
+                  {isTimerRunning && "Notes auto-save as you type"}
                 </p>
 
                 {/* Progress Info */}
@@ -989,7 +989,7 @@ export function LabPlayer({ labId, onNavigate }: LabPlayerProps) {
                   <div>
                     <p className="text-muted-foreground mb-1">Type</p>
                     <Badge variant="secondary">
-                      {labType.replace('_', ' ')}
+                      {labType.replace(/_/g, ' ')}
                     </Badge>
                   </div>
 

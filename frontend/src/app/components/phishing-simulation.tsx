@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -25,7 +26,6 @@ import {
   Trophy,
   Award,
   RotateCcw,
-  PartyPopper,
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { usePlatformSettings } from "../context/PlatformSettingsContext";
@@ -381,7 +381,7 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
                     <div className="p-6 min-h-[300px]">
                       <div
                         className="prose prose-sm dark:prose-invert max-w-none [&_a]:text-blue-600 [&_a]:underline [&_a]:cursor-pointer"
-                        dangerouslySetInnerHTML={{ __html: scenario.body }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(scenario.body) }}
                         onClick={(e) => {
                           // Intercept link clicks within the email body
                           const target = e.target as HTMLElement;
