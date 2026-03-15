@@ -111,7 +111,7 @@ export function RegisterPage({
 
       {/* Register Form */}
       <div className="flex-1 flex items-center justify-center p-4 bg-muted/30">
-        <Card className="w-full max-w-md p-8">
+        <Card className="w-full max-w-lg p-8">
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold mb-2">Create Account</h1>
                 <p className="text-muted-foreground">Start your cybersecurity journey today</p>
@@ -278,14 +278,14 @@ export function RegisterPage({
                     id="terms"
                     required
                     disabled={isLoading}
-                    className="mt-1"
+                    className="mt-1 flex-shrink-0"
                   />
-                  <Label htmlFor="terms" className="text-sm font-normal">
+                  <Label htmlFor="terms" className="text-sm font-normal leading-snug inline flex-wrap">
                     I agree to the{" "}
                     <button
                       type="button"
                       onClick={() => onNavigate("terms-of-service")}
-                      className="text-primary hover:underline"
+                      className="inline text-primary hover:underline"
                     >
                       Terms of Service
                     </button>{" "}
@@ -293,7 +293,7 @@ export function RegisterPage({
                     <button
                       type="button"
                       onClick={() => onNavigate("privacy-policy")}
-                      className="text-primary hover:underline"
+                      className="inline text-primary hover:underline"
                     >
                       Privacy Policy
                     </button>
