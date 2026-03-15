@@ -137,7 +137,7 @@ describe('Authentication API', () => {
   describe('JWT Token Validation', () => {
     test('should require valid JWT token for protected routes', async () => {
       const response = await request(app)
-        .get('/api/auth/validate')
+        .get('/api/auth/me')
         .set('Authorization', 'Bearer invalid-token');
 
       expect(response.status).toBe(403);

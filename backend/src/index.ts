@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
@@ -34,6 +35,9 @@ import { authenticateToken, requireAdmin } from './middleware/auth.middleware';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust first proxy (Render, etc.) so rate limiting and req.ip work correctly
+app.set('trust proxy', 1);
+
 // Rate limiting configuration
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -60,6 +64,12 @@ const aiLimiter = rateLimit({
 });
 
 // Middleware
+// Security headers (X-Frame-Options, CSP, X-Content-Type-Options, etc.)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin for uploaded files
+  contentSecurityPolicy: false, // Disabled — frontend is a separate SPA, not served from this origin
+}));
+
 // CORS configuration - supports comma-separated origins in FRONTEND_URL
 const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())

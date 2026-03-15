@@ -44,6 +44,12 @@ prisma/*.db-journal
 .claude/projects/
 .claude/settings.*
 
+# Playwright MCP screenshots
+.playwright-mcp/
+
+# Test artifacts
+test-image.png
+
 # Misc
 *.tsbuildinfo
 .cache/
