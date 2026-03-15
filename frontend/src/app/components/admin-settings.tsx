@@ -166,6 +166,12 @@ interface SettingsExport {
     };
     appearance: {
       primaryColor: string;
+      secondaryColor: string;
+      accentColor: string;
+      fontFamily: string;
+      fontSize: string;
+      borderRadius: string;
+      darkModeDefault: boolean;
       logoUrl: string;
       favicon: string;
     };
@@ -199,7 +205,7 @@ const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
 
   // Security
   requireEmailVerification: false,
-  minPasswordLength: 6,
+  minPasswordLength: 8,
   sessionTimeout: 7,
   enableTwoFactor: false,
   maxLoginAttempts: 5,
@@ -287,6 +293,12 @@ const SETTINGS_INDEX: SearchableSetting[] = [
 
   // Appearance
   { id: "primaryColor", tab: "appearance", label: "Primary Color", description: "Primary brand color used throughout the platform", keywords: ["color", "primary", "brand", "theme", "hex"] },
+  { id: "secondaryColor", tab: "appearance", label: "Secondary Color", description: "Secondary color for accents and backgrounds", keywords: ["color", "secondary", "theme", "hex"] },
+  { id: "accentColor", tab: "appearance", label: "Accent Color", description: "Accent color for highlights and interactive elements", keywords: ["color", "accent", "highlight", "theme", "hex"] },
+  { id: "fontFamily", tab: "appearance", label: "Font Family", description: "Primary font used across the platform", keywords: ["font", "typography", "text", "family"] },
+  { id: "fontSize", tab: "appearance", label: "Font Size", description: "Base font size in pixels", keywords: ["font", "size", "text", "pixels"] },
+  { id: "borderRadius", tab: "appearance", label: "Border Radius", description: "Corner rounding for UI elements", keywords: ["border", "radius", "corners", "rounded"] },
+  { id: "darkModeDefault", tab: "appearance", label: "Dark Mode Default", description: "Whether dark mode is enabled by default", keywords: ["dark", "mode", "theme", "night"] },
   { id: "logoUrl", tab: "appearance", label: "Logo", description: "Platform logo image", keywords: ["logo", "image", "brand", "header"] },
   { id: "favicon", tab: "appearance", label: "Favicon", description: "Browser tab icon", keywords: ["favicon", "icon", "tab", "browser"] },
 ];
@@ -350,9 +362,20 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     ...FACTORY_DEFAULTS,
   });
 
-  // Load settings from API on mount and check for backup recovery
+  // Load settings from API
+  const loadSettings = async () => {
+    try {
+      const data = await adminService.getPlatformSettings();
+      setSettings(data);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast.error('Failed to load settings');
+    }
+  };
+
+  // Load on mount and check for backup recovery
   useEffect(() => {
-    const loadSettings = async () => {
+    const initSettings = async () => {
       try {
         const data = await adminService.getPlatformSettings();
         setSettings(data);
@@ -413,7 +436,7 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
         toast.error('Failed to load settings');
       }
     };
-    loadSettings();
+    initSettings();
   }, []);
 
   // Load audit log when tab is active or filters change
@@ -571,6 +594,8 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       case "favicon":
         return validateUrl(value);
       case "primaryColor":
+      case "secondaryColor":
+      case "accentColor":
         return validateHexColor(value);
       case "smtpPort":
         return validatePort(value);
@@ -845,6 +870,12 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
         },
         appearance: {
           primaryColor: settings.primaryColor,
+          secondaryColor: settings.secondaryColor,
+          accentColor: settings.accentColor,
+          fontFamily: settings.fontFamily,
+          fontSize: settings.fontSize,
+          borderRadius: settings.borderRadius,
+          darkModeDefault: settings.darkModeDefault,
           logoUrl: settings.logoUrl,
           favicon: settings.favicon,
         },
@@ -1043,6 +1074,12 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       },
       appearance: {
         primaryColor: { type: "string", settingsKey: "primaryColor" },
+        secondaryColor: { type: "string", settingsKey: "secondaryColor" },
+        accentColor: { type: "string", settingsKey: "accentColor" },
+        fontFamily: { type: "string", settingsKey: "fontFamily" },
+        fontSize: { type: "string", settingsKey: "fontSize" },
+        borderRadius: { type: "string", settingsKey: "borderRadius" },
+        darkModeDefault: { type: "boolean", settingsKey: "darkModeDefault" },
         logoUrl: { type: "string", settingsKey: "logoUrl" },
         favicon: { type: "string", settingsKey: "favicon" },
       },
@@ -1227,6 +1264,12 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       smtpUser: "Email",
       smtpPassword: "Email",
       primaryColor: "Appearance",
+      secondaryColor: "Appearance",
+      accentColor: "Appearance",
+      fontFamily: "Appearance",
+      fontSize: "Appearance",
+      borderRadius: "Appearance",
+      darkModeDefault: "Appearance",
       logoUrl: "Appearance",
       favicon: "Appearance",
     };
@@ -2110,11 +2153,11 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                             <Input
                               id="smtpPassword"
                               type="password"
-                              value={settings.smtpPassword}
+                              value={settings.smtpPassword?.includes('__SMTP_PASSWORD_UNCHANGED__') ? '' : (settings.smtpPassword || '')}
                               onChange={(e) => handleChange("smtpPassword", e.target.value)}
                               placeholder={settings.hasSmtpPassword ? "Enter new password to change" : "Enter SMTP password"}
                             />
-                            {settings.hasSmtpPassword && settings.smtpPassword === "••••••••" && (
+                            {settings.hasSmtpPassword && (settings.smtpPassword?.includes('__SMTP_PASSWORD_UNCHANGED__') || !settings.smtpPassword) && (
                               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-green-600">
                                 <CheckCircle className="w-4 h-4" />
                                 <span className="text-xs font-medium">Set</span>
