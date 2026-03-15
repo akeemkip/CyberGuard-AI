@@ -114,7 +114,6 @@ interface PlatformSettings {
   accentColor: string;
   logoUrl: string;
   favicon: string;
-  customCss: string;
   fontFamily: string;
   fontSize: string;
   borderRadius: string;
@@ -169,7 +168,6 @@ interface SettingsExport {
       primaryColor: string;
       logoUrl: string;
       favicon: string;
-      customCss: string;
     };
   };
 }
@@ -235,7 +233,6 @@ const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
   accentColor: "#f59e0b",
   logoUrl: "",
   favicon: "",
-  customCss: "",
   fontFamily: "Inter",
   fontSize: "normal",
   borderRadius: "medium",
@@ -292,7 +289,6 @@ const SETTINGS_INDEX: SearchableSetting[] = [
   { id: "primaryColor", tab: "appearance", label: "Primary Color", description: "Primary brand color used throughout the platform", keywords: ["color", "primary", "brand", "theme", "hex"] },
   { id: "logoUrl", tab: "appearance", label: "Logo", description: "Platform logo image", keywords: ["logo", "image", "brand", "header"] },
   { id: "favicon", tab: "appearance", label: "Favicon", description: "Browser tab icon", keywords: ["favicon", "icon", "tab", "browser"] },
-  { id: "customCss", tab: "appearance", label: "Custom CSS", description: "Add custom CSS to override default styles", keywords: ["css", "custom", "styles", "design", "advanced"] },
 ];
 
 export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettingsProps) {
@@ -851,7 +847,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
           primaryColor: settings.primaryColor,
           logoUrl: settings.logoUrl,
           favicon: settings.favicon,
-          customCss: settings.customCss,
         },
       },
     };
@@ -1050,7 +1045,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
         primaryColor: { type: "string", settingsKey: "primaryColor" },
         logoUrl: { type: "string", settingsKey: "logoUrl" },
         favicon: { type: "string", settingsKey: "favicon" },
-        customCss: { type: "string", settingsKey: "customCss" },
       },
     };
 
@@ -1235,7 +1229,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       primaryColor: "Appearance",
       logoUrl: "Appearance",
       favicon: "Appearance",
-      customCss: "Appearance",
     };
 
     const smtpFields = ["smtpHost", "smtpPort", "smtpUser", "smtpPassword"];
@@ -2389,15 +2382,29 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         </Button>
                       )}
                     </div>
-                    {validationErrors.logoUrl ? (
-                      <p className="text-sm text-destructive mt-1">
-                        {validationErrors.logoUrl}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Enter a URL or upload a file (recommended size: 200x50px)
-                      </p>
-                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      {validationErrors.logoUrl ? (
+                        <p className="text-sm text-destructive">
+                          {validationErrors.logoUrl}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Enter a URL or upload a file (recommended size: 200x50px)
+                        </p>
+                      )}
+                      {settings.logoUrl && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleChange("logoUrl", "")}
+                          className="text-xs h-7 gap-1"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Restore Default
+                        </Button>
+                      )}
+                    </div>
 
                     {/* Logo Preview */}
                     {settings.logoUrl && !validationErrors.logoUrl && (
@@ -2465,15 +2472,29 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                         </Button>
                       )}
                     </div>
-                    {validationErrors.favicon ? (
-                      <p className="text-sm text-destructive mt-1">
-                        {validationErrors.favicon}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Enter a URL or upload a file (recommended size: 32x32px, .ico or .png)
-                      </p>
-                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      {validationErrors.favicon ? (
+                        <p className="text-sm text-destructive">
+                          {validationErrors.favicon}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Enter a URL or upload a file (recommended size: 32x32px, .ico or .png)
+                        </p>
+                      )}
+                      {settings.favicon && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleChange("favicon", "")}
+                          className="text-xs h-7 gap-1"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Restore Default
+                        </Button>
+                      )}
+                    </div>
 
                     {/* Favicon Preview */}
                     {settings.favicon && !validationErrors.favicon && (
@@ -2615,33 +2636,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     />
                   </div>
 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="customCss">Custom CSS</Label>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <div className="space-y-1">
-                            <p className="font-semibold text-yellow-500">⚠️ Advanced users only</p>
-                            <p>Custom CSS can override default styles and potentially break the UI. Test changes thoroughly before saving.</p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <Textarea
-                      id="customCss"
-                      value={settings.customCss}
-                      onChange={(e) => handleChange("customCss", e.target.value)}
-                      placeholder="/* Add custom CSS here */"
-                      rows={6}
-                      className="font-mono text-sm"
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Add custom CSS to override default styles (advanced users only)
-                    </p>
-                  </div>
                 </div>
               </Card>
             </TabsContent>
