@@ -55,6 +55,8 @@ import {
   Trophy,
   Target,
   Sparkles,
+  ClipboardCheck,
+  Star,
 } from "lucide-react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -65,6 +67,7 @@ import adminService, {
   AdminDashboardData,
   AnalyticsResponse
 } from "../services/admin.service";
+import { getFeedbackResults, FeedbackResults } from "../services/feedback.service";
 import { AdminSidebar } from "./admin-sidebar";
 import {
   LineChart,
@@ -98,6 +101,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(null);
   const [assessmentComparisonData, setAssessmentComparisonData] = useState<any>(null);
+  const [feedbackData, setFeedbackData] = useState<FeedbackResults | null>(null);
 
   // Custom date range state
   const [showCustomDateDialog, setShowCustomDateDialog] = useState(false);
@@ -141,6 +145,13 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
           ]);
           setDashboardData(dashboard);
           setAssessmentComparisonData(comparison);
+        } else if (reportType === "feedback") {
+          const [dashboard, feedback] = await Promise.all([
+            adminService.getDashboardStats(),
+            getFeedbackResults()
+          ]);
+          setDashboardData(dashboard);
+          setFeedbackData(feedback);
         } else {
           // Fetch both dashboard stats and analytics data
           const [dashboard, analytics] = await Promise.all([
@@ -168,11 +179,30 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
   }, [dateRange, reportType, appliedStartDate, appliedEndDate]);
 
   const handleGetInsights = async () => {
-    if (!analyticsData || !dashboardData) return;
     setIsLoadingInsights(true);
     try {
-      const response = await api.post('/ai/analytics-insights', {
-        analyticsData: {
+      let payload: Record<string, any> = {};
+
+      if (reportType === 'feedback' && feedbackData) {
+        payload = {
+          totalResponses: feedbackData.totalResponses,
+          totalStudents: feedbackData.totalStudents,
+          averageSusScore: feedbackData.averageSusScore,
+          perQuestionAverages: feedbackData.perQuestionAverages,
+          scoreDistribution: feedbackData.scoreDistribution,
+          recentResponses: feedbackData.recentResponses,
+        };
+      } else if (reportType === 'assessment-comparison' && assessmentComparisonData) {
+        payload = {
+          totalStudents: assessmentComparisonData.summary.totalStudents,
+          avgIntroScore: assessmentComparisonData.summary.avgIntroScore,
+          avgFirstFullScore: assessmentComparisonData.summary.avgFirstFullScore,
+          avgFullScore: assessmentComparisonData.summary.avgFullScore,
+          avgImprovement: assessmentComparisonData.summary.avgImprovement,
+          students: assessmentComparisonData.students,
+        };
+      } else if (analyticsData && dashboardData) {
+        payload = {
           totalUsers: dashboardData.stats.totalUsers,
           avgCompletionRate: dashboardData.stats.avgCompletionRate,
           avgQuizScore: dashboardData.stats.avgQuizScore,
@@ -180,8 +210,15 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
           topUsers: analyticsData.topUsers?.map(u => ({ name: u.name, score: u.avgScore, coursesCompleted: u.coursesCompleted })) || [],
           retention: analyticsData.retention || [],
           skillProficiency: analyticsData.skillProficiency || [],
-          engagement: analyticsData.engagement || []
-        }
+          engagement: analyticsData.engagement || [],
+        };
+      } else {
+        return;
+      }
+
+      const response = await api.post('/ai/analytics-insights', {
+        analyticsData: payload,
+        reportType,
       });
       setAiInsights(response.data.insights);
     } catch (error) {
@@ -518,7 +555,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
             <div className="flex gap-4">
               <div className="flex-1">
                 <Label className="text-xs text-muted-foreground">Report Type</Label>
-                <Select value={reportType} onValueChange={setReportType}>
+                <Select value={reportType} onValueChange={(val) => { setReportType(val); setAiInsights(null); }}>
                   <SelectTrigger className="bg-input-background">
                     <SelectValue />
                   </SelectTrigger>
@@ -528,6 +565,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                     <SelectItem value="course">Course Analytics</SelectItem>
                     <SelectItem value="engagement">Engagement Metrics</SelectItem>
                     <SelectItem value="assessment-comparison">Assessment Comparison</SelectItem>
+                    <SelectItem value="feedback">Platform Feedback</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -711,7 +749,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 variant="outline"
                 size="sm"
                 onClick={handleGetInsights}
-                disabled={isLoadingInsights || !analyticsData}
+                disabled={isLoadingInsights || !(analyticsData || feedbackData || assessmentComparisonData)}
               >
                 {isLoadingInsights ? (
                   <>
@@ -1795,6 +1833,188 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                     </tbody>
                   </table>
                 </div>
+              </Card>
+            </>
+          )}
+
+          {/* PLATFORM FEEDBACK VIEW */}
+          {reportType === "feedback" && feedbackData && (
+            <>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-2">Platform Feedback Report</h2>
+                <p className="text-sm text-muted-foreground">
+                  System Usability Scale (SUS) feedback from students about their platform experience
+                </p>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid md:grid-cols-3 gap-6 mb-6">
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-sm">Total Responses</h3>
+                  </div>
+                  <div className="text-3xl font-bold">{feedbackData.totalResponses}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Students who provided feedback</p>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Star className="h-5 w-5 text-yellow-500" />
+                    <h3 className="font-semibold text-sm">Average SUS Score</h3>
+                  </div>
+                  <div className="text-3xl font-bold">{feedbackData.averageSusScore}<span className="text-lg text-muted-foreground">/100</span></div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {feedbackData.averageSusScore >= 81 ? "Excellent" :
+                     feedbackData.averageSusScore >= 69 ? "Good" :
+                     feedbackData.averageSusScore >= 51 ? "Average" :
+                     feedbackData.averageSusScore >= 26 ? "Below Average" : "Poor"}
+                  </p>
+                </Card>
+
+                <Card className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <ClipboardCheck className="h-5 w-5 text-emerald-500" />
+                    <h3 className="font-semibold text-sm">Response Rate</h3>
+                  </div>
+                  <div className="text-3xl font-bold">
+                    {Math.round((feedbackData.totalResponses / Math.max(feedbackData.totalStudents, 1)) * 100)}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {feedbackData.totalResponses} of {feedbackData.totalStudents} students
+                  </p>
+                </Card>
+              </div>
+
+              {/* Per-Question Averages Chart */}
+              <Card className="p-6 mb-6">
+                <h3 className="font-semibold mb-4">Average Rating Per Question</h3>
+                {feedbackData.perQuestionAverages.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={feedbackData.perQuestionAverages.map((q, i) => ({
+                        name: `Q${i + 1}`,
+                        rating: Math.round(q.averageRating * 10) / 10,
+                        fullQuestion: q.question,
+                      }))}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+                      <YAxis domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} stroke="var(--muted-foreground)" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "var(--card)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "8px",
+                          color: "var(--foreground)",
+                        }}
+                        formatter={(value: number) => [`${value}/5`, "Avg Rating"]}
+                        labelFormatter={(label: string, payload: any[]) => {
+                          if (payload?.[0]?.payload?.fullQuestion) {
+                            return payload[0].payload.fullQuestion;
+                          }
+                          return label;
+                        }}
+                      />
+                      <Bar dataKey="rating" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">No feedback data yet</p>
+                )}
+              </Card>
+
+              {/* Questions Legend */}
+              <Card className="p-6 mb-6">
+                <h3 className="font-semibold mb-4">Questions</h3>
+                <div className="space-y-3">
+                  {feedbackData.perQuestionAverages.map((q, i) => (
+                    <div key={q.questionId} className="flex items-start gap-3">
+                      <Badge variant="outline" className="mt-0.5 shrink-0">Q{i + 1}</Badge>
+                      <div className="flex-1">
+                        <p className="text-sm">{q.question}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${(q.averageRating / 5) * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-muted-foreground">{Math.round(q.averageRating * 10) / 10}/5</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Score Distribution */}
+              {feedbackData.scoreDistribution.length > 0 && (
+                <Card className="p-6 mb-6">
+                  <h3 className="font-semibold mb-4">Score Distribution</h3>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={feedbackData.scoreDistribution}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis dataKey="range" stroke="var(--muted-foreground)" tick={{ fontSize: 11 }} />
+                      <YAxis allowDecimals={false} stroke="var(--muted-foreground)" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "var(--card)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "8px",
+                          color: "var(--foreground)",
+                        }}
+                      />
+                      <Bar dataKey="count" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Card>
+              )}
+
+              {/* Recent Responses Table */}
+              <Card className="p-6">
+                <h3 className="font-semibold mb-4">Individual Responses</h3>
+                {feedbackData.recentResponses.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Student</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead className="text-center">SUS Score</TableHead>
+                          <TableHead className="text-center">Rating</TableHead>
+                          <TableHead className="text-right">Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {feedbackData.recentResponses.map((r, i) => (
+                          <TableRow key={i}>
+                            <TableCell className="font-medium">{r.firstName} {r.lastName}</TableCell>
+                            <TableCell className="text-muted-foreground">{r.email}</TableCell>
+                            <TableCell className="text-center font-semibold">{r.susScore}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge
+                                variant={r.susScore >= 69 ? "default" : r.susScore >= 51 ? "secondary" : "destructive"}
+                                className={r.susScore >= 69 ? "bg-green-600" : ""}
+                              >
+                                {r.susScore >= 81 ? "Excellent" :
+                                 r.susScore >= 69 ? "Good" :
+                                 r.susScore >= 51 ? "Average" :
+                                 r.susScore >= 26 ? "Below Avg" : "Poor"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right text-muted-foreground">
+                              {new Date(r.completedAt).toLocaleDateString()}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">No responses yet</p>
+                )}
               </Card>
             </>
           )}

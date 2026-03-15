@@ -622,6 +622,22 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
                 Start Chat
               </Button>
             </Card>
+
+            {/* Platform Feedback CTA */}
+            <Card className="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
+              <ClipboardCheck className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mb-4" />
+              <h3 className="font-semibold mb-2">Share Feedback</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Help us improve by rating your experience
+              </p>
+              <Button
+                variant="outline"
+                className="w-full border-emerald-500/30 hover:bg-emerald-500/10"
+                onClick={() => onNavigate("sus-feedback")}
+              >
+                Give Feedback
+              </Button>
+            </Card>
           </div>
         </div>
       </div>

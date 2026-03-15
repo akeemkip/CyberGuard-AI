@@ -86,6 +86,16 @@ import { useTheme } from "./theme-provider";
 import courseService, { Course, Lesson } from "../services/course.service";
 import adminService, { QuizWithStats, Module, LabWithStats } from "../services/admin.service";
 import phishingService, { ScenarioWithStats, AdminPhishingStats } from "../services/phishing.service";
+import {
+  SusSurveyWithCount,
+  SusQuestion,
+  getAllSurveys,
+  updateSurveyAdmin,
+  createQuestionAdmin,
+  updateQuestionAdmin,
+  deleteQuestionAdmin,
+  reorderQuestionsAdmin,
+} from "../services/feedback.service";
 import { AdminSidebar } from "./admin-sidebar";
 
 // Sortable Lesson Item Component
@@ -149,6 +159,64 @@ function SortableLesson({ lesson, onEdit, onDelete }: SortableLessonProps) {
           onClick={onDelete}
           title="Delete lesson"
         >
+          <Trash2 className="w-4 h-4 text-destructive" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Sortable Question Item Component
+interface SortableQuestionProps {
+  question: SusQuestion;
+  index: number;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function SortableQuestion({ question, index, onEdit, onDelete }: SortableQuestionProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-4 p-3 border border-border rounded-lg bg-card transition-all duration-200 hover:shadow-md hover:-translate-y-1 cursor-grab active:cursor-grabbing"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing touch-none"
+      >
+        <GripVertical className="w-5 h-5 text-muted-foreground" />
+      </div>
+      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-sm font-medium">
+        {index + 1}
+      </div>
+      <div className="flex-1">
+        <p className="font-medium text-sm">{question.question}</p>
+      </div>
+      <Badge variant={question.isPositive ? "default" : "secondary"}>
+        {question.isPositive ? "Positive" : "Negative"}
+      </Badge>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={onEdit} title="Edit question">
+          <Edit className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onDelete} title="Delete question">
           <Trash2 className="w-4 h-4 text-destructive" />
         </Button>
       </div>
@@ -487,6 +555,24 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
   const [attemptsTotal, setAttemptsTotal] = useState(0);
   const [isLoadingMoreAttempts, setIsLoadingMoreAttempts] = useState(false);
+
+  // Feedback management state
+  const [feedbackSurveys, setFeedbackSurveys] = useState<SusSurveyWithCount[]>([]);
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
+  const [showEditSurvey, setShowEditSurvey] = useState(false);
+  const [editingSurveyId, setEditingSurveyId] = useState<string | null>(null);
+  const [editingSurveyTitle, setEditingSurveyTitle] = useState("");
+  const [editingSurveyDesc, setEditingSurveyDesc] = useState("");
+  const [showCreateQuestion, setShowCreateQuestion] = useState(false);
+  const [createQuestionSurveyId, setCreateQuestionSurveyId] = useState<string | null>(null);
+  const [showEditQuestion, setShowEditQuestion] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<SusQuestion | null>(null);
+  const [showDeleteQuestionDialog, setShowDeleteQuestionDialog] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<SusQuestion | null>(null);
+  const [isDeletingQuestion, setIsDeletingQuestion] = useState(false);
+  const [isSavingSurvey, setIsSavingSurvey] = useState(false);
+  const [isSavingQuestion, setIsSavingQuestion] = useState(false);
+  const [newQuestion, setNewQuestion] = useState({ question: "", isPositive: true });
 
   useEffect(() => {
     // Restore tab from browser history state if available (for back button navigation)
@@ -1248,6 +1334,141 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
     }
   }, [activeTab]);
 
+  // Feedback management functions
+  const fetchFeedbackSurveys = async () => {
+    try {
+      setIsLoadingFeedback(true);
+      const surveys = await getAllSurveys();
+      setFeedbackSurveys(surveys);
+    } catch (error) {
+      console.error("Error fetching surveys:", error);
+      toast.error("Failed to load feedback surveys");
+    } finally {
+      setIsLoadingFeedback(false);
+    }
+  };
+
+  const handleUpdateSurvey = async () => {
+    if (!editingSurveyId) return;
+    try {
+      setIsSavingSurvey(true);
+      await updateSurveyAdmin(editingSurveyId, {
+        title: editingSurveyTitle,
+        description: editingSurveyDesc || null,
+      });
+      toast.success("Survey updated");
+      setShowEditSurvey(false);
+      await fetchFeedbackSurveys();
+    } catch (error) {
+      console.error("Error updating survey:", error);
+      toast.error("Failed to update survey");
+    } finally {
+      setIsSavingSurvey(false);
+    }
+  };
+
+  const handleToggleSurveyActive = async (survey: SusSurveyWithCount) => {
+    try {
+      await updateSurveyAdmin(survey.id, { isActive: !survey.isActive });
+      toast.success(survey.isActive ? "Survey deactivated" : "Survey activated");
+      await fetchFeedbackSurveys();
+    } catch (error) {
+      console.error("Error toggling survey:", error);
+      toast.error("Failed to update survey status");
+    }
+  };
+
+  const handleCreateQuestion = async () => {
+    if (!createQuestionSurveyId) return;
+    try {
+      setIsSavingQuestion(true);
+      const currentSurvey = feedbackSurveys.find(s => s.id === createQuestionSurveyId);
+      const nextOrder = currentSurvey ? currentSurvey.questions.length + 1 : 1;
+      await createQuestionAdmin({
+        surveyId: createQuestionSurveyId,
+        question: newQuestion.question,
+        isPositive: newQuestion.isPositive,
+        order: nextOrder,
+      });
+      toast.success("Question added");
+      setShowCreateQuestion(false);
+      setNewQuestion({ question: "", isPositive: true });
+      await fetchFeedbackSurveys();
+    } catch (error) {
+      console.error("Error creating question:", error);
+      toast.error("Failed to create question");
+    } finally {
+      setIsSavingQuestion(false);
+    }
+  };
+
+  const handleUpdateQuestion = async () => {
+    if (!editingQuestion) return;
+    try {
+      setIsSavingQuestion(true);
+      await updateQuestionAdmin(editingQuestion.id, {
+        question: editingQuestion.question,
+        isPositive: editingQuestion.isPositive,
+      });
+      toast.success("Question updated");
+      setShowEditQuestion(false);
+      setEditingQuestion(null);
+      await fetchFeedbackSurveys();
+    } catch (error) {
+      console.error("Error updating question:", error);
+      toast.error("Failed to update question");
+    } finally {
+      setIsSavingQuestion(false);
+    }
+  };
+
+  const confirmDeleteQuestion = async () => {
+    if (!questionToDelete) return;
+    try {
+      setIsDeletingQuestion(true);
+      await deleteQuestionAdmin(questionToDelete.id);
+      toast.success("Question deleted");
+      setShowDeleteQuestionDialog(false);
+      setQuestionToDelete(null);
+      await fetchFeedbackSurveys();
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      toast.error("Failed to delete question");
+    } finally {
+      setIsDeletingQuestion(false);
+    }
+  };
+
+  const handleReorderQuestions = async (event: DragEndEvent, survey: SusSurveyWithCount) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = survey.questions.findIndex(q => q.id === active.id);
+    const newIndex = survey.questions.findIndex(q => q.id === over.id);
+    const reordered = arrayMove(survey.questions, oldIndex, newIndex);
+
+    // Optimistic update
+    setFeedbackSurveys(prev =>
+      prev.map(s => s.id === survey.id ? { ...s, questions: reordered } : s)
+    );
+
+    try {
+      await reorderQuestionsAdmin(
+        reordered.map((q, i) => ({ id: q.id, order: i + 1 }))
+      );
+    } catch (error) {
+      console.error("Error reordering questions:", error);
+      toast.error("Failed to reorder questions");
+      await fetchFeedbackSurveys();
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'feedback') {
+      fetchFeedbackSurveys();
+    }
+  }, [activeTab]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -1452,6 +1673,7 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
               <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
               <TabsTrigger value="labs">Labs</TabsTrigger>
               <TabsTrigger value="phishing">Phishing</TabsTrigger>
+              <TabsTrigger value="feedback">Feedback</TabsTrigger>
             </TabsList>
 
             <TabsContent value="courses" className="space-y-6">
@@ -2957,6 +3179,298 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
                         </>
                       ) : (
                         "Delete Scenario"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </TabsContent>
+
+            {/* FEEDBACK TAB */}
+            <TabsContent value="feedback" className="space-y-6">
+              {isLoadingFeedback ? (
+                <div className="grid gap-6">
+                  {[1, 2].map((i) => (
+                    <Card key={i} className="p-6 animate-pulse">
+                      <div className="h-6 bg-muted rounded w-1/3 mb-4" />
+                      <div className="h-4 bg-muted rounded w-2/3 mb-2" />
+                      <div className="h-4 bg-muted rounded w-1/2" />
+                    </Card>
+                  ))}
+                </div>
+              ) : feedbackSurveys.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <HelpCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Feedback Surveys</h3>
+                  <p className="text-muted-foreground">No surveys have been created yet. Surveys are created via database seed.</p>
+                </Card>
+              ) : (
+                feedbackSurveys.map((survey) => (
+                  <div key={survey.id} className="space-y-6">
+                    {/* Survey Header Card */}
+                    <Card className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold">{survey.title}</h3>
+                            <Badge variant={survey.isActive ? "default" : "secondary"}>
+                              {survey.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                          {survey.description && (
+                            <p className="text-sm text-muted-foreground mb-2">{survey.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{survey.questions.length} questions</span>
+                            <span>{survey._count.responses} responses</span>
+                            <span>Created {new Date(survey.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleSurveyActive(survey)}
+                          >
+                            {survey.isActive ? (
+                              <><EyeOff className="w-4 h-4 mr-1" /> Deactivate</>
+                            ) : (
+                              <><Eye className="w-4 h-4 mr-1" /> Activate</>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingSurveyId(survey.id);
+                              setEditingSurveyTitle(survey.title);
+                              setEditingSurveyDesc(survey.description || "");
+                              setShowEditSurvey(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-1" /> Edit
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+
+                    {/* Questions List with Drag & Drop */}
+                    <Card className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold">Survey Questions</h3>
+                        <Button
+                          size="sm"
+                          onClick={() => { setCreateQuestionSurveyId(survey.id); setShowCreateQuestion(true); }}
+                        >
+                          <Plus className="w-4 h-4 mr-1" /> Add Question
+                        </Button>
+                      </div>
+
+                      {survey.questions.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-8">
+                          No questions added yet. Add your first question to get started.
+                        </p>
+                      ) : (
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => handleReorderQuestions(event, survey)}
+                        >
+                          <SortableContext
+                            items={survey.questions.map(q => q.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="space-y-2">
+                              {survey.questions.map((question, index) => (
+                                <SortableQuestion
+                                  key={question.id}
+                                  question={question}
+                                  index={index}
+                                  onEdit={() => {
+                                    setEditingQuestion({ ...question });
+                                    setShowEditQuestion(true);
+                                  }}
+                                  onDelete={() => {
+                                    setQuestionToDelete(question);
+                                    setShowDeleteQuestionDialog(true);
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
+                      )}
+
+                      <p className="text-xs text-muted-foreground mt-4">
+                        Drag questions to reorder. Positive questions measure agreement with good UX; negative questions measure agreement with poor UX (reverse-scored in SUS calculation).
+                      </p>
+                    </Card>
+
+                  </div>
+                ))
+              )}
+
+              {/* Edit Survey Dialog */}
+              <Dialog open={showEditSurvey} onOpenChange={setShowEditSurvey}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Edit Survey</DialogTitle>
+                    <DialogDescription>Update the survey title and description.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="survey-title">Title</Label>
+                      <Input
+                        id="survey-title"
+                        value={editingSurveyTitle}
+                        onChange={(e) => setEditingSurveyTitle(e.target.value)}
+                        placeholder="Survey title"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="survey-desc">Description</Label>
+                      <Textarea
+                        id="survey-desc"
+                        value={editingSurveyDesc}
+                        onChange={(e) => setEditingSurveyDesc(e.target.value)}
+                        placeholder="Survey description (optional)"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowEditSurvey(false)}>Cancel</Button>
+                    <Button
+                      onClick={handleUpdateSurvey}
+                      disabled={isSavingSurvey || !editingSurveyTitle.trim()}
+                    >
+                      {isSavingSurvey ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : "Save Changes"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Create Question Dialog */}
+              <Dialog open={showCreateQuestion} onOpenChange={setShowCreateQuestion}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add Question</DialogTitle>
+                    <DialogDescription>Add a new question to the feedback survey.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="new-question-text">Question</Label>
+                      <Textarea
+                        id="new-question-text"
+                        value={newQuestion.question}
+                        onChange={(e) => setNewQuestion(prev => ({ ...prev, question: e.target.value }))}
+                        placeholder="e.g. I found the platform easy to use."
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="new-question-type">Question Type</Label>
+                      <Select
+                        value={newQuestion.isPositive ? "positive" : "negative"}
+                        onValueChange={(val) => setNewQuestion(prev => ({ ...prev, isPositive: val === "positive" }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="positive">Positive (agreement = good UX)</SelectItem>
+                          <SelectItem value="negative">Negative (agreement = poor UX)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Positive: higher rating = better. Negative: higher rating = worse (reverse-scored).
+                      </p>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowCreateQuestion(false)}>Cancel</Button>
+                    <Button
+                      onClick={handleCreateQuestion}
+                      disabled={isSavingQuestion || !newQuestion.question.trim()}
+                    >
+                      {isSavingQuestion ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Adding...</> : "Add Question"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit Question Dialog */}
+              <Dialog open={showEditQuestion} onOpenChange={setShowEditQuestion}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Edit Question</DialogTitle>
+                    <DialogDescription>Update the question text and type.</DialogDescription>
+                  </DialogHeader>
+                  {editingQuestion && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="edit-question-text">Question</Label>
+                        <Textarea
+                          id="edit-question-text"
+                          value={editingQuestion.question}
+                          onChange={(e) => setEditingQuestion(prev => prev ? { ...prev, question: e.target.value } : null)}
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="edit-question-type">Question Type</Label>
+                        <Select
+                          value={editingQuestion.isPositive ? "positive" : "negative"}
+                          onValueChange={(val) => setEditingQuestion(prev => prev ? { ...prev, isPositive: val === "positive" } : null)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="positive">Positive (agreement = good UX)</SelectItem>
+                            <SelectItem value="negative">Negative (agreement = poor UX)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowEditQuestion(false)}>Cancel</Button>
+                    <Button
+                      onClick={handleUpdateQuestion}
+                      disabled={isSavingQuestion || !editingQuestion?.question.trim()}
+                    >
+                      {isSavingQuestion ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : "Save Changes"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Delete Question Confirmation */}
+              <AlertDialog open={showDeleteQuestionDialog} onOpenChange={setShowDeleteQuestionDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Question</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this question? This will not affect existing responses but will change the survey going forward.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  {questionToDelete && (
+                    <div className="p-3 bg-muted rounded-lg text-sm">
+                      "{questionToDelete.question}"
+                    </div>
+                  )}
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={confirmDeleteQuestion}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={isDeletingQuestion}
+                    >
+                      {isDeletingQuestion ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</>
+                      ) : (
+                        "Delete Question"
                       )}
                     </AlertDialogAction>
                   </AlertDialogFooter>

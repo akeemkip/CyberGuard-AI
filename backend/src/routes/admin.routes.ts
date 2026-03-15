@@ -33,6 +33,15 @@ import {
   getAssessmentComparison
 } from '../controllers/admin.controller';
 import {
+  getFeedbackResults,
+  getAllSurveys,
+  updateSurvey,
+  createQuestion,
+  updateQuestion,
+  deleteQuestion,
+  reorderQuestions
+} from '../controllers/feedback.controller';
+import {
   getAllCourses,
   getCourseById,
   createCourse,
@@ -159,5 +168,21 @@ router.put('/phishing/scenarios/:id', updatePhishingScenario);
 
 // DELETE /api/admin/phishing/scenarios/:id - Delete scenario
 router.delete('/phishing/scenarios/:id', deletePhishingScenario);
+
+// Feedback Management
+// GET /api/admin/feedback/results - Get aggregated SUS feedback results
+router.get('/feedback/results', getFeedbackResults);
+// GET /api/admin/feedback/surveys - List all surveys
+router.get('/feedback/surveys', getAllSurveys);
+// PUT /api/admin/feedback/surveys/:id - Update survey
+router.put('/feedback/surveys/:id', updateSurvey);
+// POST /api/admin/feedback/questions - Create question
+router.post('/feedback/questions', createQuestion);
+// PUT /api/admin/feedback/questions/reorder - Reorder questions (before /:id)
+router.put('/feedback/questions/reorder', reorderQuestions);
+// PUT /api/admin/feedback/questions/:id - Update question
+router.put('/feedback/questions/:id', updateQuestion);
+// DELETE /api/admin/feedback/questions/:id - Delete question
+router.delete('/feedback/questions/:id', deleteQuestion);
 
 export default router;

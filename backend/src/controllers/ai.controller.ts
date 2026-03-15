@@ -95,13 +95,13 @@ export async function handleLabHint(req: AuthRequest, res: Response) {
  */
 export async function handleAnalyticsInsights(req: AuthRequest, res: Response) {
   try {
-    const { analyticsData } = req.body;
+    const { analyticsData, reportType } = req.body;
 
     if (!analyticsData) {
       return res.status(400).json({ error: 'analyticsData is required' });
     }
 
-    const insights = await getAnalyticsInsights(analyticsData);
+    const insights = await getAnalyticsInsights(analyticsData, reportType);
 
     return res.status(200).json({
       insights,

@@ -4,139 +4,12 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
 import { devLog } from "../utils/logger";
-import { Moon, Sun, Loader2, AlertCircle, Eye, EyeOff, Shield, User, CheckCircle, Clock } from "lucide-react";
+import { Moon, Sun, Loader2, AlertCircle, Eye, EyeOff, Lock, Unlock, ShieldCheck, Fingerprint, KeyRound } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useAuth } from "../context/AuthContext";
 import { usePlatformSettings } from "../context/PlatformSettingsContext";
 import { PlatformLogo } from "./PlatformLogo";
-
-interface DemoAccount {
-  name: string;
-  email: string;
-  password: string;
-  color: string;
-  label: string;
-  description: string;
-  assessmentStatus: "completed" | "needs-assessment" | "not-applicable";
-  role: "student" | "admin";
-}
-
-const demoAccounts: DemoAccount[] = [
-  {
-    name: "Vishnu Bisram",
-    email: "vishnu.bisram@outlook.com",
-    password: "student123",
-    color: "green",
-    label: "Safe Zone",
-    description: "3 courses completed, quiz scores 100/95/92%, labs mastered",
-    assessmentStatus: "completed",
-    role: "student",
-  },
-  {
-    name: "Rajesh Singh",
-    email: "rajesh.singh@gmail.com",
-    password: "student123",
-    color: "emerald",
-    label: "Active Learner",
-    description: "4 enrollments, 2 completed, quiz scores 85/90%",
-    assessmentStatus: "completed",
-    role: "student",
-  },
-  {
-    name: "Priya Persaud",
-    email: "priya.persaud@yahoo.com",
-    password: "student123",
-    color: "cyan",
-    label: "Improving",
-    description: "2 enrollments, failed quiz then retook and passed",
-    assessmentStatus: "completed",
-    role: "student",
-  },
-  {
-    name: "Kumar Ramnauth",
-    email: "kumar.ramnauth@outlook.com",
-    password: "student123",
-    color: "red",
-    label: "High Risk",
-    description: "Minimal engagement, 1 enrollment, only 1 lesson done",
-    assessmentStatus: "completed",
-    role: "student",
-  },
-  {
-    name: "Arjun Jaipaul",
-    email: "arjun.jaipaul@yahoo.com",
-    password: "student123",
-    color: "slate",
-    label: "In Progress",
-    description: "3 courses halfway, mixed quiz results",
-    assessmentStatus: "completed",
-    role: "student",
-  },
-  {
-    name: "Admin",
-    email: "admin@cyberguard.com",
-    password: "admin123",
-    color: "purple",
-    label: "Administrator",
-    description: "Full platform access",
-    assessmentStatus: "not-applicable",
-    role: "admin",
-  },
-];
-
-function getColorClasses(color: string) {
-  const map: Record<string, { bg: string; border: string; hover: string; name: string; desc: string; badge: string }> = {
-    green: {
-      bg: "bg-green-50 dark:bg-green-950/30",
-      border: "border-green-200 dark:border-green-800",
-      hover: "hover:bg-green-100 dark:hover:bg-green-950/50",
-      name: "text-green-900 dark:text-green-100",
-      desc: "text-green-700 dark:text-green-300",
-      badge: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200",
-    },
-    emerald: {
-      bg: "bg-emerald-50 dark:bg-emerald-950/30",
-      border: "border-emerald-200 dark:border-emerald-800",
-      hover: "hover:bg-emerald-100 dark:hover:bg-emerald-950/50",
-      name: "text-emerald-900 dark:text-emerald-100",
-      desc: "text-emerald-700 dark:text-emerald-300",
-      badge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200",
-    },
-    red: {
-      bg: "bg-red-50 dark:bg-red-950/30",
-      border: "border-red-200 dark:border-red-800",
-      hover: "hover:bg-red-100 dark:hover:bg-red-950/50",
-      name: "text-red-900 dark:text-red-100",
-      desc: "text-red-700 dark:text-red-300",
-      badge: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200",
-    },
-    cyan: {
-      bg: "bg-cyan-50 dark:bg-cyan-950/30",
-      border: "border-cyan-200 dark:border-cyan-800",
-      hover: "hover:bg-cyan-100 dark:hover:bg-cyan-950/50",
-      name: "text-cyan-900 dark:text-cyan-100",
-      desc: "text-cyan-700 dark:text-cyan-300",
-      badge: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-200",
-    },
-    slate: {
-      bg: "bg-slate-50 dark:bg-slate-950/30",
-      border: "border-slate-200 dark:border-slate-800",
-      hover: "hover:bg-slate-100 dark:hover:bg-slate-950/50",
-      name: "text-slate-900 dark:text-slate-100",
-      desc: "text-slate-700 dark:text-slate-300",
-      badge: "bg-slate-100 text-slate-800 dark:bg-slate-900/50 dark:text-slate-200",
-    },
-    purple: {
-      bg: "bg-purple-50 dark:bg-purple-950/30",
-      border: "border-purple-200 dark:border-purple-800",
-      hover: "hover:bg-purple-100 dark:hover:bg-purple-950/50",
-      name: "text-purple-900 dark:text-purple-100",
-      desc: "text-purple-700 dark:text-purple-300",
-      badge: "bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200",
-    },
-  };
-  return map[color] ?? map.slate;
-}
+import { motion } from "motion/react";
 
 export function LoginPage({
   onNavigate
@@ -162,25 +35,10 @@ export function LoginPage({
       return;
     }
 
-    // login() returns true on success, false on failure
-    // Error message is stored in context's error state
     const success = await login(trimmedEmail, trimmedPassword);
 
     if (success) {
-      // Navigation is handled by App.tsx useEffect when user state changes
       devLog('Login successful');
-    }
-    // If failed, error is already set in context and will display
-  };
-
-  const handleDemoLogin = async (account: DemoAccount) => {
-    clearError();
-    setEmail(account.email);
-    setPassword(account.password);
-
-    const success = await login(account.email, account.password);
-    if (success) {
-      devLog('Demo login successful');
     }
   };
 
@@ -271,56 +129,93 @@ export function LoginPage({
     </Card>
   );
 
-  const demoPanel = (
-    <Card className="w-full max-w-sm p-6">
-      <div className="text-center mb-4">
-        <h2 className="text-lg font-semibold">Demo Accounts</h2>
-        <p className="text-xs text-muted-foreground mt-1">Click any account to sign in instantly</p>
+  const securityPanel = (
+    <div className="hidden lg:flex w-full max-w-sm flex-col items-center justify-center gap-6">
+      {/* Animated padlock */}
+      <div className="relative w-48 h-48 flex items-center justify-center">
+        {/* Outer pulsing ring */}
+        <motion.div
+          className="absolute inset-0 rounded-full border-2 border-primary/20"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.1, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Mid ring */}
+        <motion.div
+          className="absolute inset-4 rounded-full border-2 border-primary/30"
+          animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.15, 0.4] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+        />
+        {/* Inner glow circle */}
+        <motion.div
+          className="absolute inset-8 rounded-full bg-primary/5"
+          animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.3, 0.6] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+        />
+
+        {/* Central padlock icon */}
+        <motion.div
+          className="relative z-10 w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center"
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <motion.div
+            animate={{ rotate: [0, 0, 0, 5, -5, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Lock className="w-10 h-10 text-primary" />
+          </motion.div>
+        </motion.div>
+
+        {/* Orbiting security icons */}
+        {[
+          { Icon: ShieldCheck, delay: 0, angle: 0 },
+          { Icon: Fingerprint, delay: 1, angle: 120 },
+          { Icon: KeyRound, delay: 2, angle: 240 },
+        ].map(({ Icon, delay, angle }) => (
+          <motion.div
+            key={angle}
+            className="absolute w-9 h-9 rounded-xl bg-card border border-border shadow-sm flex items-center justify-center"
+            animate={{
+              rotate: [angle, angle + 360],
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: "linear", delay }}
+            style={{
+              transformOrigin: "center",
+              offsetPath: "circle(80px at 50% 50%)",
+              offsetDistance: `${(angle / 360) * 100}%`,
+            }}
+            initial={false}
+          >
+            <motion.div
+              animate={{ rotate: [-(angle), -(angle + 360)] }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear", delay }}
+            >
+              <Icon className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+          </motion.div>
+        ))}
       </div>
 
-      <div className="space-y-2">
-        {demoAccounts.map((account) => {
-          const colors = getColorClasses(account.color);
-          return (
-            <button
-              key={account.email}
-              type="button"
-              disabled={isLoading}
-              onClick={() => handleDemoLogin(account)}
-              className={`w-full text-left p-3 rounded-lg border cursor-pointer transition-colors ${colors.bg} ${colors.border} ${colors.hover} disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                {account.role === "admin" ? (
-                  <Shield className={`w-3.5 h-3.5 ${colors.name}`} />
-                ) : (
-                  <User className={`w-3.5 h-3.5 ${colors.name}`} />
-                )}
-                <span className={`text-sm font-medium ${colors.name}`}>{account.name}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${colors.badge}`}>
-                  {account.label}
-                </span>
-              </div>
-              <p className={`text-xs ${colors.desc} mb-1.5`}>{account.description}</p>
-              {account.assessmentStatus !== "not-applicable" && (
-                <div className="flex items-center gap-1">
-                  {account.assessmentStatus === "completed" ? (
-                    <>
-                      <CheckCircle className={`w-3 h-3 ${colors.desc}`} />
-                      <span className={`text-[10px] ${colors.desc}`}>Assessment completed</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className={`w-3 h-3 ${colors.desc}`} />
-                      <span className={`text-[10px] ${colors.desc}`}>New - needs assessment</span>
-                    </>
-                  )}
-                </div>
-              )}
-            </button>
-          );
-        })}
+      {/* Text below */}
+      <div className="text-center space-y-2">
+        <motion.h3
+          className="text-lg font-semibold text-foreground"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          Secure Access
+        </motion.h3>
+        <motion.p
+          className="text-sm text-muted-foreground max-w-xs"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          Your cybersecurity training environment is protected with enterprise-grade security
+        </motion.p>
       </div>
-    </Card>
+    </div>
   );
 
   return (
@@ -343,14 +238,10 @@ export function LoginPage({
 
       {/* Login Content */}
       <div className="flex-1 flex items-center justify-center p-4 bg-muted/30">
-        {import.meta.env.DEV ? (
-          <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 w-full max-w-3xl">
-            {loginForm}
-            {demoPanel}
-          </div>
-        ) : (
-          loginForm
-        )}
+        <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-12 w-full max-w-3xl">
+          {loginForm}
+          {securityPanel}
+        </div>
       </div>
     </div>
   );

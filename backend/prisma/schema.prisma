@@ -160,6 +160,7 @@ model User {
   introAssessmentAttempts  IntroAssessmentAttempt[]
   fullAssessmentAttempts   FullAssessmentAttempt[]
   settingsAuditLogs       SettingsAuditLog[]
+  susResponses            SusResponse[]
 
   @@index([role])
   @@map("users")
@@ -426,6 +427,47 @@ model IntroAssessmentAttempt {
 
   @@index([userId])
   @@map("intro_assessment_attempts")
+}
+
+model SusSurvey {
+  id          String        @id @default(uuid())
+  title       String        @default("Platform Feedback Survey")
+  description String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  questions   SusQuestion[]
+  responses   SusResponse[]
+
+  @@index([isActive])
+  @@map("sus_surveys")
+}
+
+model SusQuestion {
+  id       String    @id @default(uuid())
+  surveyId String
+  question String
+  isPositive Boolean @default(true)
+  order    Int
+  survey   SusSurvey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@index([surveyId])
+  @@map("sus_questions")
+}
+
+model SusResponse {
+  id          String    @id @default(uuid())
+  userId      String
+  surveyId    String
+  answers     Json
+  susScore    Float
+  completedAt DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  survey      SusSurvey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([surveyId])
+  @@index([completedAt])
+  @@map("sus_responses")
 }
 
 model FullAssessmentAttempt {

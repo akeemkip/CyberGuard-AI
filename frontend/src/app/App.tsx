@@ -38,11 +38,12 @@ import { AdminPhishingEdit } from "./components/admin-phishing-edit";
 import { WelcomePage } from "./components/welcome-page";
 import { IntroAssessmentPage } from "./components/intro-assessment-page";
 import { checkIntroAssessmentRequired } from "./services/assessment.service";
+import { SusFeedback } from "./components/sus-feedback";
 
-type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "welcome" | "intro-assessment" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "phishing-simulation" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-phishing-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "welcome" | "intro-assessment" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "phishing-simulation" | "sus-feedback" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-phishing-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
-const protectedPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
+const protectedPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "sus-feedback", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
 const guestPages: Page[] = ["landing", "login", "register", "register-success", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
@@ -51,7 +52,7 @@ const guestPages: Page[] = ["landing", "login", "register", "register-success", 
 const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Student-only pages (require STUDENT role - admins cannot access)
-const studentOnlyPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation"];
+const studentOnlyPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "sus-feedback"];
 
 // Guest pages that should persist on refresh (not landing - that's the default)
 const persistableGuestPages: Page[] = ["login", "register", "reset-password"];
@@ -618,6 +619,13 @@ function AppContent() {
         return (
           <PhishingSimulation
             onNavigate={handleNavigate}
+          />
+        );
+      case "sus-feedback":
+        return (
+          <SusFeedback
+            onNavigate={handleNavigate}
+            onLogout={handleLogout}
           />
         );
       case "admin-dashboard":

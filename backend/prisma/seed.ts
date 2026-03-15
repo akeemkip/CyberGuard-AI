@@ -7,6 +7,9 @@ async function main() {
   console.log('🌱 Starting seed...');
 
   // Clear existing data
+  await prisma.susResponse.deleteMany();
+  await prisma.susQuestion.deleteMany();
+  await prisma.susSurvey.deleteMany();
   await prisma.settingsAuditLog.deleteMany();
   await prisma.phishingAttempt.deleteMany();
   await prisma.phishingScenario.deleteMany();
@@ -3836,6 +3839,105 @@ Amazon Customer Rewards Team`,
   });
 
   console.log('✅ Created 6 phishing scenarios and 12 phishing attempts for 2 students (Rajesh, Vishnu)');
+
+  // ==========================================
+  // SUS FEEDBACK SURVEY SEED DATA
+  // ==========================================
+  const susSurvey = await prisma.susSurvey.create({
+    data: {
+      title: 'Platform Feedback Survey',
+      description: 'Help us improve CyberGuard AI by sharing your experience with the platform.',
+      isActive: true
+    }
+  });
+
+  const susQuestions = await Promise.all([
+    prisma.susQuestion.create({
+      data: {
+        surveyId: susSurvey.id,
+        question: 'I think I would like to use this cybersecurity training platform frequently.',
+        isPositive: true,
+        order: 1
+      }
+    }),
+    prisma.susQuestion.create({
+      data: {
+        surveyId: susSurvey.id,
+        question: 'I found the platform unnecessarily complex to navigate.',
+        isPositive: false,
+        order: 2
+      }
+    }),
+    prisma.susQuestion.create({
+      data: {
+        surveyId: susSurvey.id,
+        question: 'I thought the training content and labs were easy to understand.',
+        isPositive: true,
+        order: 3
+      }
+    }),
+    prisma.susQuestion.create({
+      data: {
+        surveyId: susSurvey.id,
+        question: 'I think I would need technical support to use this platform effectively.',
+        isPositive: false,
+        order: 4
+      }
+    }),
+    prisma.susQuestion.create({
+      data: {
+        surveyId: susSurvey.id,
+        question: 'I felt confident using the various features of this platform (courses, labs, quizzes, simulations).',
+        isPositive: true,
+        order: 5
+      }
+    })
+  ]);
+
+  // Seed SUS responses for students matching their personas
+  // SUS score formula (5 questions): positive = rating-1, negative = 5-rating, sum * 5
+  const susAnswerSets = [
+    // [0] Rajesh (Active Learner) - generally positive, SUS ~75
+    { studentIdx: 0, ratings: [4, 2, 4, 2, 4], date: new Date('2026-02-15T10:00:00Z') },
+    // [1] Priya (Improving) - moderate, SUS ~60
+    { studentIdx: 1, ratings: [3, 3, 4, 3, 3], date: new Date('2026-02-20T14:30:00Z') },
+    // [2] Kumar (High Risk / minimal engagement) - low, SUS ~40
+    { studentIdx: 2, ratings: [2, 4, 3, 4, 2], date: new Date('2026-02-22T09:00:00Z') },
+    // [3] Arjun (In Progress) - moderate, SUS ~65
+    { studentIdx: 3, ratings: [4, 2, 3, 3, 4], date: new Date('2026-02-18T16:00:00Z') },
+    // [4] Vishnu (Safe Zone / top performer) - high, SUS ~85
+    { studentIdx: 4, ratings: [5, 1, 5, 1, 5], date: new Date('2026-02-10T11:00:00Z') }
+  ];
+
+  for (const answerSet of susAnswerSets) {
+    const answers = susQuestions.map((q, i) => ({
+      questionId: q.id,
+      rating: answerSet.ratings[i]
+    }));
+
+    // Calculate SUS score
+    let adjustedSum = 0;
+    for (let i = 0; i < susQuestions.length; i++) {
+      if (susQuestions[i].isPositive) {
+        adjustedSum += answerSet.ratings[i] - 1;
+      } else {
+        adjustedSum += 5 - answerSet.ratings[i];
+      }
+    }
+    const susScore = adjustedSum * 5;
+
+    await prisma.susResponse.create({
+      data: {
+        userId: students[answerSet.studentIdx].id,
+        surveyId: susSurvey.id,
+        answers,
+        susScore,
+        completedAt: answerSet.date
+      }
+    });
+  }
+
+  console.log('✅ Created SUS feedback survey with 5 questions and 5 student responses');
 
   console.log('\n🎉 Seed completed successfully!\n');
   console.log('Test accounts:');

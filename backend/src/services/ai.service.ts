@@ -233,16 +233,7 @@ Do NOT reveal specific answers from the simulation.`;
 /**
  * Generate AI insights from analytics data
  */
-export async function getAnalyticsInsights(analyticsData: {
-  totalUsers: number;
-  avgCompletionRate: number;
-  avgQuizScore: number;
-  totalLessonsCompleted: number;
-  topUsers: { name: string; score: number; coursesCompleted: number }[];
-  retention: { week: string; retention: number | null; avgScore: number | null }[];
-  skillProficiency: { course: string; avgScore: number; enrolled: number; completed: number }[];
-  engagement: { date: string; activeUsers: number }[];
-}): Promise<string> {
+export async function getAnalyticsInsights(analyticsData: Record<string, any>, reportType?: string): Promise<string> {
   try {
     if (!process.env.GEMINI_API_KEY) {
       return 'AI service is not configured.';
@@ -250,7 +241,58 @@ export async function getAnalyticsInsights(analyticsData: {
 
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    const prompt = `You are a cybersecurity training platform analyst. Analyze this training data and provide actionable insights.
+    let prompt: string;
+
+    if (reportType === 'feedback') {
+      prompt = `You are a cybersecurity training platform analyst. Analyze this System Usability Scale (SUS) feedback data and provide actionable insights about the platform's user experience.
+
+FEEDBACK SUMMARY:
+- Total Responses: ${analyticsData.totalResponses}
+- Total Students: ${analyticsData.totalStudents}
+- Response Rate: ${analyticsData.totalStudents > 0 ? Math.round((analyticsData.totalResponses / analyticsData.totalStudents) * 100) : 0}%
+- Average SUS Score: ${analyticsData.averageSusScore}/100 (${analyticsData.averageSusScore >= 81 ? 'Excellent' : analyticsData.averageSusScore >= 69 ? 'Good' : analyticsData.averageSusScore >= 51 ? 'Average' : analyticsData.averageSusScore >= 26 ? 'Below Average' : 'Poor'})
+
+PER-QUESTION AVERAGES (1-5 scale):
+${(analyticsData.perQuestionAverages || []).map((q: any, i: number) => `- Q${i + 1} (${q.isPositive ? 'Positive' : 'Negative'}): "${q.question}" — Avg: ${Math.round(q.averageRating * 10) / 10}/5`).join('\n')}
+
+SCORE DISTRIBUTION:
+${(analyticsData.scoreDistribution || []).map((d: any) => `- ${d.range}: ${d.count} student(s)`).join('\n') || 'No distribution data'}
+
+INDIVIDUAL SCORES:
+${(analyticsData.recentResponses || []).slice(0, 10).map((r: any) => `- ${r.firstName} ${r.lastName}: SUS ${r.susScore}/100`).join('\n')}
+
+Note: SUS score benchmarks — Above 80: Excellent, 69-80: Good, 51-68: Average, Below 51: Poor. For negative questions, lower raw ratings are better (they get reverse-scored in SUS calculation).
+
+Provide exactly 4 insights in this format:
+1. **[Strength/Win]**: Something positive about the usability feedback
+2. **[Concern]**: A usability issue or risk indicated by the data
+3. **[Opportunity]**: An actionable recommendation to improve UX
+4. **[Trend]**: A pattern you notice across questions or respondents
+
+Keep each insight to 2-3 sentences. Be specific with numbers. Use markdown formatting.`;
+
+    } else if (reportType === 'assessment-comparison') {
+      prompt = `You are a cybersecurity training platform analyst. Analyze this assessment comparison data showing student progress from intro assessments through full course assessments.
+
+SUMMARY:
+- Total Students Assessed: ${analyticsData.totalStudents}
+- Average Intro Assessment Score: ${analyticsData.avgIntroScore}%
+- Average First Full Assessment Score: ${analyticsData.avgFirstFullScore || analyticsData.avgFullScore || 0}%
+- Average Improvement: ${analyticsData.avgImprovement >= 0 ? '+' : ''}${analyticsData.avgImprovement}%
+
+INDIVIDUAL STUDENT DATA:
+${(analyticsData.students || []).slice(0, 15).map((s: any) => `- ${s.name}: Intro ${s.introScore}% → First Full ${s.firstFullScore != null ? s.firstFullScore + '%' : 'N/A'}${s.secondFullScore != null ? ' → Second Full ' + s.secondFullScore + '%' : ''} (Change: ${s.improvement != null ? (s.improvement >= 0 ? '+' : '') + s.improvement + '%' : 'N/A'})`).join('\n')}
+
+Provide exactly 4 insights in this format:
+1. **[Strength/Win]**: Something positive about student learning progress
+2. **[Concern]**: A potential issue with student performance or engagement
+3. **[Opportunity]**: An actionable recommendation to improve learning outcomes
+4. **[Trend]**: A pattern you notice in how students progress
+
+Keep each insight to 2-3 sentences. Be specific with numbers. Use markdown formatting.`;
+
+    } else {
+      prompt = `You are a cybersecurity training platform analyst. Analyze this training data and provide actionable insights.
 
 PLATFORM METRICS:
 - Total Users: ${analyticsData.totalUsers}
@@ -259,16 +301,16 @@ PLATFORM METRICS:
 - Total Lessons Completed: ${analyticsData.totalLessonsCompleted}
 
 COURSE PERFORMANCE:
-${analyticsData.skillProficiency.map(s => `- ${s.course}: Avg Score ${s.avgScore}%, ${s.enrolled} enrolled, ${s.completed} completed`).join('\n')}
+${(analyticsData.skillProficiency || []).map((s: any) => `- ${s.course}: Avg Score ${s.avgScore}%, ${s.enrolled} enrolled, ${s.completed} completed`).join('\n')}
 
 KNOWLEDGE RETENTION (weekly quiz retake trends):
-${analyticsData.retention.filter(r => r.retention !== null).map(r => `- ${r.week}: Retention ${r.retention}%, Avg Score ${r.avgScore}%`).join('\n') || 'No retention data available'}
+${(analyticsData.retention || []).filter((r: any) => r.retention !== null).map((r: any) => `- ${r.week}: Retention ${r.retention}%, Avg Score ${r.avgScore}%`).join('\n') || 'No retention data available'}
 
 TOP PERFORMERS:
-${analyticsData.topUsers.slice(0, 5).map(u => `- ${u.name}: Score ${u.score}%, ${u.coursesCompleted} courses completed`).join('\n')}
+${(analyticsData.topUsers || []).slice(0, 5).map((u: any) => `- ${u.name}: Score ${u.score}%, ${u.coursesCompleted} courses completed`).join('\n')}
 
 ENGAGEMENT TREND:
-${analyticsData.engagement.slice(-7).map(e => `- ${e.date}: ${e.activeUsers} active users`).join('\n')}
+${(analyticsData.engagement || []).slice(-7).map((e: any) => `- ${e.date}: ${e.activeUsers} active users`).join('\n')}
 
 Provide exactly 4 insights in this format:
 1. **[Strength/Win]**: Something positive about the data
@@ -277,6 +319,7 @@ Provide exactly 4 insights in this format:
 4. **[Trend]**: A pattern you notice in the data
 
 Keep each insight to 2-3 sentences. Be specific with numbers. Use markdown formatting.`;
+    }
 
     const result = await model.generateContent(prompt);
     return result.response.text();

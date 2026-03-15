@@ -23,6 +23,7 @@ import labRoutes from './routes/lab.routes';
 import settingsRoutes from './routes/settings.routes';
 import phishingRoutes from './routes/phishing.routes';
 import assessmentRoutes from './routes/assessment.routes';
+import feedbackRoutes from './routes/feedback.routes';
 import { getPublicSettings } from './controllers/settings.controller';
 import { upload, uploadImage, deleteImage } from './controllers/upload.controller';
 import { sanitizeBody } from './utils/sanitization';
@@ -111,6 +112,7 @@ app.use('/api/ai', aiLimiter, aiRoutes);
 app.use('/api/labs', labRoutes);
 app.use('/api/phishing', phishingRoutes);
 app.use('/api/assessment', assessmentRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // 404 handler
 app.use((req, res) => {
