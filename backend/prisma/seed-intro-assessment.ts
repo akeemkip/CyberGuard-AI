@@ -166,6 +166,15 @@ async function main() {
 
     console.log(`👥 Found ${activeStudents.length} active students`);
 
+    // Deterministic intro assessment scores for consistent analytics data
+    const introScores: { [email: string]: { score: number; totalQuestions: number; percentage: number } } = {
+      'rajesh.singh@gmail.com': { score: 8, totalQuestions: 10, percentage: 80 },
+      'priya.persaud@yahoo.com': { score: 5, totalQuestions: 10, percentage: 50 },
+      'kumar.ramnauth@outlook.com': { score: 4, totalQuestions: 10, percentage: 40 },
+      'arjun.jaipaul@yahoo.com': { score: 6, totalQuestions: 10, percentage: 60 },
+      'vishnu.bisram@outlook.com': { score: 10, totalQuestions: 10, percentage: 100 },
+    };
+
     let backfilledIntro = 0;
     for (const student of activeStudents) {
       // Skip if already has intro attempt
@@ -173,21 +182,18 @@ async function main() {
         continue;
       }
 
-      // Calculate simulated score based on quiz performance
-      const avgQuizScore = student.quizAttempts.length > 0
-        ? student.quizAttempts.reduce((sum, q) => sum + q.score, 0) / student.quizAttempts.length
-        : 3;
-
-      // Convert to percentage (assuming quizzes have ~5 questions)
-      const baselinePercentage = Math.min(100, Math.max(30, Math.round((avgQuizScore / 5) * 100)));
-
-      // Add some randomness (-10% to +10%)
-      const randomAdjustment = Math.floor(Math.random() * 21) - 10;
-      const finalPercentage = Math.min(100, Math.max(30, baselinePercentage + randomAdjustment));
-      const score = Math.round((finalPercentage / 100) * 6);
+      const scoreData = introScores[student.email];
+      // Fallback for unknown students: derive from quiz performance
+      const score = scoreData?.score ?? Math.round(
+        (student.quizAttempts.length > 0
+          ? student.quizAttempts.reduce((sum, q) => sum + q.score, 0) / student.quizAttempts.length
+          : 3) / 5 * 10
+      );
+      const totalQuestions = scoreData?.totalQuestions ?? 10;
+      const percentage = scoreData?.percentage ?? Math.round((score / totalQuestions) * 100);
 
       // Create simulated answers
-      const answers = Array.from({ length: 6 }, (_, i) => ({
+      const answers = Array.from({ length: totalQuestions }, (_, i) => ({
         questionId: `question-${i}`,
         selectedAnswer: i < score ? 1 : 0,
         correctAnswer: 1,
@@ -199,11 +205,11 @@ async function main() {
           userId: student.id,
           introAssessmentId: introAssessment.id,
           score,
-          totalQuestions: 6,
-          percentage: finalPercentage,
-          passed: finalPercentage >= 50,
+          totalQuestions,
+          percentage,
+          passed: percentage >= 50,
           answers: answers,
-          completedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // Random date in last 30 days
+          completedAt: new Date('2026-01-05T00:00:00.000Z')
         }
       });
 
@@ -241,32 +247,41 @@ async function main() {
 
     console.log(`👥 Found ${studentsWithCompletedCourses.length} students with completed courses`);
 
+    // Deterministic full assessment scores for specific students
+    // These provide meaningful data for the Assessment Comparison analytics
+    const fullAssessmentScores: { [email: string]: { percentage: number; score: number } } = {
+      'rajesh.singh@gmail.com': { percentage: 90, score: 27 },      // 80% intro → 90% final (+10%, Good retention)
+      'vishnu.bisram@outlook.com': { percentage: 95, score: 29 },   // 100% intro → 95% final (-5%, maintained excellence)
+      'priya.persaud@yahoo.com': { percentage: 72, score: 22 },     // 50% intro → 72% final (+22%, Excellent retention)
+    };
+
+    // Also seed Priya who doesn't have completed courses but took the final assessment
+    const allStudentsForFull = await prisma.user.findMany({
+      where: {
+        role: 'STUDENT',
+        email: { in: Object.keys(fullAssessmentScores) },
+        introAssessmentAttempts: { some: {} }
+      },
+      include: {
+        fullAssessmentAttempts: true,
+        enrollments: {
+          where: { completedAt: { not: null } },
+          select: { completedAt: true }
+        }
+      }
+    });
+
     let backfilledFull = 0;
-    for (const student of studentsWithCompletedCourses) {
+    for (const student of allStudentsForFull) {
       // Skip if already has full attempt
       if (student.fullAssessmentAttempts.length > 0) {
         continue;
       }
 
-      // Get intro score
-      const introScore = student.introAssessmentAttempts[0]?.percentage || 50;
+      const scoreData = fullAssessmentScores[student.email];
+      if (!scoreData) continue;
 
-      // Full assessment should show improvement based on intro score
-      // Better intro scores = smaller improvement (ceiling effect)
-      // Lower intro scores = larger improvement (more room to grow)
-      let improvement;
-      if (introScore >= 80) {
-        improvement = Math.floor(Math.random() * 11) + 5; // +5% to +15%
-      } else if (introScore >= 60) {
-        improvement = Math.floor(Math.random() * 16) + 15; // +15% to +30%
-      } else {
-        improvement = Math.floor(Math.random() * 21) + 25; // +25% to +45%
-      }
-
-      const finalPercentage = Math.min(95, introScore + improvement);
-      const score = Math.round((finalPercentage / 100) * 30);
-
-      // Calculate completion date (after their last course completion)
+      // Calculate completion date (after their last course completion, or Feb 1 2026)
       const lastCourseCompletion = student.enrollments.reduce((latest, enrollment) => {
         return enrollment.completedAt && (!latest || enrollment.completedAt > latest)
           ? enrollment.completedAt
@@ -274,17 +289,17 @@ async function main() {
       }, null as Date | null);
 
       const completedAt = lastCourseCompletion
-        ? new Date(lastCourseCompletion.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000) // 0-7 days after course completion
-        : new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000); // Random date in last 7 days
+        ? new Date(lastCourseCompletion.getTime() + 3 * 24 * 60 * 60 * 1000) // 3 days after course completion
+        : new Date('2026-02-01T00:00:00.000Z');
 
       await prisma.fullAssessmentAttempt.create({
         data: {
           userId: student.id,
-          score,
+          score: scoreData.score,
           totalQuestions: 30,
-          percentage: finalPercentage,
-          passed: finalPercentage >= 70,
-          timeSpent: Math.floor(Math.random() * 600) + 900, // 15-25 minutes
+          percentage: scoreData.percentage,
+          passed: scoreData.percentage >= 70,
+          timeSpent: 1200, // 20 minutes
           timerExpired: false,
           answers: { simulated: true },
           completedAt
@@ -294,7 +309,7 @@ async function main() {
       backfilledFull++;
     }
 
-    console.log(`✅ Backfilled ${backfilledFull} full assessment attempts for students with completed courses`);
+    console.log(`✅ Backfilled ${backfilledFull} full assessment attempts`);
     console.log('🎉 Seed completed successfully!');
 
   } catch (error) {
