@@ -38,20 +38,20 @@ Modern cyber threats have evolved far beyond simple malware. Today's attackers u
 ## Advanced Persistent Threats (APTs)
 
 ### Characteristics of APTs
-- **Persistence**: Attackers maintain long-term access to networks
-- **Stealth**: Use of advanced evasion techniques
-- **Targeted**: Focus on specific organizations or sectors
-- **Resourced**: Often state-sponsored or well-funded criminal groups
+- <strong>Persistence</strong>: Attackers maintain long-term access to networks
+- <strong>Stealth</strong>: Use of advanced evasion techniques
+- <strong>Targeted</strong>: Focus on specific organizations or sectors
+- <strong>Resourced</strong>: Often state-sponsored or well-funded criminal groups
 
 ### APT Attack Phases
-1. **Reconnaissance**: Gathering information about targets
-2. **Initial Compromise**: Gaining first foothold
-3. **Establish Foothold**: Installing backdoors
-4. **Escalate Privileges**: Gaining admin access
-5. **Internal Reconnaissance**: Mapping the network
-6. **Lateral Movement**: Moving to other systems
-7. **Data Exfiltration**: Stealing valuable data
-8. **Maintain Presence**: Ensuring continued access
+1. <strong>Reconnaissance</strong>: Gathering information about targets
+2. <strong>Initial Compromise</strong>: Gaining first foothold
+3. <strong>Establish Foothold</strong>: Installing backdoors
+4. <strong>Escalate Privileges</strong>: Gaining admin access
+5. <strong>Internal Reconnaissance</strong>: Mapping the network
+6. <strong>Lateral Movement</strong>: Moving to other systems
+7. <strong>Data Exfiltration</strong>: Stealing valuable data
+8. <strong>Maintain Presence</strong>: Ensuring continued access
 
 ## MITRE ATT&CK Framework
 
@@ -60,7 +60,7 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### Key Components
 
-**Tactics** (The "Why")
+<strong>Tactics</strong> (The "Why")
 - Initial Access
 - Execution
 - Persistence
@@ -73,7 +73,7 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 - Exfiltration
 - Impact
 
-**Techniques** (The "How")
+<strong>Techniques</strong> (The "How")
 - Specific methods attackers use
 - Sub-techniques for detailed categorization
 - Mapped to real threat groups
@@ -87,13 +87,13 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 ## Indicators of Compromise (IOCs)
 
 ### Types of IOCs
-- **Hash Values**: MD5, SHA1, SHA256 of malicious files
-- **IP Addresses**: Known malicious IPs
-- **Domain Names**: C2 servers, phishing domains
-- **URLs**: Specific malicious URLs
-- **Email Addresses**: Attacker email addresses
-- **File Paths**: Common malware locations
-- **Registry Keys**: Persistence mechanisms
+- <strong>Hash Values</strong>: MD5, SHA1, SHA256 of malicious files
+- <strong>IP Addresses</strong>: Known malicious IPs
+- <strong>Domain Names</strong>: C2 servers, phishing domains
+- <strong>URLs</strong>: Specific malicious URLs
+- <strong>Email Addresses</strong>: Attacker email addresses
+- <strong>File Paths</strong>: Common malware locations
+- <strong>Registry Keys</strong>: Persistence mechanisms
 
 ### IOC Lifecycle
 1. Discovery through analysis
@@ -110,21 +110,21 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### NIST Incident Response Framework
 
-**Phase 1: Preparation**
+<strong>Phase 1: Preparation</strong>
 - Establish incident response team
 - Define roles and responsibilities
 - Develop playbooks and procedures
 - Acquire and maintain tools
 - Conduct training and exercises
 
-**Phase 2: Detection & Analysis**
+<strong>Phase 2: Detection & Analysis</strong>
 - Monitor security events
 - Analyze alerts and anomalies
 - Determine incident scope
 - Document findings
 - Prioritize response efforts
 
-**Phase 3: Containment, Eradication & Recovery**
+<strong>Phase 3: Containment, Eradication & Recovery</strong>
 - Short-term containment (stop bleeding)
 - Evidence preservation
 - Long-term containment (sustainable fix)
@@ -132,7 +132,7 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 - System recovery and validation
 - Return to normal operations
 
-**Phase 4: Post-Incident Activity**
+<strong>Phase 4: Post-Incident Activity</strong>
 - Lessons learned meeting
 - Update procedures and controls
 - Report to stakeholders
@@ -142,26 +142,26 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### Severity Levels
 
-**Critical (P1)**
+<strong>Critical (P1)</strong>
 - Active data breach in progress
 - Ransomware spreading across network
 - Complete system compromise
 - Regulatory notification required
 - Response: Immediate, all-hands
 
-**High (P2)**
+<strong>High (P2)</strong>
 - Confirmed malware infection
 - Unauthorized access detected
 - Sensitive data at risk
 - Response: Within 1 hour
 
-**Medium (P3)**
+<strong>Medium (P3)</strong>
 - Suspicious activity detected
 - Policy violation
 - Potential security incident
 - Response: Within 4 hours
 
-**Low (P4)**
+<strong>Low (P4)</strong>
 - Security alerts requiring investigation
 - Minor policy violations
 - Response: Within 24 hours
@@ -209,14 +209,14 @@ Collect in this order (most to least volatile):
 ## Digital Forensics Fundamentals
 
 ### Forensic Principles
-- **Integrity**: Never modify original evidence
-- **Chain of Custody**: Document everything
-- **Reproducibility**: Others can verify findings
-- **Documentation**: Detailed notes and reports
+- <strong>Integrity</strong>: Never modify original evidence
+- <strong>Chain of Custody</strong>: Document everything
+- <strong>Reproducibility</strong>: Others can verify findings
+- <strong>Documentation</strong>: Detailed notes and reports
 
 ### Key Forensic Artifacts
 
-**Windows Systems**
+<strong>Windows Systems</strong>
 - Event Logs (Security, System, Application)
 - Registry hives
 - Prefetch files
@@ -224,14 +224,14 @@ Collect in this order (most to least volatile):
 - Browser artifacts
 - Memory dumps
 
-**Linux Systems**
+<strong>Linux Systems</strong>
 - Auth logs (/var/log/auth.log)
 - Syslog (/var/log/syslog)
 - Bash history
 - Cron jobs
 - Process information
 
-**Network Forensics**
+<strong>Network Forensics</strong>
 - Packet captures (PCAP)
 - NetFlow data
 - DNS logs
@@ -245,21 +245,21 @@ Proactively searching for threats that have evaded existing security controls.
 
 ### Hunting Methodologies
 
-**Hypothesis-Driven Hunting**
+<strong>Hypothesis-Driven Hunting</strong>
 1. Develop hypothesis based on threat intel
 2. Determine data sources needed
 3. Create detection queries
 4. Analyze results
 5. Refine and iterate
 
-**IOC-Based Hunting**
+<strong>IOC-Based Hunting</strong>
 - Search for known bad indicators
 - Hash values
 - IP addresses
 - Domain names
 - File paths
 
-**Anomaly-Based Hunting**
+<strong>Anomaly-Based Hunting</strong>
 - Establish baselines
 - Look for deviations
 - Investigate outliers
@@ -267,18 +267,18 @@ Proactively searching for threats that have evaded existing security controls.
 
 ### Essential Hunting Queries
 
-**Unusual Process Execution**
+<strong>Unusual Process Execution</strong>
 - Processes running from temp folders
 - Unsigned executables
 - Processes with network connections
 
-**Persistence Mechanisms**
+<strong>Persistence Mechanisms</strong>
 - New scheduled tasks
 - Registry run keys
 - New services
 - Startup folder additions
 
-**Lateral Movement Indicators**
+<strong>Lateral Movement Indicators</strong>
 - Remote execution tools (PsExec, WMI)
 - RDP connections
 - Admin share access
@@ -287,10 +287,10 @@ Proactively searching for threats that have evaded existing security controls.
 ## Building a Threat Hunting Program
 
 ### Key Elements
-1. **People**: Skilled analysts with diverse backgrounds
-2. **Process**: Documented methodologies and playbooks
-3. **Technology**: SIEM, EDR, network visibility tools
-4. **Intelligence**: Threat feeds, industry reports
+1. <strong>People</strong>: Skilled analysts with diverse backgrounds
+2. <strong>Process</strong>: Documented methodologies and playbooks
+3. <strong>Technology</strong>: SIEM, EDR, network visibility tools
+4. <strong>Intelligence</strong>: Threat feeds, industry reports
 
 ### Metrics for Success
 - Number of hunts conducted

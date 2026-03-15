@@ -208,17 +208,17 @@ Phishing is a type of social engineering attack where attackers attempt to trick
 
 ## How Phishing Works
 
-1. **Bait**: Attackers create convincing fake emails, websites, or messages
-2. **Hook**: They use urgency, fear, or curiosity to get you to act
-3. **Catch**: You unknowingly provide sensitive information
+1. <strong>Bait</strong>: Attackers create convincing fake emails, websites, or messages
+2. <strong>Hook</strong>: They use urgency, fear, or curiosity to get you to act
+3. <strong>Catch</strong>: You unknowingly provide sensitive information
 
 ## Common Types of Phishing
 
-- **Email Phishing**: Mass emails pretending to be from legitimate companies
-- **Spear Phishing**: Targeted attacks on specific individuals
-- **Whaling**: Attacks targeting executives and high-profile individuals
-- **Smishing**: Phishing via SMS text messages
-- **Vishing**: Voice phishing via phone calls
+- <strong>Email Phishing</strong>: Mass emails pretending to be from legitimate companies
+- <strong>Spear Phishing</strong>: Targeted attacks on specific individuals
+- <strong>Whaling</strong>: Attacks targeting executives and high-profile individuals
+- <strong>Smishing</strong>: Phishing via SMS text messages
+- <strong>Vishing</strong>: Voice phishing via phone calls
 
 ## Why It Matters
 
@@ -307,11 +307,11 @@ Phishing is responsible for over 90% of data breaches. Understanding how to iden
 
 ## If You've Been Phished
 
-1. **Change your passwords immediately**
-2. **Enable MFA on all accounts**
-3. **Monitor your accounts for suspicious activity**
-4. **Report the incident to your IT department**
-5. **Consider a credit freeze if financial data was exposed**`,
+1. <strong>Change your passwords immediately</strong>
+2. <strong>Enable MFA on all accounts</strong>
+3. <strong>Monitor your accounts for suspicious activity</strong>
+4. <strong>Report the incident to your IT department</strong>
+5. <strong>Consider a credit freeze if financial data was exposed</strong>`,
               order: 3
             }
           ]
@@ -337,8 +337,8 @@ Phishing is responsible for over 90% of data breaches. Understanding how to iden
 
 ## The Current Threat Landscape
 
-- **81%** of data breaches involve weak or stolen passwords
-- The average person has **100+** online accounts
+- <strong>81%</strong> of data breaches involve weak or stolen passwords
+- The average person has <strong>100+</strong> online accounts
 - Password attacks are automated and run 24/7
 
 ## Common Password Attacks
@@ -379,7 +379,7 @@ Phishing is responsible for over 90% of data breaches. Understanding how to iden
 ## Password Strength Factors
 
 ### Length is King
-- **Minimum 12 characters**, 16+ is better
+- <strong>Minimum 12 characters</strong>, 16+ is better
 - Each additional character exponentially increases security
 - "correcthorsebatterystaple" > "Tr0ub4dor&3"
 
@@ -430,10 +430,10 @@ Use a password manager to generate:
 - Sync across devices
 
 ### Recommended Password Managers
-- **Bitwarden** (Free, open-source)
-- **1Password** (Paid, excellent features)
-- **Dashlane** (Paid, user-friendly)
-- **KeePass** (Free, local storage)
+- <strong>Bitwarden</strong> (Free, open-source)
+- <strong>1Password</strong> (Paid, excellent features)
+- <strong>Dashlane</strong> (Paid, user-friendly)
+- <strong>KeePass</strong> (Free, local storage)
 
 ### Best Practices
 - Use a very strong master password
@@ -445,9 +445,9 @@ Use a password manager to generate:
 
 ### What is MFA?
 Something you:
-1. **Know** (password)
-2. **Have** (phone, security key)
-3. **Are** (fingerprint, face)
+1. <strong>Know</strong> (password)
+2. <strong>Have</strong> (phone, security key)
+3. <strong>Are</strong> (fingerprint, face)
 
 ### Types of MFA
 
@@ -503,36 +503,36 @@ Social engineering is the art of manipulating people into giving up confidential
 
 ### Psychological Principles Exploited
 
-**Authority**
+<strong>Authority</strong>
 - People tend to comply with authority figures
 - Attackers impersonate IT staff, executives, or officials
 
-**Urgency**
+<strong>Urgency</strong>
 - Creating time pressure prevents careful thinking
 - "Act now or face consequences!"
 
-**Fear**
+<strong>Fear</strong>
 - Threatening job loss, legal action, or account suspension
 - Panic leads to poor decisions
 
-**Trust**
+<strong>Trust</strong>
 - Building rapport before the attack
 - Exploiting existing relationships
 
-**Reciprocity**
+<strong>Reciprocity</strong>
 - Doing a small favor first
 - "I helped you, now help me"
 
-**Social Proof**
+<strong>Social Proof</strong>
 - "Everyone else has done this"
 - Using fake testimonials or references
 
 ## The Attack Lifecycle
 
-1. **Research**: Gathering information about the target
-2. **Develop Trust**: Building a relationship or credible story
-3. **Exploit**: Making the request or launching the attack
-4. **Exit**: Covering tracks and avoiding detection`,
+1. <strong>Research</strong>: Gathering information about the target
+2. <strong>Develop Trust</strong>: Building a relationship or credible story
+3. <strong>Exploit</strong>: Making the request or launching the attack
+4. <strong>Exit</strong>: Covering tracks and avoiding detection`,
               order: 1
             },
             {
@@ -543,56 +543,56 @@ Social engineering is the art of manipulating people into giving up confidential
 
 Creating a fabricated scenario to extract information.
 
-**Examples:**
+<strong>Examples:</strong>
 - IT support calling to "fix" your computer
 - Bank representative verifying your account
 - Recruiter requesting personal details
 
-**Defense:** Always verify identity through official channels
+<strong>Defense:</strong> Always verify identity through official channels
 
 ## Baiting
 
 Offering something enticing to deliver malware.
 
-**Examples:**
+<strong>Examples:</strong>
 - USB drives left in parking lots
 - Free software downloads
 - "You've won!" pop-ups
 
-**Defense:** Never plug in unknown devices or download from untrusted sources
+<strong>Defense:</strong> Never plug in unknown devices or download from untrusted sources
 
 ## Quid Pro Quo
 
 Offering a service in exchange for information.
 
-**Examples:**
+<strong>Examples:</strong>
 - Free security audit that installs malware
 - Technical support in exchange for credentials
 - Survey with a prize requiring personal data
 
-**Defense:** Be skeptical of unsolicited offers
+<strong>Defense:</strong> Be skeptical of unsolicited offers
 
 ## Tailgating/Piggybacking
 
 Physically following authorized personnel into restricted areas.
 
-**Examples:**
+<strong>Examples:</strong>
 - Holding the door for someone with "full hands"
 - Wearing a fake badge or uniform
 - Claiming to be a vendor or delivery person
 
-**Defense:** Always verify and badge everyone, even if awkward
+<strong>Defense:</strong> Always verify and badge everyone, even if awkward
 
 ## Vishing (Voice Phishing)
 
 Phone-based social engineering.
 
-**Examples:**
+<strong>Examples:</strong>
 - IRS scam calls
 - Tech support scams
 - Bank fraud department impersonation
 
-**Defense:** Hang up and call back on official numbers`,
+<strong>Defense:</strong> Hang up and call back on official numbers`,
               order: 2
             },
             {
@@ -640,10 +640,10 @@ Phone-based social engineering.
 
 ## When You Suspect an Attack
 
-1. **Stop** - Don't provide any more information
-2. **Document** - Note details of the interaction
-3. **Report** - Contact security/IT immediately
-4. **Learn** - Share the experience to help others
+1. <strong>Stop</strong> - Don't provide any more information
+2. <strong>Document</strong> - Note details of the interaction
+3. <strong>Report</strong> - Contact security/IT immediately
+4. <strong>Learn</strong> - Share the experience to help others
 
 Remember: There's no shame in being targeted. Attackers are professionals. The shame is in not reporting it.`,
               order: 3
@@ -698,9 +698,9 @@ Your web browser is your primary interface with the internet. It's also a primar
 ## Browser Extensions
 
 ### Helpful Security Extensions
-- **uBlock Origin**: Ad and tracker blocking
-- **HTTPS Everywhere**: Force secure connections
-- **Privacy Badger**: Block invisible trackers
+- <strong>uBlock Origin</strong>: Ad and tracker blocking
+- <strong>HTTPS Everywhere</strong>: Force secure connections
+- <strong>Privacy Badger</strong>: Block invisible trackers
 
 ### Extension Safety
 - Only install from official stores
@@ -716,9 +716,9 @@ Your web browser is your primary interface with the internet. It's also a primar
 ## URL Red Flags
 
 ### Check the Domain Carefully
-- **Typosquatting**: amaz0n.com, goggle.com
-- **Subdomain tricks**: amazon.fakesite.com
-- **Similar characters**: arnazon.com (rn looks like m)
+- <strong>Typosquatting</strong>: amaz0n.com, goggle.com
+- <strong>Subdomain tricks</strong>: amazon.fakesite.com
+- <strong>Similar characters</strong>: arnazon.com (rn looks like m)
 
 ### Verify HTTPS
 - Padlock icon should be present
@@ -1020,20 +1020,20 @@ Modern cyber threats have evolved far beyond simple malware. Today's attackers u
 ## Advanced Persistent Threats (APTs)
 
 ### Characteristics of APTs
-- **Persistence**: Attackers maintain long-term access to networks
-- **Stealth**: Use of advanced evasion techniques
-- **Targeted**: Focus on specific organizations or sectors
-- **Resourced**: Often state-sponsored or well-funded criminal groups
+- <strong>Persistence</strong>: Attackers maintain long-term access to networks
+- <strong>Stealth</strong>: Use of advanced evasion techniques
+- <strong>Targeted</strong>: Focus on specific organizations or sectors
+- <strong>Resourced</strong>: Often state-sponsored or well-funded criminal groups
 
 ### APT Attack Phases
-1. **Reconnaissance**: Gathering information about targets
-2. **Initial Compromise**: Gaining first foothold
-3. **Establish Foothold**: Installing backdoors
-4. **Escalate Privileges**: Gaining admin access
-5. **Internal Reconnaissance**: Mapping the network
-6. **Lateral Movement**: Moving to other systems
-7. **Data Exfiltration**: Stealing valuable data
-8. **Maintain Presence**: Ensuring continued access
+1. <strong>Reconnaissance</strong>: Gathering information about targets
+2. <strong>Initial Compromise</strong>: Gaining first foothold
+3. <strong>Establish Foothold</strong>: Installing backdoors
+4. <strong>Escalate Privileges</strong>: Gaining admin access
+5. <strong>Internal Reconnaissance</strong>: Mapping the network
+6. <strong>Lateral Movement</strong>: Moving to other systems
+7. <strong>Data Exfiltration</strong>: Stealing valuable data
+8. <strong>Maintain Presence</strong>: Ensuring continued access
 
 ## MITRE ATT&CK Framework
 
@@ -1042,7 +1042,7 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### Key Components
 
-**Tactics** (The "Why")
+<strong>Tactics</strong> (The "Why")
 - Initial Access
 - Execution
 - Persistence
@@ -1055,7 +1055,7 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 - Exfiltration
 - Impact
 
-**Techniques** (The "How")
+<strong>Techniques</strong> (The "How")
 - Specific methods attackers use
 - Sub-techniques for detailed categorization
 - Mapped to real threat groups
@@ -1069,13 +1069,13 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 ## Indicators of Compromise (IOCs)
 
 ### Types of IOCs
-- **Hash Values**: MD5, SHA1, SHA256 of malicious files
-- **IP Addresses**: Known malicious IPs
-- **Domain Names**: C2 servers, phishing domains
-- **URLs**: Specific malicious URLs
-- **Email Addresses**: Attacker email addresses
-- **File Paths**: Common malware locations
-- **Registry Keys**: Persistence mechanisms
+- <strong>Hash Values</strong>: MD5, SHA1, SHA256 of malicious files
+- <strong>IP Addresses</strong>: Known malicious IPs
+- <strong>Domain Names</strong>: C2 servers, phishing domains
+- <strong>URLs</strong>: Specific malicious URLs
+- <strong>Email Addresses</strong>: Attacker email addresses
+- <strong>File Paths</strong>: Common malware locations
+- <strong>Registry Keys</strong>: Persistence mechanisms
 
 ### IOC Lifecycle
 1. Discovery through analysis
@@ -1092,21 +1092,21 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### NIST Incident Response Framework
 
-**Phase 1: Preparation**
+<strong>Phase 1: Preparation</strong>
 - Establish incident response team
 - Define roles and responsibilities
 - Develop playbooks and procedures
 - Acquire and maintain tools
 - Conduct training and exercises
 
-**Phase 2: Detection & Analysis**
+<strong>Phase 2: Detection & Analysis</strong>
 - Monitor security events
 - Analyze alerts and anomalies
 - Determine incident scope
 - Document findings
 - Prioritize response efforts
 
-**Phase 3: Containment, Eradication & Recovery**
+<strong>Phase 3: Containment, Eradication & Recovery</strong>
 - Short-term containment (stop bleeding)
 - Evidence preservation
 - Long-term containment (sustainable fix)
@@ -1114,7 +1114,7 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 - System recovery and validation
 - Return to normal operations
 
-**Phase 4: Post-Incident Activity**
+<strong>Phase 4: Post-Incident Activity</strong>
 - Lessons learned meeting
 - Update procedures and controls
 - Report to stakeholders
@@ -1124,26 +1124,26 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### Severity Levels
 
-**Critical (P1)**
+<strong>Critical (P1)</strong>
 - Active data breach in progress
 - Ransomware spreading across network
 - Complete system compromise
 - Regulatory notification required
 - Response: Immediate, all-hands
 
-**High (P2)**
+<strong>High (P2)</strong>
 - Confirmed malware infection
 - Unauthorized access detected
 - Sensitive data at risk
 - Response: Within 1 hour
 
-**Medium (P3)**
+<strong>Medium (P3)</strong>
 - Suspicious activity detected
 - Policy violation
 - Potential security incident
 - Response: Within 4 hours
 
-**Low (P4)**
+<strong>Low (P4)</strong>
 - Security alerts requiring investigation
 - Minor policy violations
 - Response: Within 24 hours
@@ -1191,14 +1191,14 @@ Collect in this order (most to least volatile):
 ## Digital Forensics Fundamentals
 
 ### Forensic Principles
-- **Integrity**: Never modify original evidence
-- **Chain of Custody**: Document everything
-- **Reproducibility**: Others can verify findings
-- **Documentation**: Detailed notes and reports
+- <strong>Integrity</strong>: Never modify original evidence
+- <strong>Chain of Custody</strong>: Document everything
+- <strong>Reproducibility</strong>: Others can verify findings
+- <strong>Documentation</strong>: Detailed notes and reports
 
 ### Key Forensic Artifacts
 
-**Windows Systems**
+<strong>Windows Systems</strong>
 - Event Logs (Security, System, Application)
 - Registry hives
 - Prefetch files
@@ -1206,14 +1206,14 @@ Collect in this order (most to least volatile):
 - Browser artifacts
 - Memory dumps
 
-**Linux Systems**
+<strong>Linux Systems</strong>
 - Auth logs (/var/log/auth.log)
 - Syslog (/var/log/syslog)
 - Bash history
 - Cron jobs
 - Process information
 
-**Network Forensics**
+<strong>Network Forensics</strong>
 - Packet captures (PCAP)
 - NetFlow data
 - DNS logs
@@ -1227,21 +1227,21 @@ Proactively searching for threats that have evaded existing security controls.
 
 ### Hunting Methodologies
 
-**Hypothesis-Driven Hunting**
+<strong>Hypothesis-Driven Hunting</strong>
 1. Develop hypothesis based on threat intel
 2. Determine data sources needed
 3. Create detection queries
 4. Analyze results
 5. Refine and iterate
 
-**IOC-Based Hunting**
+<strong>IOC-Based Hunting</strong>
 - Search for known bad indicators
 - Hash values
 - IP addresses
 - Domain names
 - File paths
 
-**Anomaly-Based Hunting**
+<strong>Anomaly-Based Hunting</strong>
 - Establish baselines
 - Look for deviations
 - Investigate outliers
@@ -1249,18 +1249,18 @@ Proactively searching for threats that have evaded existing security controls.
 
 ### Essential Hunting Queries
 
-**Unusual Process Execution**
+<strong>Unusual Process Execution</strong>
 - Processes running from temp folders
 - Unsigned executables
 - Processes with network connections
 
-**Persistence Mechanisms**
+<strong>Persistence Mechanisms</strong>
 - New scheduled tasks
 - Registry run keys
 - New services
 - Startup folder additions
 
-**Lateral Movement Indicators**
+<strong>Lateral Movement Indicators</strong>
 - Remote execution tools (PsExec, WMI)
 - RDP connections
 - Admin share access
@@ -1269,10 +1269,10 @@ Proactively searching for threats that have evaded existing security controls.
 ## Building a Threat Hunting Program
 
 ### Key Elements
-1. **People**: Skilled analysts with diverse backgrounds
-2. **Process**: Documented methodologies and playbooks
-3. **Technology**: SIEM, EDR, network visibility tools
-4. **Intelligence**: Threat feeds, industry reports
+1. <strong>People</strong>: Skilled analysts with diverse backgrounds
+2. <strong>Process</strong>: Documented methodologies and playbooks
+3. <strong>Technology</strong>: SIEM, EDR, network visibility tools
+4. <strong>Intelligence</strong>: Threat feeds, industry reports
 
 ### Metrics for Success
 - Number of hunts conducted
@@ -1613,7 +1613,7 @@ Proactively searching for threats that have evaded existing security controls.
     data: {
       title: "Building Phishing Resistance",
       videoUrl: "https://www.youtube.com/watch?v=pq2VAaLlZEs",
-      content: "# Building Phishing Resistance\n\n## What is Phishing Resistance?\n\n**Definition**: The ability to consistently recognize and avoid phishing attacks through a combination of knowledge, habits, technical controls, and organizational culture.\n\n**Not just one skill**: A layered approach combining:\n- Technical knowledge\n- Critical thinking habits\n- Security tools\n- Organizational support\n- Continuous awareness\n\n**Goal**: Make phishing attacks fail even when sophisticated or targeted\n\n## The Psychology of Phishing Resistance\n\n### Why Humans Fall for Phishing\n\n**Psychological triggers exploited**:\n\n1. **Authority**: We're trained to obey authority figures\n2. **Urgency**: Time pressure bypasses critical thinking\n3. **Fear**: Threat of negative consequences impairs judgment\n4. **Curiosity**: We want to know what the message says\n5. **Greed**: Offers that seem too good to pass up\n6. **Trust**: We trust familiar brands and people\n7. **Helpfulness**: We want to help others\n8. **Social proof**: \"Everyone else is doing this\"\n\n**Reality**: Phishing succeeds by exploiting normal human psychology\n\n### Building Mental Resistance\n\n**Cognitive strategies**:\n\n1. **Default skepticism**\n   - Question unexpected communications\n   - \"Why am I receiving this now?\"\n   - \"Does this make sense?\"\n\n2. **Slow down**\n   - Urgency is manufactured\n   - Legitimate situations allow verification time\n   - Take 30 seconds to think\n\n3. **Recognize emotional manipulation**\n   - Notice when you feel fear, urgency, or excitement\n   - Pause when emotions triggered\n   - Emotion = potential manipulation\n\n4. **Pattern recognition**\n   - Learn common phishing patterns\n   - Notice what doesn't fit\n   - Trust your instincts\n\n## Technical Foundation\n\n### Email Security\n\n**Email filtering**:\n\n1. **Strong spam filter**\n   - Gmail, Outlook have good filtering\n   - Enterprise solutions (Proofpoint, Mimecast)\n   - Regularly update filter rules\n\n2. **Authentication checks**\n   - SPF (Sender Policy Framework)\n   - DKIM (DomainKeys Identified Mail)\n   - DMARC (Domain-based Message Authentication)\n   - These verify sender legitimacy\n\n3. **Banner warnings**\n   - \"External email\" warnings\n   - \"Unusual sender\" alerts\n   - Color-coded indicators\n\n**Email client settings**:\n\n1. **Display full headers**\n   - See actual sender address\n   - Check routing information\n   - Verify source\n\n2. **Disable automatic image loading**\n   - Prevents tracking pixels\n   - Blocks malicious images\n   - Manual load when safe\n\n3. **Plain text option**\n   - View email as plain text\n   - Reveals hidden links\n   - Easier to spot anomalies\n\n### Browser Protection\n\n**Essential tools**:\n\n1. **Modern, updated browser**\n   - Chrome, Firefox, Edge, Safari\n   - Automatic updates enabled\n   - Latest security patches\n\n2. **Phishing protection**\n   - Safe Browsing (Chrome)\n   - SmartScreen (Edge)\n   - Fraudulent site warnings (Firefox, Safari)\n\n3. **Password manager with phishing protection**\n   - Won't autofill on fake sites\n   - Only fills on legitimate domains\n   - Strong indicator of legitimate vs. fake site\n\n**Browser extensions**:\n\n1. **Link checker**\n   - Shows link destinations on hover\n   - Expands shortened URLs\n   - Warns about suspicious destinations\n\n2. **Ad blocker**\n   - Blocks malvertising\n   - Reduces phishing ad exposure\n\n### Multi-Factor Authentication (MFA)\n\n**Critical defense**:\n\n**Why it matters**:\n- Even if phished, attacker can't access account\n- Requires second factor (phone, app, hardware key)\n- Dramatically reduces successful phishing impact\n\n**MFA types** (from most to least secure):\n\n1. **Hardware security keys (BEST)**\n   - YubiKey, Google Titan\n   - Phishing-resistant (won't work on fake sites)\n   - Physical device required\n\n2. **Authenticator apps**\n   - Google Authenticator, Authy, Microsoft Authenticator\n   - Time-based codes\n   - Better than SMS\n\n3. **Push notifications**\n   - Approve on phone\n   - Convenient\n   - Risk: approval fatigue\n\n4. **SMS codes** (WEAKEST)\n   - Better than nothing\n   - Vulnerable to SIM swapping\n   - Use only if nothing else available\n\n**Enable MFA on**:\n- Email accounts (CRITICAL)\n- Financial accounts\n- Work accounts\n- Social media\n- Any account with sensitive data\n\n### Additional Technical Tools\n\n1. **Virtual Private Network (VPN)**\n   - Encrypts traffic\n   - Hides IP address\n   - Protects on public Wi-Fi\n\n2. **DNS filtering**\n   - Blocks known malicious domains\n   - Stops phishing sites at DNS level\n   - OpenDNS, Quad9, Cloudflare\n\n3. **Antivirus with web protection**\n   - Blocks malicious sites\n   - Scans downloads\n   - Real-time protection\n\n## Behavioral Habits\n\n### Email Verification Routine\n\n**Before clicking any link or downloading attachment**:\n\n1. **Check sender address**\n   - Hover over name to see actual address\n   - Look for typosquatting\n   - Verify domain matches claimed organization\n\n2. **Inspect links before clicking**\n   - Hover to see destination\n   - Look for mismatched URLs\n   - Check for suspicious domains\n\n3. **Question unexpected emails**\n   - Did you expect this?\n   - Is the request normal?\n   - Does tone/format match usual communications?\n\n4. **Verify through independent channel**\n   - Call using known phone number\n   - Log into account directly (don't click link)\n   - Contact sender through different method\n\n### Safe Link Practices\n\n**Golden rule**: When in doubt, type it yourself\n\n**Instead of clicking email links**:\n1. Open browser\n2. Type known URL directly (or use bookmark)\n3. Navigate to relevant section\n4. Verify information there\n\n**For unknown links**:\n1. Use link checker (urlscan.io, VirusTotal)\n2. Check where it goes\n3. Look up organization directly\n\n**Never click**:\n- Links in unexpected emails\n- Shortened URLs from unknown sources\n- Links requesting password or payment info\n- Links in emails claiming account problems\n\n### Attachment Safety\n\n**Default stance**: Don't open unexpected attachments\n\n**Before opening any attachment**:\n\n1. **Verify sender legitimacy**\n   - Confirm they actually sent it\n   - Call or message through known channel\n\n2. **Check file type**\n   - Be extra cautious: .exe, .zip, .scr, .js, .vbs\n   - Office files can have malicious macros\n   - PDFs can have malicious scripts\n\n3. **Scan with antivirus**\n   - Save to disk first\n   - Scan before opening\n\n4. **Use sandbox if available**\n   - Open in isolated environment\n   - Virtual machine\n   - Cloud-based sandbox\n\n**Red flag attachments**:\n- Unexpected invoices\n- \"You have to see this!\" attachments\n- Attachments claiming to be from shipping companies\n- Password-protected archives (to evade scanning)\n\n### Password Practices\n\n**Supporting phishing resistance**:\n\n1. **Unique passwords per site**\n   - Password manager essential\n   - Breach doesn't affect other accounts\n\n2. **Long, strong passwords**\n   - 16+ characters\n   - Mix of character types\n   - Use password manager to generate\n\n3. **Never reuse passwords**\n   - Especially email and banking\n   - Reuse = single phishing attack compromises everything\n\n4. **Change compromised passwords immediately**\n   - All accounts with same password\n   - Enable MFA if not already active\n\n### Mobile-Specific Habits\n\n**Unique mobile risks**:\n- Smaller screens (harder to inspect)\n- Touch interface (easier to misclick)\n- More urgent feel\n- Less security visibility\n\n**Mobile best practices**:\n\n1. **Be extra cautious**\n   - Can't hover to see link destinations\n   - Harder to verify sender addresses\n\n2. **Don't click links on mobile**\n   - Open browser separately\n   - Type URL or use app\n\n3. **Use official apps**\n   - Bank app vs. mobile browser\n   - Apps harder to phish\n\n4. **Long-press links**\n   - Shows destination on mobile\n   - Check before opening\n\n## Organizational Phishing Resistance\n\n### Company-Level Defenses\n\n**Technical controls**:\n\n1. **Email authentication**\n   - SPF, DKIM, DMARC implemented\n   - Reject unauthenticated email\n   - Display warnings on external email\n\n2. **Advanced filtering**\n   - AI-based phishing detection\n   - Link sandboxing\n   - Attachment scanning\n   - Impersonation protection\n\n3. **Web filtering**\n   - Block known phishing sites\n   - Category-based filtering\n   - Real-time threat intelligence\n\n4. **Endpoint protection**\n   - Antivirus on all devices\n   - Exploit protection\n   - Application control\n\n**Policy controls**:\n\n1. **Clear security policies**\n   - What to do with suspicious emails\n   - How to report incidents\n   - No blame for reporting\n   - Consequences for ignoring policy\n\n2. **Verification procedures**\n   - Financial transactions require callback\n   - Password resets follow strict process\n   - Vendor changes verified through known contacts\n\n3. **Incident response plan**\n   - Clear steps if phished\n   - Rapid containment procedures\n   - Communication protocols\n\n### Training and Awareness\n\n**Effective training elements**:\n\n1. **Regular, ongoing training**\n   - Not just annual\n   - Monthly or quarterly\n   - Fresh examples and techniques\n\n2. **Realistic simulations**\n   - Simulated phishing tests\n   - No punishment for falling for tests\n   - Immediate learning opportunity\n\n3. **Positive reinforcement**\n   - Recognize employees who report phishing\n   - Celebrate security awareness wins\n   - Make security positive, not punitive\n\n4. **Varied content**\n   - Different phishing types\n   - Various difficulty levels\n   - Department-specific scenarios\n\n5. **Measurement and improvement**\n   - Track click rates over time\n   - Identify high-risk groups\n   - Tailored additional training\n\n**Training mistakes to avoid**:\n- \"Gotcha\" approach (breeds resentment)\n- Only annual training (people forget)\n- Punishment for failures (discourages reporting)\n- Boring, generic content (people tune out)\n\n### Security Culture\n\n**Building resistance organization-wide**:\n\n1. **Make security everyone's job**\n   - Not just IT's responsibility\n   - Each person is part of defense\n   - Collective responsibility\n\n2. **Encourage reporting**\n   - Easy reporting mechanism\n   - Praise those who report\n   - No blame for clicking (if reported)\n\n3. **Share information**\n   - Alert everyone to new campaigns\n   - Discuss real attempts\n   - Learn collectively\n\n4. **Leadership modeling**\n   - Executives follow security practices\n   - No special exemptions\n   - Visible commitment to security\n\n## Continuous Improvement\n\n### Staying Current\n\n**Phishing evolves constantly**:\n\n1. **Follow security news**\n   - Krebs on Security\n   - The Hacker News\n   - Bleeping Computer\n   - Security company blogs\n\n2. **Subscribe to alerts**\n   - US-CERT\n   - Industry-specific ISACs\n   - Security vendor bulletins\n\n3. **Participate in community**\n   - Security forums\n   - Professional groups\n   - Share experiences\n\n4. **Review real attempts**\n   - Analyze phishing you receive\n   - Learn new techniques\n   - Share with colleagues\n\n### Measuring Your Resistance\n\n**Personal assessment**:\n\n**Questions to ask**:\n- Do I verify unexpected requests?\n- Do I use MFA on critical accounts?\n- Do I check sender addresses?\n- Do I hover before clicking?\n- Do I use unique passwords?\n- Do I report suspicious emails?\n- Do I stay informed about threats?\n\n**Track your progress**:\n- How many phishing emails do you catch?\n- How often do you verify?\n- Are you creating better habits?\n\n### Learning from Mistakes\n\n**If you click a phishing link or provide information**:\n\n1. **Don't panic**\n   - Mistakes happen\n   - Rapid response limits damage\n\n2. **Act immediately**\n   - Report to IT security\n   - Change passwords\n   - Monitor accounts\n\n3. **Learn from experience**\n   - What made it convincing?\n   - What signs did you miss?\n   - How can you avoid next time?\n\n4. **Share learnings**\n   - Help others avoid same mistake\n   - Contribute to collective knowledge\n\n## Advanced Phishing Types\n\n### Spear Phishing\n\n**Characteristics**:\n- Targeted at specific individual\n- Uses personal information\n- Highly convincing\n- Often work-related\n\n**Resistance strategies**:\n- Limit public information\n- Be extra cautious with personalized emails\n- Always verify through known channels\n- Question even plausible scenarios\n\n### Whaling\n\n**Definition**: Phishing targeting executives\n\n**Why dangerous**:\n- Executives have high-value access\n- Busy, less likely to scrutinize\n- Authority makes it hard to question\n\n**Resistance**:\n- Executive assistants trained to verify\n- Callback procedures for financial requests\n- Extra layers for sensitive actions\n\n### Business Email Compromise (BEC)\n\n**Scenario**: Email appears from CEO requesting wire transfer\n\n**Resistance**:\n- Always verify financial requests\n- Callback on known number\n- Multi-person approval for transfers\n- Out-of-band verification\n\n### Clone Phishing\n\n**Attack**: Legitimate email resent with malicious link/attachment\n\n**Resistance**:\n- Verify resent messages\n- Check if slight differences from original\n- Question \"resend\" requests\n\n## Emergency Response\n\n### If You've Been Phished\n\n**Immediate actions (first 15 minutes)**:\n\n1. **Disconnect from network** (if malware suspected)\n\n2. **Report to IT security immediately**\n   - Time is critical\n   - IT can contain spread\n   - Alert others\n\n3. **Change passwords** (from clean device)\n   - Compromised account\n   - Email account\n   - Accounts with same password\n\n4. **Document everything**\n   - Screenshots of phishing email\n   - What information was provided\n   - What links were clicked\n   - Timeline of events\n\n**Next steps (first hour)**:\n\n5. **Monitor accounts**\n   - Check for unauthorized access\n   - Review recent activity\n   - Look for changes to settings\n\n6. **Enable/check MFA**\n   - Activate if not enabled\n   - Check for added devices/apps\n   - Remove unauthorized access\n\n7. **Run security scans**\n   - Full antivirus scan\n   - Anti-malware scan\n   - Check for persistence\n\n**Following days/weeks**:\n\n8. **Monitor for fraud**\n   - Bank statements\n   - Credit reports\n   - Account activities\n\n9. **Consider credit freeze** (if sensitive info exposed)\n\n10. **Stay alert for follow-up attacks**\n    - Attackers may try again\n    - May use stolen information for further phishing\n\n## Key Takeaways\n\n- Phishing resistance requires layered approach: knowledge + habits + tools + culture\n- Enable MFA everywhere possible, especially email - stops most phishing even if credentials stolen\n- Use password manager with autofill - won't fill credentials on fake sites (strong phishing indicator)\n- Verify unexpected requests through independent channel - never use contact info from suspicious message\n- Slow down when urgent requests arrive - urgency is manufactured to bypass critical thinking\n- Hover before clicking - inspect link destinations before clicking any link in email\n- Default to skepticism - question unexpected emails even if they look legitimate\n- Train regularly with realistic scenarios - annual training insufficient, need continuous exposure\n- Report suspicious emails immediately - helps protect others and tracks attack patterns\n- No blame culture essential - punishment discourages reporting and learning\n- Stay current on phishing techniques - attackers constantly evolve tactics\n- Learn from mistakes - if phished, report immediately and use experience to improve defenses",
+      content: "# Building Phishing Resistance\n\n## What is Phishing Resistance?\n\n<strong>Definition</strong>: The ability to consistently recognize and avoid phishing attacks through a combination of knowledge, habits, technical controls, and organizational culture.\n\n<strong>Not just one skill</strong>: A layered approach combining:\n- Technical knowledge\n- Critical thinking habits\n- Security tools\n- Organizational support\n- Continuous awareness\n\n<strong>Goal</strong>: Make phishing attacks fail even when sophisticated or targeted\n\n## The Psychology of Phishing Resistance\n\n### Why Humans Fall for Phishing\n\n<strong>Psychological triggers exploited</strong>:\n\n1. <strong>Authority</strong>: We're trained to obey authority figures\n2. <strong>Urgency</strong>: Time pressure bypasses critical thinking\n3. <strong>Fear</strong>: Threat of negative consequences impairs judgment\n4. <strong>Curiosity</strong>: We want to know what the message says\n5. <strong>Greed</strong>: Offers that seem too good to pass up\n6. <strong>Trust</strong>: We trust familiar brands and people\n7. <strong>Helpfulness</strong>: We want to help others\n8. <strong>Social proof</strong>: \"Everyone else is doing this\"\n\n<strong>Reality</strong>: Phishing succeeds by exploiting normal human psychology\n\n### Building Mental Resistance\n\n<strong>Cognitive strategies</strong>:\n\n1. <strong>Default skepticism</strong>\n   - Question unexpected communications\n   - \"Why am I receiving this now?\"\n   - \"Does this make sense?\"\n\n2. <strong>Slow down</strong>\n   - Urgency is manufactured\n   - Legitimate situations allow verification time\n   - Take 30 seconds to think\n\n3. <strong>Recognize emotional manipulation</strong>\n   - Notice when you feel fear, urgency, or excitement\n   - Pause when emotions triggered\n   - Emotion = potential manipulation\n\n4. <strong>Pattern recognition</strong>\n   - Learn common phishing patterns\n   - Notice what doesn't fit\n   - Trust your instincts\n\n## Technical Foundation\n\n### Email Security\n\n<strong>Email filtering</strong>:\n\n1. <strong>Strong spam filter</strong>\n   - Gmail, Outlook have good filtering\n   - Enterprise solutions (Proofpoint, Mimecast)\n   - Regularly update filter rules\n\n2. <strong>Authentication checks</strong>\n   - SPF (Sender Policy Framework)\n   - DKIM (DomainKeys Identified Mail)\n   - DMARC (Domain-based Message Authentication)\n   - These verify sender legitimacy\n\n3. <strong>Banner warnings</strong>\n   - \"External email\" warnings\n   - \"Unusual sender\" alerts\n   - Color-coded indicators\n\n<strong>Email client settings</strong>:\n\n1. <strong>Display full headers</strong>\n   - See actual sender address\n   - Check routing information\n   - Verify source\n\n2. <strong>Disable automatic image loading</strong>\n   - Prevents tracking pixels\n   - Blocks malicious images\n   - Manual load when safe\n\n3. <strong>Plain text option</strong>\n   - View email as plain text\n   - Reveals hidden links\n   - Easier to spot anomalies\n\n### Browser Protection\n\n<strong>Essential tools</strong>:\n\n1. <strong>Modern, updated browser</strong>\n   - Chrome, Firefox, Edge, Safari\n   - Automatic updates enabled\n   - Latest security patches\n\n2. <strong>Phishing protection</strong>\n   - Safe Browsing (Chrome)\n   - SmartScreen (Edge)\n   - Fraudulent site warnings (Firefox, Safari)\n\n3. <strong>Password manager with phishing protection</strong>\n   - Won't autofill on fake sites\n   - Only fills on legitimate domains\n   - Strong indicator of legitimate vs. fake site\n\n<strong>Browser extensions</strong>:\n\n1. <strong>Link checker</strong>\n   - Shows link destinations on hover\n   - Expands shortened URLs\n   - Warns about suspicious destinations\n\n2. <strong>Ad blocker</strong>\n   - Blocks malvertising\n   - Reduces phishing ad exposure\n\n### Multi-Factor Authentication (MFA)\n\n<strong>Critical defense</strong>:\n\n<strong>Why it matters</strong>:\n- Even if phished, attacker can't access account\n- Requires second factor (phone, app, hardware key)\n- Dramatically reduces successful phishing impact\n\n<strong>MFA types</strong> (from most to least secure):\n\n1. <strong>Hardware security keys (BEST)</strong>\n   - YubiKey, Google Titan\n   - Phishing-resistant (won't work on fake sites)\n   - Physical device required\n\n2. <strong>Authenticator apps</strong>\n   - Google Authenticator, Authy, Microsoft Authenticator\n   - Time-based codes\n   - Better than SMS\n\n3. <strong>Push notifications</strong>\n   - Approve on phone\n   - Convenient\n   - Risk: approval fatigue\n\n4. <strong>SMS codes</strong> (WEAKEST)\n   - Better than nothing\n   - Vulnerable to SIM swapping\n   - Use only if nothing else available\n\n<strong>Enable MFA on</strong>:\n- Email accounts (CRITICAL)\n- Financial accounts\n- Work accounts\n- Social media\n- Any account with sensitive data\n\n### Additional Technical Tools\n\n1. <strong>Virtual Private Network (VPN)</strong>\n   - Encrypts traffic\n   - Hides IP address\n   - Protects on public Wi-Fi\n\n2. <strong>DNS filtering</strong>\n   - Blocks known malicious domains\n   - Stops phishing sites at DNS level\n   - OpenDNS, Quad9, Cloudflare\n\n3. <strong>Antivirus with web protection</strong>\n   - Blocks malicious sites\n   - Scans downloads\n   - Real-time protection\n\n## Behavioral Habits\n\n### Email Verification Routine\n\n<strong>Before clicking any link or downloading attachment</strong>:\n\n1. <strong>Check sender address</strong>\n   - Hover over name to see actual address\n   - Look for typosquatting\n   - Verify domain matches claimed organization\n\n2. <strong>Inspect links before clicking</strong>\n   - Hover to see destination\n   - Look for mismatched URLs\n   - Check for suspicious domains\n\n3. <strong>Question unexpected emails</strong>\n   - Did you expect this?\n   - Is the request normal?\n   - Does tone/format match usual communications?\n\n4. <strong>Verify through independent channel</strong>\n   - Call using known phone number\n   - Log into account directly (don't click link)\n   - Contact sender through different method\n\n### Safe Link Practices\n\n<strong>Golden rule</strong>: When in doubt, type it yourself\n\n<strong>Instead of clicking email links</strong>:\n1. Open browser\n2. Type known URL directly (or use bookmark)\n3. Navigate to relevant section\n4. Verify information there\n\n<strong>For unknown links</strong>:\n1. Use link checker (urlscan.io, VirusTotal)\n2. Check where it goes\n3. Look up organization directly\n\n<strong>Never click</strong>:\n- Links in unexpected emails\n- Shortened URLs from unknown sources\n- Links requesting password or payment info\n- Links in emails claiming account problems\n\n### Attachment Safety\n\n<strong>Default stance</strong>: Don't open unexpected attachments\n\n<strong>Before opening any attachment</strong>:\n\n1. <strong>Verify sender legitimacy</strong>\n   - Confirm they actually sent it\n   - Call or message through known channel\n\n2. <strong>Check file type</strong>\n   - Be extra cautious: .exe, .zip, .scr, .js, .vbs\n   - Office files can have malicious macros\n   - PDFs can have malicious scripts\n\n3. <strong>Scan with antivirus</strong>\n   - Save to disk first\n   - Scan before opening\n\n4. <strong>Use sandbox if available</strong>\n   - Open in isolated environment\n   - Virtual machine\n   - Cloud-based sandbox\n\n<strong>Red flag attachments</strong>:\n- Unexpected invoices\n- \"You have to see this!\" attachments\n- Attachments claiming to be from shipping companies\n- Password-protected archives (to evade scanning)\n\n### Password Practices\n\n<strong>Supporting phishing resistance</strong>:\n\n1. <strong>Unique passwords per site</strong>\n   - Password manager essential\n   - Breach doesn't affect other accounts\n\n2. <strong>Long, strong passwords</strong>\n   - 16+ characters\n   - Mix of character types\n   - Use password manager to generate\n\n3. <strong>Never reuse passwords</strong>\n   - Especially email and banking\n   - Reuse = single phishing attack compromises everything\n\n4. <strong>Change compromised passwords immediately</strong>\n   - All accounts with same password\n   - Enable MFA if not already active\n\n### Mobile-Specific Habits\n\n<strong>Unique mobile risks</strong>:\n- Smaller screens (harder to inspect)\n- Touch interface (easier to misclick)\n- More urgent feel\n- Less security visibility\n\n<strong>Mobile best practices</strong>:\n\n1. <strong>Be extra cautious</strong>\n   - Can't hover to see link destinations\n   - Harder to verify sender addresses\n\n2. <strong>Don't click links on mobile</strong>\n   - Open browser separately\n   - Type URL or use app\n\n3. <strong>Use official apps</strong>\n   - Bank app vs. mobile browser\n   - Apps harder to phish\n\n4. <strong>Long-press links</strong>\n   - Shows destination on mobile\n   - Check before opening\n\n## Organizational Phishing Resistance\n\n### Company-Level Defenses\n\n<strong>Technical controls</strong>:\n\n1. <strong>Email authentication</strong>\n   - SPF, DKIM, DMARC implemented\n   - Reject unauthenticated email\n   - Display warnings on external email\n\n2. <strong>Advanced filtering</strong>\n   - AI-based phishing detection\n   - Link sandboxing\n   - Attachment scanning\n   - Impersonation protection\n\n3. <strong>Web filtering</strong>\n   - Block known phishing sites\n   - Category-based filtering\n   - Real-time threat intelligence\n\n4. <strong>Endpoint protection</strong>\n   - Antivirus on all devices\n   - Exploit protection\n   - Application control\n\n<strong>Policy controls</strong>:\n\n1. <strong>Clear security policies</strong>\n   - What to do with suspicious emails\n   - How to report incidents\n   - No blame for reporting\n   - Consequences for ignoring policy\n\n2. <strong>Verification procedures</strong>\n   - Financial transactions require callback\n   - Password resets follow strict process\n   - Vendor changes verified through known contacts\n\n3. <strong>Incident response plan</strong>\n   - Clear steps if phished\n   - Rapid containment procedures\n   - Communication protocols\n\n### Training and Awareness\n\n<strong>Effective training elements</strong>:\n\n1. <strong>Regular, ongoing training</strong>\n   - Not just annual\n   - Monthly or quarterly\n   - Fresh examples and techniques\n\n2. <strong>Realistic simulations</strong>\n   - Simulated phishing tests\n   - No punishment for falling for tests\n   - Immediate learning opportunity\n\n3. <strong>Positive reinforcement</strong>\n   - Recognize employees who report phishing\n   - Celebrate security awareness wins\n   - Make security positive, not punitive\n\n4. <strong>Varied content</strong>\n   - Different phishing types\n   - Various difficulty levels\n   - Department-specific scenarios\n\n5. <strong>Measurement and improvement</strong>\n   - Track click rates over time\n   - Identify high-risk groups\n   - Tailored additional training\n\n<strong>Training mistakes to avoid</strong>:\n- \"Gotcha\" approach (breeds resentment)\n- Only annual training (people forget)\n- Punishment for failures (discourages reporting)\n- Boring, generic content (people tune out)\n\n### Security Culture\n\n<strong>Building resistance organization-wide</strong>:\n\n1. <strong>Make security everyone's job</strong>\n   - Not just IT's responsibility\n   - Each person is part of defense\n   - Collective responsibility\n\n2. <strong>Encourage reporting</strong>\n   - Easy reporting mechanism\n   - Praise those who report\n   - No blame for clicking (if reported)\n\n3. <strong>Share information</strong>\n   - Alert everyone to new campaigns\n   - Discuss real attempts\n   - Learn collectively\n\n4. <strong>Leadership modeling</strong>\n   - Executives follow security practices\n   - No special exemptions\n   - Visible commitment to security\n\n## Continuous Improvement\n\n### Staying Current\n\n<strong>Phishing evolves constantly</strong>:\n\n1. <strong>Follow security news</strong>\n   - Krebs on Security\n   - The Hacker News\n   - Bleeping Computer\n   - Security company blogs\n\n2. <strong>Subscribe to alerts</strong>\n   - US-CERT\n   - Industry-specific ISACs\n   - Security vendor bulletins\n\n3. <strong>Participate in community</strong>\n   - Security forums\n   - Professional groups\n   - Share experiences\n\n4. <strong>Review real attempts</strong>\n   - Analyze phishing you receive\n   - Learn new techniques\n   - Share with colleagues\n\n### Measuring Your Resistance\n\n<strong>Personal assessment</strong>:\n\n<strong>Questions to ask</strong>:\n- Do I verify unexpected requests?\n- Do I use MFA on critical accounts?\n- Do I check sender addresses?\n- Do I hover before clicking?\n- Do I use unique passwords?\n- Do I report suspicious emails?\n- Do I stay informed about threats?\n\n<strong>Track your progress</strong>:\n- How many phishing emails do you catch?\n- How often do you verify?\n- Are you creating better habits?\n\n### Learning from Mistakes\n\n<strong>If you click a phishing link or provide information</strong>:\n\n1. <strong>Don't panic<strong>\n   - Mistakes happen\n   - Rapid response limits damage\n\n2. </strong>Act immediately<strong>\n   - Report to IT security\n   - Change passwords\n   - Monitor accounts\n\n3. </strong>Learn from experience<strong>\n   - What made it convincing?\n   - What signs did you miss?\n   - How can you avoid next time?\n\n4. </strong>Share learnings<strong>\n   - Help others avoid same mistake\n   - Contribute to collective knowledge\n\n## Advanced Phishing Types\n\n### Spear Phishing\n\n</strong>Characteristics<strong>:\n- Targeted at specific individual\n- Uses personal information\n- Highly convincing\n- Often work-related\n\n</strong>Resistance strategies<strong>:\n- Limit public information\n- Be extra cautious with personalized emails\n- Always verify through known channels\n- Question even plausible scenarios\n\n### Whaling\n\n</strong>Definition<strong>: Phishing targeting executives\n\n</strong>Why dangerous<strong>:\n- Executives have high-value access\n- Busy, less likely to scrutinize\n- Authority makes it hard to question\n\n</strong>Resistance<strong>:\n- Executive assistants trained to verify\n- Callback procedures for financial requests\n- Extra layers for sensitive actions\n\n### Business Email Compromise (BEC)\n\n</strong>Scenario<strong>: Email appears from CEO requesting wire transfer\n\n</strong>Resistance<strong>:\n- Always verify financial requests\n- Callback on known number\n- Multi-person approval for transfers\n- Out-of-band verification\n\n### Clone Phishing\n\n</strong>Attack<strong>: Legitimate email resent with malicious link/attachment\n\n</strong>Resistance</strong>:\n- Verify resent messages\n- Check if slight differences from original\n- Question \"resend\" requests\n\n## Emergency Response\n\n### If You've Been Phished\n\n<strong>Immediate actions (first 15 minutes)</strong>:\n\n1. <strong>Disconnect from network</strong> (if malware suspected)\n\n2. <strong>Report to IT security immediately</strong>\n   - Time is critical\n   - IT can contain spread\n   - Alert others\n\n3. <strong>Change passwords</strong> (from clean device)\n   - Compromised account\n   - Email account\n   - Accounts with same password\n\n4. <strong>Document everything</strong>\n   - Screenshots of phishing email\n   - What information was provided\n   - What links were clicked\n   - Timeline of events\n\n<strong>Next steps (first hour)</strong>:\n\n5. <strong>Monitor accounts</strong>\n   - Check for unauthorized access\n   - Review recent activity\n   - Look for changes to settings\n\n6. <strong>Enable/check MFA</strong>\n   - Activate if not enabled\n   - Check for added devices/apps\n   - Remove unauthorized access\n\n7. <strong>Run security scans</strong>\n   - Full antivirus scan\n   - Anti-malware scan\n   - Check for persistence\n\n<strong>Following days/weeks</strong>:\n\n8. <strong>Monitor for fraud</strong>\n   - Bank statements\n   - Credit reports\n   - Account activities\n\n9. <strong>Consider credit freeze</strong> (if sensitive info exposed)\n\n10. <strong>Stay alert for follow-up attacks</strong>\n    - Attackers may try again\n    - May use stolen information for further phishing\n\n## Key Takeaways\n\n- Phishing resistance requires layered approach: knowledge + habits + tools + culture\n- Enable MFA everywhere possible, especially email - stops most phishing even if credentials stolen\n- Use password manager with autofill - won't fill credentials on fake sites (strong phishing indicator)\n- Verify unexpected requests through independent channel - never use contact info from suspicious message\n- Slow down when urgent requests arrive - urgency is manufactured to bypass critical thinking\n- Hover before clicking - inspect link destinations before clicking any link in email\n- Default to skepticism - question unexpected emails even if they look legitimate\n- Train regularly with realistic scenarios - annual training insufficient, need continuous exposure\n- Report suspicious emails immediately - helps protect others and tracks attack patterns\n- No blame culture essential - punishment discourages reporting and learning\n- Stay current on phishing techniques - attackers constantly evolve tactics\n- Learn from mistakes - if phished, report immediately and use experience to improve defenses",
       order: 8,
       courseId: courses[0].id,
       moduleId: course1Modules[2].id
@@ -1676,7 +1676,7 @@ Proactively searching for threats that have evaded existing security controls.
   await prisma.lesson.create({
     data: {
       title: "The Human Element",
-      content: "# The Human Element in Security\n\n## Why Humans Are Often the Weakest Link\n\nTechnology can create strong defenses, but humans remain the most vulnerable point in any security system. Understanding this is the first step to strengthening security.\n\n### The Reality\n- 95% of cybersecurity breaches are caused by human error\n- Social engineering attacks exploit psychology, not technology\n- Even security-conscious people make mistakes under pressure\n- Awareness alone doesn't prevent compromise\n- Humans have cognitive biases that attackers exploit\n\n## Cognitive Biases Attackers Exploit\n\n### 1. Authority Bias\n- We tend to obey authority figures without question\n- Attacker impersonates CEO, IT admin, or government official\n- Creates pressure to comply quickly\n- Example: \"This is your CEO, I need this done immediately\"\n\n### 2. Urgency and Scarcity\n- \"Act now or lose access!\"\n- \"Limited time offer - only 3 spots left\"\n- Creates panic that bypasses rational thinking\n- Victims act first, think later\n\n### 3. Social Proof\n- \"Everyone else has already updated their credentials\"\n- We follow the crowd, assuming others know what's right\n- Fake testimonials and reviews\n- Mass behavior influences individual decisions\n\n### 4. Reciprocity\n- When someone does us a favor, we feel obligated to return it\n- Attacker offers help or free service\n- Victim feels compelled to comply with requests\n- Example: \"I helped you with IT issue, can you help me access this file?\"\n\n### 5. Trust and Familiarity\n- We trust people and things that seem familiar\n- Official-looking emails, logos, and websites\n- Using names of colleagues or familiar services\n- Leveraging existing relationships\n\n### 6. Confirmation Bias\n- We see what we expect to see\n- If expecting a package, delivery notification seems legitimate\n- Attackers time attacks around events (tax season, holidays)\n- We unconsciously ignore warning signs\n\n## Why Smart People Fall for Attacks\n\n### It's Not About Intelligence\n\n**Common Misconceptions:**\n- \"I'm too smart to fall for phishing\"\n- \"Only careless people get hacked\"\n- \"I would never click that\"\n\n**Reality:**\n- Everyone has cognitive biases\n- One distracted moment is all it takes\n- Sophisticated attacks fool experts\n- Fatigue and stress impair judgment\n- Multitasking reduces attention\n\n### Contributing Factors\n\n**Busy Environments:**\n- Processing hundreds of emails daily\n- Constant interruptions and distractions\n- Pressure to respond quickly\n- Working outside normal hours\n\n**Workplace Culture:**\n- Pressure to be helpful and cooperative\n- Fear of questioning authority\n- Emphasis on speed over security\n- Blame culture discourages reporting\n\n**Technology Overload:**\n- Too many systems and passwords\n- Alert fatigue from constant notifications\n- Complex security procedures\n- Conflicting requirements\n\n## Building Human-Centered Security\n\n### 1. Security Awareness Training\n\nEffective Training Characteristics:\n- Short, frequent sessions (not annual marathons)\n- Relevant, real-world examples\n- Interactive and engaging\n- Role-specific content\n- Continuous reinforcement\n\nWhat Doesn't Work:\n- Long, boring presentations\n- Generic content not relevant to role\n- Fear-based messaging\n- One-time training\n- Compliance checkbox mentality\n\n### 2. Positive Security Culture\n\nCreating the Right Environment:\n- Security as shared responsibility\n- No blame for honest mistakes\n- Encourage questioning and verification\n- Celebrate security-conscious behavior\n- Make security heroes, not shame failures\n\nToxic Security Culture:\n- Blame and punishment\n- \"Security vs. productivity\" mentality\n- Complex, unusable security\n- Lack of leadership support\n- Ignoring user feedback\n\n### 3. Usable Security\n\nSecurity Must Be:\n- Easy to do the right thing\n- Hard to do the wrong thing\n- Not significantly slower than insecure alternative\n- Well-integrated into workflows\n- Designed with users in mind\n\nExamples:\n- Password managers > complex password requirements\n- Single sign-on > multiple passwords\n- Hardware keys > typing codes\n- Automatic updates > manual patching\n\n### 4. Just-in-Time Guidance\n\nProvide Help When Needed:\n- Contextual security tips\n- In-app guidance and warnings\n- Clear explanations of why\n- Easy way to report suspicious activity\n- Fast response to questions\n\n### 5. Psychological Safety\n\nEncourage Reporting:\n- No punishment for clicking phishing link\n- Quick, non-judgmental response\n- Focus on learning, not blame\n- Confidential reporting options\n- Thank people for reporting\n\n## Stress and Decision-Making\n\n### How Stress Affects Security\n\nUnder Stress We:\n- Revert to familiar patterns\n- Skip verification steps\n- Trust authority without question\n- Miss warning signs\n- Make impulsive decisions\n\nCommon Stress Triggers:\n- Tight deadlines\n- After-hours requests\n- Financial pressure\n- Fear of consequences\n- Personal problems\n\n### Defending Under Stress\n\nStrategies:\n- Slow down and breathe\n- Follow checklists and procedures\n- Verify through alternate channel\n- Escalate unusual requests\n- It's okay to say \"let me check on that\"\n\n## Social Engineering Red Flags\n\n### Communication Red Flags\n- Unsolicited contact\n- Urgency and pressure\n- Too good to be true\n- Requests for sensitive information\n- Unusual requests from known contacts\n- Confidentiality demands\n- Bypassing normal procedures\n\n### Behavioral Red Flags\n- Reluctance to provide contact details\n- Defensiveness when questioned\n- Name dropping and authority claims\n- Creating emotional responses\n- Offering unsolicited help\n- Flattery and charm\n\n## Building Resilience\n\n### Individual Level\n\nDevelop These Habits:\n- Slow down for sensitive requests\n- Verify through known channels\n- Question unusual requests (even from authority)\n- Use strong authentication (MFA)\n- Keep systems updated\n- Report suspicious activity\n- Learn from incidents (yours and others)\n\n### Organizational Level\n\nEssential Elements:\n- Regular security training\n- Simulated attacks (phishing, vishing)\n- Clear reporting procedures\n- Fast incident response\n- Transparent communication about threats\n- User feedback integration\n- Continuous improvement\n\n## The Psychology of Reporting\n\n### Why People Don't Report\n\nCommon Reasons:\n- Fear of blame or punishment\n- Embarrassment at being fooled\n- Don't want to bother IT\n- Unsure if it's really suspicious\n- Think they handled it themselves\n- Previous negative experiences\n\n### Encouraging Reporting\n\nMake It:\n- Easy (one-click reporting)\n- Safe (no punishment)\n- Fast (quick acknowledgment)\n- Valued (thank reporters)\n- Educational (feedback on what happened)\n\n## Key Takeaways\n\n- Humans are often the weakest link, but this is fixable\n- Everyone has cognitive biases that attackers exploit\n- Intelligence doesn't protect against social engineering\n- Security must be usable and integrated into workflows\n- Positive culture encourages reporting without fear\n- Stress impairs judgment - slow down for important decisions\n- Training works best when frequent, relevant, and practical\n- Organizations must create psychological safety for security\n- Learn from mistakes - they're opportunities, not failures\n- Security is everyone's responsibility, not just IT's job",
+      content: "# The Human Element in Security\n\n## Why Humans Are Often the Weakest Link\n\nTechnology can create strong defenses, but humans remain the most vulnerable point in any security system. Understanding this is the first step to strengthening security.\n\n### The Reality\n- 95% of cybersecurity breaches are caused by human error\n- Social engineering attacks exploit psychology, not technology\n- Even security-conscious people make mistakes under pressure\n- Awareness alone doesn't prevent compromise\n- Humans have cognitive biases that attackers exploit\n\n## Cognitive Biases Attackers Exploit\n\n### 1. Authority Bias\n- We tend to obey authority figures without question\n- Attacker impersonates CEO, IT admin, or government official\n- Creates pressure to comply quickly\n- Example: \"This is your CEO, I need this done immediately\"\n\n### 2. Urgency and Scarcity\n- \"Act now or lose access!\"\n- \"Limited time offer - only 3 spots left\"\n- Creates panic that bypasses rational thinking\n- Victims act first, think later\n\n### 3. Social Proof\n- \"Everyone else has already updated their credentials\"\n- We follow the crowd, assuming others know what's right\n- Fake testimonials and reviews\n- Mass behavior influences individual decisions\n\n### 4. Reciprocity\n- When someone does us a favor, we feel obligated to return it\n- Attacker offers help or free service\n- Victim feels compelled to comply with requests\n- Example: \"I helped you with IT issue, can you help me access this file?\"\n\n### 5. Trust and Familiarity\n- We trust people and things that seem familiar\n- Official-looking emails, logos, and websites\n- Using names of colleagues or familiar services\n- Leveraging existing relationships\n\n### 6. Confirmation Bias\n- We see what we expect to see\n- If expecting a package, delivery notification seems legitimate\n- Attackers time attacks around events (tax season, holidays)\n- We unconsciously ignore warning signs\n\n## Why Smart People Fall for Attacks\n\n### It's Not About Intelligence\n\n<strong>Common Misconceptions:</strong>\n- \"I'm too smart to fall for phishing\"\n- \"Only careless people get hacked\"\n- \"I would never click that\"\n\n<strong>Reality:</strong>\n- Everyone has cognitive biases\n- One distracted moment is all it takes\n- Sophisticated attacks fool experts\n- Fatigue and stress impair judgment\n- Multitasking reduces attention\n\n### Contributing Factors\n\n<strong>Busy Environments:</strong>\n- Processing hundreds of emails daily\n- Constant interruptions and distractions\n- Pressure to respond quickly\n- Working outside normal hours\n\n<strong>Workplace Culture:</strong>\n- Pressure to be helpful and cooperative\n- Fear of questioning authority\n- Emphasis on speed over security\n- Blame culture discourages reporting\n\n<strong>Technology Overload:</strong>\n- Too many systems and passwords\n- Alert fatigue from constant notifications\n- Complex security procedures\n- Conflicting requirements\n\n## Building Human-Centered Security\n\n### 1. Security Awareness Training\n\nEffective Training Characteristics:\n- Short, frequent sessions (not annual marathons)\n- Relevant, real-world examples\n- Interactive and engaging\n- Role-specific content\n- Continuous reinforcement\n\nWhat Doesn't Work:\n- Long, boring presentations\n- Generic content not relevant to role\n- Fear-based messaging\n- One-time training\n- Compliance checkbox mentality\n\n### 2. Positive Security Culture\n\nCreating the Right Environment:\n- Security as shared responsibility\n- No blame for honest mistakes\n- Encourage questioning and verification\n- Celebrate security-conscious behavior\n- Make security heroes, not shame failures\n\nToxic Security Culture:\n- Blame and punishment\n- \"Security vs. productivity\" mentality\n- Complex, unusable security\n- Lack of leadership support\n- Ignoring user feedback\n\n### 3. Usable Security\n\nSecurity Must Be:\n- Easy to do the right thing\n- Hard to do the wrong thing\n- Not significantly slower than insecure alternative\n- Well-integrated into workflows\n- Designed with users in mind\n\nExamples:\n- Password managers > complex password requirements\n- Single sign-on > multiple passwords\n- Hardware keys > typing codes\n- Automatic updates > manual patching\n\n### 4. Just-in-Time Guidance\n\nProvide Help When Needed:\n- Contextual security tips\n- In-app guidance and warnings\n- Clear explanations of why\n- Easy way to report suspicious activity\n- Fast response to questions\n\n### 5. Psychological Safety\n\nEncourage Reporting:\n- No punishment for clicking phishing link\n- Quick, non-judgmental response\n- Focus on learning, not blame\n- Confidential reporting options\n- Thank people for reporting\n\n## Stress and Decision-Making\n\n### How Stress Affects Security\n\nUnder Stress We:\n- Revert to familiar patterns\n- Skip verification steps\n- Trust authority without question\n- Miss warning signs\n- Make impulsive decisions\n\nCommon Stress Triggers:\n- Tight deadlines\n- After-hours requests\n- Financial pressure\n- Fear of consequences\n- Personal problems\n\n### Defending Under Stress\n\nStrategies:\n- Slow down and breathe\n- Follow checklists and procedures\n- Verify through alternate channel\n- Escalate unusual requests\n- It's okay to say \"let me check on that\"\n\n## Social Engineering Red Flags\n\n### Communication Red Flags\n- Unsolicited contact\n- Urgency and pressure\n- Too good to be true\n- Requests for sensitive information\n- Unusual requests from known contacts\n- Confidentiality demands\n- Bypassing normal procedures\n\n### Behavioral Red Flags\n- Reluctance to provide contact details\n- Defensiveness when questioned\n- Name dropping and authority claims\n- Creating emotional responses\n- Offering unsolicited help\n- Flattery and charm\n\n## Building Resilience\n\n### Individual Level\n\nDevelop These Habits:\n- Slow down for sensitive requests\n- Verify through known channels\n- Question unusual requests (even from authority)\n- Use strong authentication (MFA)\n- Keep systems updated\n- Report suspicious activity\n- Learn from incidents (yours and others)\n\n### Organizational Level\n\nEssential Elements:\n- Regular security training\n- Simulated attacks (phishing, vishing)\n- Clear reporting procedures\n- Fast incident response\n- Transparent communication about threats\n- User feedback integration\n- Continuous improvement\n\n## The Psychology of Reporting\n\n### Why People Don't Report\n\nCommon Reasons:\n- Fear of blame or punishment\n- Embarrassment at being fooled\n- Don't want to bother IT\n- Unsure if it's really suspicious\n- Think they handled it themselves\n- Previous negative experiences\n\n### Encouraging Reporting\n\nMake It:\n- Easy (one-click reporting)\n- Safe (no punishment)\n- Fast (quick acknowledgment)\n- Valued (thank reporters)\n- Educational (feedback on what happened)\n\n## Key Takeaways\n\n- Humans are often the weakest link, but this is fixable\n- Everyone has cognitive biases that attackers exploit\n- Intelligence doesn't protect against social engineering\n- Security must be usable and integrated into workflows\n- Positive culture encourages reporting without fear\n- Stress impairs judgment - slow down for important decisions\n- Training works best when frequent, relevant, and practical\n- Organizations must create psychological safety for security\n- Learn from mistakes - they're opportunities, not failures\n- Security is everyone's responsibility, not just IT's job",
       order: 4,
       courseId: courses[2].id,
       moduleId: course3Modules[0].id
@@ -1718,7 +1718,7 @@ Proactively searching for threats that have evaded existing security controls.
     data: {
       title: "Security-Aware Culture",
       videoUrl: "https://www.youtube.com/watch?v=CivG_2UqKMg",
-      content: "# Building a Security-Aware Culture\n\n## What is Security-Aware Culture?\n\nA security-aware culture is an organizational environment where cybersecurity is everyone's responsibility, security best practices are ingrained in daily operations, and employees naturally consider security implications in their decisions.\n\nNot just: Compliance with policies\nInstead: Internalized security mindset\n\n## Why Culture Matters\n\n### Technical Controls Alone Aren't Enough\n\nBest firewall in the world can't stop:\n- Employee clicking phishing link\n- Insider using weak passwords\n- Staff ignoring security warnings\n- Users bypassing security controls\n\n**Human element** is the weakest link.\n\n### Culture Creates Resilience\n\nStrong security culture results in:\n- Fewer successful attacks\n- Faster incident detection\n- Better incident response\n- Reduced business risk\n- Improved compliance\n\n**Study finding:** Organizations with strong security culture experience 50% fewer security incidents.\n\n### Security is Everyone's Job\n\nTraditional view:\n- Security = IT security team's job\n- Others just follow rules\n\nModern reality:\n- Every employee is a potential target\n- Every action has security implications\n- Collective responsibility for protection\n\n## Elements of Security-Aware Culture\n\n### 1. Leadership Commitment\n\n**Tone from the Top:**\nSecurity culture starts with executives:\n- CEO discusses security publicly\n- Board oversight of cybersecurity\n- Security included in strategic planning\n- Budget allocated appropriately\n\n**Executive Actions:**\n- Follow same security policies as employees\n- Participate in security training\n- No exemptions for C-suite\n- Model secure behaviors\n\n**Visible Support:**\n- Security team reports to executive level\n- CISO has board access\n- Security failures addressed seriously\n- Security successes celebrated\n\n### 2. Clear Policies and Expectations\n\n**Well-Defined Policies:**\n- Written, accessible, understandable\n- Regularly updated\n- Explains \"why\" not just \"what\"\n- Available in multiple languages\n\n**Reasonable Requirements:**\n- Balance security with usability\n- Consider employee workflow\n- Provide necessary tools\n- Explain business rationale\n\n**Consistent Enforcement:**\n- Same rules for everyone\n- Violations addressed fairly\n- No special exemptions\n- Regular compliance audits\n\n### 3. Continuous Education\n\n**Beyond Annual Training:**\n- Ongoing awareness campaigns\n- Monthly security tips\n- Real-time alerts about current threats\n- Lunch-and-learn sessions\n\n**Engaging Content:**\n- Interactive, not boring slideshows\n- Real-world examples\n- Relevant to job roles\n- Gamification elements\n\n**Role-Specific Training:**\n- Finance: BEC, invoice fraud\n- HR: PII protection, social engineering\n- Developers: Secure coding\n- Executives: Whaling attacks\n\n### 4. Open Communication\n\n**Report Without Fear:**\n- Blameless incident reporting\n- \"See something, say something\"\n- Mistakes are learning opportunities\n- No punishment for falling for phishing simulation\n\n**Two-Way Dialogue:**\n- Employees can question policies\n- Feedback improves security\n- Security team accessible\n- Regular town halls on security\n\n**Transparency:**\n- Share threat intelligence\n- Explain why policies exist\n- Communicate incidents appropriately\n- Celebrate security wins\n\n### 5. Positive Reinforcement\n\n**Reward Secure Behavior:**\n- Recognize employees who report phishing\n- Certificates for training completion\n- Gamification (security champions)\n- Public acknowledgment\n\n**Make Security Easy:**\n- Provide password managers\n- Single sign-on reduces password fatigue\n- Security tools that don't hinder productivity\n- Clear processes for secure actions\n\n**Celebrate Success:**\n- Share blocked attack stories\n- Highlight employee vigilance\n- Team recognition for improvements\n- Security awareness month events\n\n## Building Security Culture: Step-by-Step\n\n### Phase 1: Assessment (Month 1-2)\n\n**Understand Current State:**\n- Employee surveys on security awareness\n- Phishing simulation baseline\n- Policy compliance audit\n- Incident analysis (root causes)\n\n**Identify Gaps:**\n- Knowledge gaps (what employees don't know)\n- Behavioral gaps (what they know but don't do)\n- Tool gaps (missing security tools)\n- Policy gaps (outdated or missing policies)\n\n**Benchmark:**\n- Industry standards\n- Peer organizations\n- Best practices frameworks\n\n### Phase 2: Foundation (Month 3-6)\n\n**Leadership Buy-In:**\n- Present business case to executives\n- Demonstrate ROI of security culture\n- Get budget commitment\n- Establish governance\n\n**Policy Refresh:**\n- Update outdated policies\n- Simplify language\n- Add \"why\" explanations\n- Ensure accessibility\n\n**Initial Training:**\n- Mandatory security awareness for all\n- Role-specific training\n- Phishing simulations begin\n- Baseline metrics established\n\n### Phase 3: Engagement (Month 7-12)\n\n**Awareness Campaigns:**\n- Monthly security themes\n- Posters, emails, intranet articles\n- Contests and challenges\n- Security champions program\n\n**Regular Communication:**\n- Weekly security tips\n- Threat alerts\n- Success stories\n- Lessons learned from incidents\n\n**Make It Personal:**\n- Home cybersecurity tips\n- Protect families online\n- Personal device security\n- Build security habit at home and work\n\n### Phase 4: Reinforcement (Ongoing)\n\n**Continuous Improvement:**\n- Quarterly assessments\n- Refine based on metrics\n- Update for new threats\n- Evolve policies as needed\n\n**Recognition Programs:**\n- Monthly security champion\n- Team competitions\n- Peer recognition\n- Executive acknowledgment\n\n**Measure Progress:**\n- Phishing click rates declining\n- Increased incident reporting\n- Faster threat detection\n- Reduced policy violations\n\n## Common Challenges and Solutions\n\n### Challenge 1: \"Security is Inconvenient\"\n\n**Problem:** Employees bypass security because it slows them down.\n\n**Solutions:**\n- Make security tools easy to use\n- Single sign-on reduces password burden\n- Password managers provided\n- Streamline approval processes\n- Explain trade-offs honestly\n\n### Challenge 2: \"It Won't Happen to Us\"\n\n**Problem:** Employees don't believe they're at risk.\n\n**Solutions:**\n- Share real attack attempts on your organization\n- Industry-specific examples\n- Local news stories\n- Personalized threat modeling\n- Demonstrate how easy attacks are\n\n### Challenge 3: \"I'm Too Busy\"\n\n**Problem:** Security training seen as waste of time.\n\n**Solutions:**\n- Short, bite-sized training (5-10 minutes)\n- Just-in-time learning\n- Integrate into existing workflows\n- Demonstrate time saved preventing incidents\n- Make training engaging, not tedious\n\n### Challenge 4: \"IT's Job, Not Mine\"\n\n**Problem:** Employees don't feel responsible.\n\n**Solutions:**\n- \"Everyone is a security professional\"\n- Share stories of employee-caught threats\n- Explain individual impact\n- Personal stake (protect own data too)\n- Empower with simple actions\n\n### Challenge 5: \"Policies Are Unclear\"\n\n**Problem:** Employees don't understand requirements.\n\n**Solutions:**\n- Plain language policies\n- Visual guides and infographics\n- FAQs and examples\n- Easily accessible\n- Help desk support\n\n## Measuring Security Culture\n\n### Quantitative Metrics\n\n**Phishing Simulations:**\n- Click rate trending down\n- Reporting rate trending up\n- Time to report decreasing\n\n**Incident Metrics:**\n- User-reported incidents increasing (good)\n- Successful attacks decreasing (good)\n- Time to detect decreasing\n- Dwell time decreasing\n\n**Training Metrics:**\n- Completion rates\n- Assessment scores\n- Time to complete\n- Engagement (clicks, questions)\n\n**Policy Compliance:**\n- MFA adoption rate\n- Password manager usage\n- Timely software updates\n- Policy acknowledgment rates\n\n### Qualitative Metrics\n\n**Surveys:**\n- \"Do you know how to report suspicious emails?\"\n- \"Do you feel security is important to leadership?\"\n- \"Do you have the tools you need to work securely?\"\n\n**Interviews:**\n- Focus groups with employees\n- Exit interviews (security mentioned?)\n- Security champion feedback\n\n**Observations:**\n- Clean desk policy compliance\n- Locked screens when away\n- Secure disposal practices\n- Visitor escort compliance\n\n## Security Champions Program\n\n### What Are Security Champions?\n\nVolunteers from business units who:\n- Advocate for security in their teams\n- Act as liaison to security team\n- Provide feedback on policies\n- Help with awareness campaigns\n\n**Not:** Additional IT security staff\n**Instead:** Culturally embedded advocates\n\n### Benefits\n\n**For Organization:**\n- Security representation in every team\n- Faster policy rollout\n- Better policy design (real-world input)\n- Increased awareness\n\n**For Champions:**\n- Career development\n- Security knowledge\n- Leadership opportunity\n- Resume builder\n\n### Implementing Champions Program\n\n**Selection:**\n- Volunteers from each department\n- Mix of roles and seniority\n- Passionate about security\n- Good communicators\n\n**Training:**\n- Extended security training\n- Regular briefings on threats\n- Policy development input\n- Incident response basics\n\n**Support:**\n- Regular meetings\n- Direct line to security team\n- Resources for awareness\n- Recognition from leadership\n\n**Activities:**\n- Run team training sessions\n- Share security tips\n- Review policies for usability\n- Participate in incident response\n- Plan Security Awareness Month\n\n## Making Security Part of Daily Life\n\n### Integration Points\n\n**New Employee Onboarding:**\n- Day 1: Security training\n- Week 1: MFA setup, password manager\n- Month 1: Role-specific training\n- Ongoing: Security champion introduction\n\n**Regular Touchpoints:**\n- Monday: Security tip in company newsletter\n- Monthly: All-hands security update\n- Quarterly: Executive security briefing\n- Annually: Security Awareness Month\n\n**Process Integration:**\n- Code reviews include security checks\n- Product launches include security review\n- Vendor onboarding includes security assessment\n- Change management includes security impact\n\n### Physical Environment\n\n**Visible Reminders:**\n- Posters in common areas\n- Screensavers with security tips\n- Badge holders with tips\n- Conference room reminders\n- Bathroom stall posters (captive audience!)\n\n**Secure Design:**\n- Visitor badges clearly marked\n- Locked doors where appropriate\n- Clean desk policy visual cues\n- Shred bins conveniently located\n- Password manager shortcuts on desktops\n\n## Key Takeaways\n\n- Security culture means everyone naturally considers security, not just follows rules\n- Culture starts from top - executives must visibly support and follow security policies\n- Technical controls alone fail without strong security culture\n- Organizations with strong security culture have 50% fewer incidents\n- No punishment for mistakes - blameless reporting encourages vigilance\n- Make security easy - provide tools like password managers, SSO\n- Continuous education better than annual training - monthly tips and updates\n- Security champions in each team embed security throughout organization\n- Measure culture with phishing click rates, incident reporting, and surveys\n- Positive reinforcement - recognize and reward secure behavior\n- Balance security with usability - unreasonable policies get bypassed\n- Takes 12-18 months to establish strong security culture\n- Security is everyone's job, not just IT security team",
+      content: "# Building a Security-Aware Culture\n\n## What is Security-Aware Culture?\n\nA security-aware culture is an organizational environment where cybersecurity is everyone's responsibility, security best practices are ingrained in daily operations, and employees naturally consider security implications in their decisions.\n\nNot just: Compliance with policies\nInstead: Internalized security mindset\n\n## Why Culture Matters\n\n### Technical Controls Alone Aren't Enough\n\nBest firewall in the world can't stop:\n- Employee clicking phishing link\n- Insider using weak passwords\n- Staff ignoring security warnings\n- Users bypassing security controls\n\n<strong>Human element</strong> is the weakest link.\n\n### Culture Creates Resilience\n\nStrong security culture results in:\n- Fewer successful attacks\n- Faster incident detection\n- Better incident response\n- Reduced business risk\n- Improved compliance\n\n<strong>Study finding:</strong> Organizations with strong security culture experience 50% fewer security incidents.\n\n### Security is Everyone's Job\n\nTraditional view:\n- Security = IT security team's job\n- Others just follow rules\n\nModern reality:\n- Every employee is a potential target\n- Every action has security implications\n- Collective responsibility for protection\n\n## Elements of Security-Aware Culture\n\n### 1. Leadership Commitment\n\n<strong>Tone from the Top:</strong>\nSecurity culture starts with executives:\n- CEO discusses security publicly\n- Board oversight of cybersecurity\n- Security included in strategic planning\n- Budget allocated appropriately\n\n<strong>Executive Actions:</strong>\n- Follow same security policies as employees\n- Participate in security training\n- No exemptions for C-suite\n- Model secure behaviors\n\n<strong>Visible Support:</strong>\n- Security team reports to executive level\n- CISO has board access\n- Security failures addressed seriously\n- Security successes celebrated\n\n### 2. Clear Policies and Expectations\n\n<strong>Well-Defined Policies:</strong>\n- Written, accessible, understandable\n- Regularly updated\n- Explains \"why\" not just \"what\"\n- Available in multiple languages\n\n<strong>Reasonable Requirements:</strong>\n- Balance security with usability\n- Consider employee workflow\n- Provide necessary tools\n- Explain business rationale\n\n<strong>Consistent Enforcement:</strong>\n- Same rules for everyone\n- Violations addressed fairly\n- No special exemptions\n- Regular compliance audits\n\n### 3. Continuous Education\n\n<strong>Beyond Annual Training:</strong>\n- Ongoing awareness campaigns\n- Monthly security tips\n- Real-time alerts about current threats\n- Lunch-and-learn sessions\n\n<strong>Engaging Content:</strong>\n- Interactive, not boring slideshows\n- Real-world examples\n- Relevant to job roles\n- Gamification elements\n\n<strong>Role-Specific Training:</strong>\n- Finance: BEC, invoice fraud\n- HR: PII protection, social engineering\n- Developers: Secure coding\n- Executives: Whaling attacks\n\n### 4. Open Communication\n\n<strong>Report Without Fear:</strong>\n- Blameless incident reporting\n- \"See something, say something\"\n- Mistakes are learning opportunities\n- No punishment for falling for phishing simulation\n\n<strong>Two-Way Dialogue:</strong>\n- Employees can question policies\n- Feedback improves security\n- Security team accessible\n- Regular town halls on security\n\n<strong>Transparency:</strong>\n- Share threat intelligence\n- Explain why policies exist\n- Communicate incidents appropriately\n- Celebrate security wins\n\n### 5. Positive Reinforcement\n\n<strong>Reward Secure Behavior:</strong>\n- Recognize employees who report phishing\n- Certificates for training completion\n- Gamification (security champions)\n- Public acknowledgment\n\n<strong>Make Security Easy:</strong>\n- Provide password managers\n- Single sign-on reduces password fatigue\n- Security tools that don't hinder productivity\n- Clear processes for secure actions\n\n<strong>Celebrate Success:</strong>\n- Share blocked attack stories\n- Highlight employee vigilance\n- Team recognition for improvements\n- Security awareness month events\n\n## Building Security Culture: Step-by-Step\n\n### Phase 1: Assessment (Month 1-2)\n\n<strong>Understand Current State:</strong>\n- Employee surveys on security awareness\n- Phishing simulation baseline\n- Policy compliance audit\n- Incident analysis (root causes)\n\n<strong>Identify Gaps:</strong>\n- Knowledge gaps (what employees don't know)\n- Behavioral gaps (what they know but don't do)\n- Tool gaps (missing security tools)\n- Policy gaps (outdated or missing policies)\n\n<strong>Benchmark:</strong>\n- Industry standards\n- Peer organizations\n- Best practices frameworks\n\n### Phase 2: Foundation (Month 3-6)\n\n<strong>Leadership Buy-In:</strong>\n- Present business case to executives\n- Demonstrate ROI of security culture\n- Get budget commitment\n- Establish governance\n\n<strong>Policy Refresh:</strong>\n- Update outdated policies\n- Simplify language\n- Add \"why\" explanations\n- Ensure accessibility\n\n<strong>Initial Training:</strong>\n- Mandatory security awareness for all\n- Role-specific training\n- Phishing simulations begin\n- Baseline metrics established\n\n### Phase 3: Engagement (Month 7-12)\n\n<strong>Awareness Campaigns:</strong>\n- Monthly security themes\n- Posters, emails, intranet articles\n- Contests and challenges\n- Security champions program\n\n<strong>Regular Communication:</strong>\n- Weekly security tips\n- Threat alerts\n- Success stories\n- Lessons learned from incidents\n\n<strong>Make It Personal:</strong>\n- Home cybersecurity tips\n- Protect families online\n- Personal device security\n- Build security habit at home and work\n\n### Phase 4: Reinforcement (Ongoing)\n\n<strong>Continuous Improvement:</strong>\n- Quarterly assessments\n- Refine based on metrics\n- Update for new threats\n- Evolve policies as needed\n\n<strong>Recognition Programs:</strong>\n- Monthly security champion\n- Team competitions\n- Peer recognition\n- Executive acknowledgment\n\n<strong>Measure Progress:</strong>\n- Phishing click rates declining\n- Increased incident reporting\n- Faster threat detection\n- Reduced policy violations\n\n## Common Challenges and Solutions\n\n### Challenge 1: \"Security is Inconvenient\"\n\n<strong>Problem:</strong> Employees bypass security because it slows them down.\n\n<strong>Solutions:</strong>\n- Make security tools easy to use\n- Single sign-on reduces password burden\n- Password managers provided\n- Streamline approval processes\n- Explain trade-offs honestly\n\n### Challenge 2: \"It Won't Happen to Us\"\n\n<strong>Problem:</strong> Employees don't believe they're at risk.\n\n<strong>Solutions:</strong>\n- Share real attack attempts on your organization\n- Industry-specific examples\n- Local news stories\n- Personalized threat modeling\n- Demonstrate how easy attacks are\n\n### Challenge 3: \"I'm Too Busy\"\n\n<strong>Problem:</strong> Security training seen as waste of time.\n\n<strong>Solutions:</strong>\n- Short, bite-sized training (5-10 minutes)\n- Just-in-time learning\n- Integrate into existing workflows\n- Demonstrate time saved preventing incidents\n- Make training engaging, not tedious\n\n### Challenge 4: \"IT's Job, Not Mine\"\n\n<strong>Problem:</strong> Employees don't feel responsible.\n\n<strong>Solutions:</strong>\n- \"Everyone is a security professional\"\n- Share stories of employee-caught threats\n- Explain individual impact\n- Personal stake (protect own data too)\n- Empower with simple actions\n\n### Challenge 5: \"Policies Are Unclear\"\n\n<strong>Problem:</strong> Employees don't understand requirements.\n\n<strong>Solutions:</strong>\n- Plain language policies\n- Visual guides and infographics\n- FAQs and examples\n- Easily accessible\n- Help desk support\n\n## Measuring Security Culture\n\n### Quantitative Metrics\n\n<strong>Phishing Simulations:</strong>\n- Click rate trending down\n- Reporting rate trending up\n- Time to report decreasing\n\n<strong>Incident Metrics:</strong>\n- User-reported incidents increasing (good)\n- Successful attacks decreasing (good)\n- Time to detect decreasing\n- Dwell time decreasing\n\n<strong>Training Metrics:</strong>\n- Completion rates\n- Assessment scores\n- Time to complete\n- Engagement (clicks, questions)\n\n<strong>Policy Compliance:</strong>\n- MFA adoption rate\n- Password manager usage\n- Timely software updates\n- Policy acknowledgment rates\n\n### Qualitative Metrics\n\n<strong>Surveys:</strong>\n- \"Do you know how to report suspicious emails?\"\n- \"Do you feel security is important to leadership?\"\n- \"Do you have the tools you need to work securely?\"\n\n<strong>Interviews:</strong>\n- Focus groups with employees\n- Exit interviews (security mentioned?)\n- Security champion feedback\n\n<strong>Observations:</strong>\n- Clean desk policy compliance\n- Locked screens when away\n- Secure disposal practices\n- Visitor escort compliance\n\n## Security Champions Program\n\n### What Are Security Champions?\n\nVolunteers from business units who:\n- Advocate for security in their teams\n- Act as liaison to security team\n- Provide feedback on policies\n- Help with awareness campaigns\n\n<strong>Not:</strong> Additional IT security staff\n<strong>Instead:</strong> Culturally embedded advocates\n\n### Benefits\n\n<strong>For Organization:</strong>\n- Security representation in every team\n- Faster policy rollout\n- Better policy design (real-world input)\n- Increased awareness\n\n<strong>For Champions:</strong>\n- Career development\n- Security knowledge\n- Leadership opportunity\n- Resume builder\n\n### Implementing Champions Program\n\n<strong>Selection:</strong>\n- Volunteers from each department\n- Mix of roles and seniority\n- Passionate about security\n- Good communicators\n\n<strong>Training:</strong>\n- Extended security training\n- Regular briefings on threats\n- Policy development input\n- Incident response basics\n\n<strong>Support:</strong>\n- Regular meetings\n- Direct line to security team\n- Resources for awareness\n- Recognition from leadership\n\n<strong>Activities:</strong>\n- Run team training sessions\n- Share security tips\n- Review policies for usability\n- Participate in incident response\n- Plan Security Awareness Month\n\n## Making Security Part of Daily Life\n\n### Integration Points\n\n<strong>New Employee Onboarding:</strong>\n- Day 1: Security training\n- Week 1: MFA setup, password manager\n- Month 1: Role-specific training\n- Ongoing: Security champion introduction\n\n<strong>Regular Touchpoints:</strong>\n- Monday: Security tip in company newsletter\n- Monthly: All-hands security update\n- Quarterly: Executive security briefing\n- Annually: Security Awareness Month\n\n<strong>Process Integration:</strong>\n- Code reviews include security checks\n- Product launches include security review\n- Vendor onboarding includes security assessment\n- Change management includes security impact\n\n### Physical Environment\n\n<strong>Visible Reminders:</strong>\n- Posters in common areas\n- Screensavers with security tips\n- Badge holders with tips\n- Conference room reminders\n- Bathroom stall posters (captive audience!)\n\n<strong>Secure Design:</strong>\n- Visitor badges clearly marked\n- Locked doors where appropriate\n- Clean desk policy visual cues\n- Shred bins conveniently located\n- Password manager shortcuts on desktops\n\n## Key Takeaways\n\n- Security culture means everyone naturally considers security, not just follows rules\n- Culture starts from top - executives must visibly support and follow security policies\n- Technical controls alone fail without strong security culture\n- Organizations with strong security culture have 50% fewer incidents\n- No punishment for mistakes - blameless reporting encourages vigilance\n- Make security easy - provide tools like password managers, SSO\n- Continuous education better than annual training - monthly tips and updates\n- Security champions in each team embed security throughout organization\n- Measure culture with phishing click rates, incident reporting, and surveys\n- Positive reinforcement - recognize and reward secure behavior\n- Balance security with usability - unreasonable policies get bypassed\n- Takes 12-18 months to establish strong security culture\n- Security is everyone's job, not just IT security team",
       order: 8,
       courseId: courses[2].id,
       moduleId: course3Modules[2].id
@@ -1804,7 +1804,7 @@ Proactively searching for threats that have evaded existing security controls.
     data: {
       title: "Social Media Privacy",
       videoUrl: "https://www.youtube.com/watch?v=5k24We8pED8",
-      content: "# Social Media Privacy Settings\n\n## The Social Media Privacy Problem\n\nSocial media platforms collect vast amounts of personal data:\n- Everything you post (text, photos, videos, location)\n- People you interact with and how often\n- Pages you like and follow\n- Messages you send\n- Your browsing history (via tracking pixels)\n- Time spent on each post\n- When you're active\n- Your contacts (if you allow access)\n- Your location history\n\nThis data is used to:\n- Target advertising (primary business model)\n- Build detailed psychological profiles\n- Sell to data brokers\n- Train AI algorithms\n- Share with third parties\n\nWithout proper privacy settings:\n- Posts visible to strangers\n- Location data reveals where you live/work\n- Scammers can impersonate you or loved ones\n- Employers/schools see things you didn't intend\n- Your data is sold and shared widely\n\n## General Privacy Principles\n\n### Think Before You Post\n\nCannot be unsaid:\n- Once posted, can be screenshot/saved\n- \"Delete\" doesn't remove all copies\n- Internet archive and cached versions persist\n- Others may have shared your post\n\nRed Flags to Avoid Posting:\n- Full date of birth (identity theft risk)\n- Home address or exact location\n- Vacation plans (broadcasting empty home)\n- Financial information\n- Children's schools/routines\n- Boarding passes/tickets with barcodes\n- Photos of credit cards, IDs, or keys\n\nSafe Sharing:\n- Share experiences after they happen\n- Be vague about locations (\"the beach\" not \"Malibu Beach\")\n- Avoid tagging exact addresses\n- Review photos before posting (reflections, backgrounds)\n\n### Audience Awareness\n\nWho can see your posts?\n- Public: Anyone on the internet\n- Friends: People you've accepted\n- Friends of friends: Extended network\n- Custom: Specific people/lists\n- Only me: Private (but platform still sees it)\n\nDefault to \"Friends Only\":\n- Prevents strangers from seeing personal info\n- Reduces phishing/scam risks\n- Limits employer/school visibility\n- You can still make specific posts public\n\n### Regular Privacy Checkups\n\nQuarterly Review:\n- Go through privacy settings\n- Review third-party app access\n- Check who can see old posts\n- Update friend lists\n- Remove/untag unwanted photos\n\n## Platform-Specific Privacy Settings\n\n### Facebook Privacy Settings\n\nAccess: Settings & Privacy → Settings → Privacy\n\n**Who can see your posts:**\n- Settings → Privacy → \"Who can see your future posts?\"\n- Set to \"Friends\" (not Public)\n\n**Profile Information:**\n- Settings → Privacy → \"Who can see your friends list?\"\n- Limit to \"Only me\" or \"Friends\"\n- Review \"About\" section visibility\n- Hide email, phone, birthday details\n\n**Past Posts:**\n- Settings → Privacy → \"Limit past posts\"\n- Makes all old public posts \"Friends only\"\n\n**Search and Contact:**\n- \"Who can look you up using email/phone?\" → Friends or \"Only me\"\n- \"Do you want search engines to link to your profile?\" → No\n\n**Timeline and Tagging:**\n- \"Review posts you're tagged in before they appear?\" → Enable\n- \"Who can see posts you're tagged in?\" → Friends\n- \"Who can see what others post on your timeline?\" → Friends\n\n**Face Recognition:**\n- Settings → Face Recognition → \"No\" (disable)\n\n**Location Services:**\n- Settings → Location → Review apps with location access\n- Disable for Facebook app if not needed\n\n**Off-Facebook Activity:**\n- Settings → Your Facebook Information → Off-Facebook Activity\n- Disconnect external websites and apps\n- Turn off future activity\n\n**Third-Party Apps:**\n- Settings → Apps and Websites\n- Remove apps you don't use\n- Check what data apps can access\n\n### Instagram Privacy Settings\n\nAccess: Profile → Menu → Settings → Privacy\n\n**Private Account:**\n- Account Privacy → Private Account (ON)\n- Only approved followers see posts\n- Prevents strangers from following\n\n**Story Sharing:**\n- Story → Hide story from [specific people]\n- Close Friends list for selective sharing\n\n**Activity Status:**\n- Show Activity Status → OFF\n- Hides when you're online\n\n**Tags and Mentions:**\n- Tags → \"Allow tags from\" → \"People you follow\"\n- Mentions → \"Allow mentions from\" → \"People you follow\"\n\n**Comments:**\n- Comments → \"Allow comments from\" → \"People you follow\"\n- Filter offensive comments → ON\n\n**Guides, Posts, and Messaging:**\n- Review who can see your posts\n- Control who can message you\n\n**Location:**\n- Before posting, tap \"Add location\" and remove it\n- Don't create location-based stories\n\n### Twitter/X Privacy Settings\n\nAccess: Settings and Privacy → Privacy and Safety\n\n**Audience and Tagging:**\n- Protect your Tweets (makes account private)\n- Photo tagging → \"Allow anyone to tag you\" → OFF\n- Remove yourself from tagged photos\n\n**Your Activity:**\n- Discoverability → \"Let people find you by email\" → OFF\n- Discoverability → \"Let people find you by phone number\" → OFF\n\n**Direct Messages:**\n- Receive messages from anyone → Consider disabling\n- Show read receipts → OFF\n\n**Spaces:**\n- \"Allow people to find my Spaces\" → Consider disabling\n\n**Off-Twitter Activity:**\n- Settings → Privacy and safety → Off-Twitter activity\n- Disable tracking\n\n**Personalization:**\n- Ads preferences → Less personalized ads\n- Disable data sharing with business partners\n\n### LinkedIn Privacy Settings\n\nAccess: Me icon → Settings & Privacy → Privacy\n\n**How others see your profile:**\n- \"Who can see your email address\" → Connections\n- \"Who can see your connections\" → Only you\n- Profile viewing options → Private mode\n\n**How others see your LinkedIn activity:**\n- Share profile changes → OFF (prevents notifications)\n- Mentions or tags → Control who can tag/mention you\n\n**Blocking and hiding:**\n- Block members as needed\n- Hide connections from specific people\n\n**Job seeking preferences:**\n- Manage \"Let recruiters know you're open\" carefully\n- Can be visible to people at your current company\n\n**Advertising:**\n- Ad preferences → Control data for ad personalization\n- Opt out of ads on partner websites\n\n### TikTok Privacy Settings\n\nAccess: Profile → Menu → Settings and Privacy → Privacy\n\n**Suggest your account to others:**\n- Turn OFF (prevents recommendations)\n\n**Private Account:**\n- Enable to approve followers\n\n**Who can see your content:**\n- Liked videos → \"Only me\"\n- Downloads → Friends or OFF\n\n**Comments:**\n- Who can comment → Friends or Following\n\n**Duet and Stitch:**\n- Allow Duet → Friends or OFF\n- Allow Stitch → Friends or OFF\n\n**Data and Personalization:**\n- Settings → Privacy → Personalization and data\n- Personalized ads → OFF\n- Off-TikTok activity → Disable\n\n### Snapchat Privacy Settings\n\nAccess: Profile icon → Settings icon → Privacy Control\n\n**Contact Me:**\n- Contact me → My Friends (not Everyone)\n\n**View My Story:**\n- Everyone → Change to \"My Friends\"\n- Custom lists for close friends\n\n**See My Location:**\n- Ghost Mode → ON (hides location)\n- Or limit to close friends\n\n**See Me in Quick Add:**\n- OFF (prevents Snap suggesting you to strangers)\n\n### YouTube Privacy Settings\n\nAccess: Profile → Settings → Privacy\n\n**Subscriptions:**\n- Keep subscriptions private → ON\n\n**Saved Playlists:**\n- Make playlists private or unlisted\n\n**Watch History:**\n- Pause watch history if sharing account\n- Clear watch history regularly\n\n**Liked Videos:**\n- Make liked videos playlist private\n\n## Mobile App Privacy\n\nApp Permissions Review:\n\niOS:\n- Settings → Privacy → Review each permission type\n- Check which apps have Camera, Microphone, Location access\n- Revoke unnecessary permissions\n\nAndroid:\n- Settings → Privacy → Permission Manager\n- Review apps by permission type\n- Set location to \"Only while using app\" not \"All the time\"\n\nSocial Media Apps Often Request:\n- Contacts (to \"find friends\")\n- Camera and microphone\n- Location (to tag posts)\n- Photos (to upload)\n- Calendar\n\nBest Practice:\n- Deny by default\n- Grant only when needed\n- Revoke after use if possible\n\n## Additional Privacy Measures\n\n### Two-Factor Authentication\n\nEnable MFA on all accounts:\n- Prevents unauthorized access even if password leaks\n- Use authenticator app (not SMS)\n\n### Email Address Management\n\nUse separate email for social media:\n- Prevents primary email exposure\n- Limits spam if email is leaked\n- Easier to abandon if needed\n\n### Linked Accounts\n\nBe cautious with \"Sign in with Facebook/Google\":\n- Creates data sharing between platforms\n- Review what linked accounts can access\n- Unlink accounts you don't need\n\n### Photo Metadata\n\nPhotos contain metadata (EXIF):\n- GPS coordinates (where photo taken)\n- Date and time\n- Camera/phone model\n\nRemove metadata before posting:\n- iOS: Screenshots automatically remove metadata\n- Android: Use metadata removal apps\n- Desktop: ExifTool or similar software\n\n### Facial Recognition Opt-Out\n\nMany platforms use facial recognition:\n- Disable in settings when available\n- Consider how your face data is stored\n- European GDPR gives you more control\n\n## Teaching Kids Social Media Privacy\n\nAge Limits:\n- Most platforms require age 13+ (COPPA law)\n- Monitor younger kids' device usage\n\nRules for Kids:\n- Never share full name, age, school, address\n- Never meet online friends in person\n- Tell parents if anything makes them uncomfortable\n- Think before posting (will this embarrass me later?)\n- Privacy settings to Friends only\n\nParent Monitoring:\n- Follow/friend your kids on social media\n- Regular check-ins about online activity\n- Open conversation about online risks\n- Lead by example with your own privacy practices\n\n## Key Takeaways\n\n- Default all accounts to \"Friends only\" not Public\n- Review privacy settings quarterly (platforms change them)\n- Enable two-factor authentication on all social media accounts\n- Limit third-party app access and review regularly\n- Turn off location services and remove geotags from posts\n- Make your profile unsearchable by email/phone\n- Use private/incognito mode when researching sensitive topics\n- Think before posting - permanent internet footprint\n- Review and limit app permissions on mobile devices\n- Disable ad personalization and off-platform tracking\n- Never post your full birth date, address, or real-time location\n- Remove metadata from photos before posting\n- Make accounts private and approve followers manually\n- Regularly review tagged photos and remove unwanted tags",
+      content: "# Social Media Privacy Settings\n\n## The Social Media Privacy Problem\n\nSocial media platforms collect vast amounts of personal data:\n- Everything you post (text, photos, videos, location)\n- People you interact with and how often\n- Pages you like and follow\n- Messages you send\n- Your browsing history (via tracking pixels)\n- Time spent on each post\n- When you're active\n- Your contacts (if you allow access)\n- Your location history\n\nThis data is used to:\n- Target advertising (primary business model)\n- Build detailed psychological profiles\n- Sell to data brokers\n- Train AI algorithms\n- Share with third parties\n\nWithout proper privacy settings:\n- Posts visible to strangers\n- Location data reveals where you live/work\n- Scammers can impersonate you or loved ones\n- Employers/schools see things you didn't intend\n- Your data is sold and shared widely\n\n## General Privacy Principles\n\n### Think Before You Post\n\nCannot be unsaid:\n- Once posted, can be screenshot/saved\n- \"Delete\" doesn't remove all copies\n- Internet archive and cached versions persist\n- Others may have shared your post\n\nRed Flags to Avoid Posting:\n- Full date of birth (identity theft risk)\n- Home address or exact location\n- Vacation plans (broadcasting empty home)\n- Financial information\n- Children's schools/routines\n- Boarding passes/tickets with barcodes\n- Photos of credit cards, IDs, or keys\n\nSafe Sharing:\n- Share experiences after they happen\n- Be vague about locations (\"the beach\" not \"Malibu Beach\")\n- Avoid tagging exact addresses\n- Review photos before posting (reflections, backgrounds)\n\n### Audience Awareness\n\nWho can see your posts?\n- Public: Anyone on the internet\n- Friends: People you've accepted\n- Friends of friends: Extended network\n- Custom: Specific people/lists\n- Only me: Private (but platform still sees it)\n\nDefault to \"Friends Only\":\n- Prevents strangers from seeing personal info\n- Reduces phishing/scam risks\n- Limits employer/school visibility\n- You can still make specific posts public\n\n### Regular Privacy Checkups\n\nQuarterly Review:\n- Go through privacy settings\n- Review third-party app access\n- Check who can see old posts\n- Update friend lists\n- Remove/untag unwanted photos\n\n## Platform-Specific Privacy Settings\n\n### Facebook Privacy Settings\n\nAccess: Settings & Privacy → Settings → Privacy\n\n<strong>Who can see your posts:</strong>\n- Settings → Privacy → \"Who can see your future posts?\"\n- Set to \"Friends\" (not Public)\n\n<strong>Profile Information:</strong>\n- Settings → Privacy → \"Who can see your friends list?\"\n- Limit to \"Only me\" or \"Friends\"\n- Review \"About\" section visibility\n- Hide email, phone, birthday details\n\n<strong>Past Posts:</strong>\n- Settings → Privacy → \"Limit past posts\"\n- Makes all old public posts \"Friends only\"\n\n<strong>Search and Contact:</strong>\n- \"Who can look you up using email/phone?\" → Friends or \"Only me\"\n- \"Do you want search engines to link to your profile?\" → No\n\n<strong>Timeline and Tagging:</strong>\n- \"Review posts you're tagged in before they appear?\" → Enable\n- \"Who can see posts you're tagged in?\" → Friends\n- \"Who can see what others post on your timeline?\" → Friends\n\n<strong>Face Recognition:</strong>\n- Settings → Face Recognition → \"No\" (disable)\n\n<strong>Location Services:</strong>\n- Settings → Location → Review apps with location access\n- Disable for Facebook app if not needed\n\n<strong>Off-Facebook Activity:</strong>\n- Settings → Your Facebook Information → Off-Facebook Activity\n- Disconnect external websites and apps\n- Turn off future activity\n\n<strong>Third-Party Apps:</strong>\n- Settings → Apps and Websites\n- Remove apps you don't use\n- Check what data apps can access\n\n### Instagram Privacy Settings\n\nAccess: Profile → Menu → Settings → Privacy\n\n<strong>Private Account:</strong>\n- Account Privacy → Private Account (ON)\n- Only approved followers see posts\n- Prevents strangers from following\n\n<strong>Story Sharing:</strong>\n- Story → Hide story from [specific people]\n- Close Friends list for selective sharing\n\n<strong>Activity Status:</strong>\n- Show Activity Status → OFF\n- Hides when you're online\n\n<strong>Tags and Mentions:</strong>\n- Tags → \"Allow tags from\" → \"People you follow\"\n- Mentions → \"Allow mentions from\" → \"People you follow\"\n\n<strong>Comments:</strong>\n- Comments → \"Allow comments from\" → \"People you follow\"\n- Filter offensive comments → ON\n\n<strong>Guides, Posts, and Messaging:</strong>\n- Review who can see your posts\n- Control who can message you\n\n<strong>Location:</strong>\n- Before posting, tap \"Add location\" and remove it\n- Don't create location-based stories\n\n### Twitter/X Privacy Settings\n\nAccess: Settings and Privacy → Privacy and Safety\n\n<strong>Audience and Tagging:</strong>\n- Protect your Tweets (makes account private)\n- Photo tagging → \"Allow anyone to tag you\" → OFF\n- Remove yourself from tagged photos\n\n<strong>Your Activity:</strong>\n- Discoverability → \"Let people find you by email\" → OFF\n- Discoverability → \"Let people find you by phone number\" → OFF\n\n<strong>Direct Messages:</strong>\n- Receive messages from anyone → Consider disabling\n- Show read receipts → OFF\n\n<strong>Spaces:</strong>\n- \"Allow people to find my Spaces\" → Consider disabling\n\n<strong>Off-Twitter Activity:</strong>\n- Settings → Privacy and safety → Off-Twitter activity\n- Disable tracking\n\n<strong>Personalization:</strong>\n- Ads preferences → Less personalized ads\n- Disable data sharing with business partners\n\n### LinkedIn Privacy Settings\n\nAccess: Me icon → Settings & Privacy → Privacy\n\n<strong>How others see your profile:</strong>\n- \"Who can see your email address\" → Connections\n- \"Who can see your connections\" → Only you\n- Profile viewing options → Private mode\n\n<strong>How others see your LinkedIn activity:</strong>\n- Share profile changes → OFF (prevents notifications)\n- Mentions or tags → Control who can tag/mention you\n\n<strong>Blocking and hiding:</strong>\n- Block members as needed\n- Hide connections from specific people\n\n<strong>Job seeking preferences:</strong>\n- Manage \"Let recruiters know you're open\" carefully\n- Can be visible to people at your current company\n\n<strong>Advertising:</strong>\n- Ad preferences → Control data for ad personalization\n- Opt out of ads on partner websites\n\n### TikTok Privacy Settings\n\nAccess: Profile → Menu → Settings and Privacy → Privacy\n\n<strong>Suggest your account to others:</strong>\n- Turn OFF (prevents recommendations)\n\n<strong>Private Account:</strong>\n- Enable to approve followers\n\n<strong>Who can see your content:</strong>\n- Liked videos → \"Only me\"\n- Downloads → Friends or OFF\n\n<strong>Comments:</strong>\n- Who can comment → Friends or Following\n\n<strong>Duet and Stitch:</strong>\n- Allow Duet → Friends or OFF\n- Allow Stitch → Friends or OFF\n\n<strong>Data and Personalization:</strong>\n- Settings → Privacy → Personalization and data\n- Personalized ads → OFF\n- Off-TikTok activity → Disable\n\n### Snapchat Privacy Settings\n\nAccess: Profile icon → Settings icon → Privacy Control\n\n<strong>Contact Me:</strong>\n- Contact me → My Friends (not Everyone)\n\n<strong>View My Story:</strong>\n- Everyone → Change to \"My Friends\"\n- Custom lists for close friends\n\n<strong>See My Location:</strong>\n- Ghost Mode → ON (hides location)\n- Or limit to close friends\n\n<strong>See Me in Quick Add:</strong>\n- OFF (prevents Snap suggesting you to strangers)\n\n### YouTube Privacy Settings\n\nAccess: Profile → Settings → Privacy\n\n<strong>Subscriptions:</strong>\n- Keep subscriptions private → ON\n\n<strong>Saved Playlists:</strong>\n- Make playlists private or unlisted\n\n<strong>Watch History:</strong>\n- Pause watch history if sharing account\n- Clear watch history regularly\n\n<strong>Liked Videos:</strong>\n- Make liked videos playlist private\n\n## Mobile App Privacy\n\nApp Permissions Review:\n\niOS:\n- Settings → Privacy → Review each permission type\n- Check which apps have Camera, Microphone, Location access\n- Revoke unnecessary permissions\n\nAndroid:\n- Settings → Privacy → Permission Manager\n- Review apps by permission type\n- Set location to \"Only while using app\" not \"All the time\"\n\nSocial Media Apps Often Request:\n- Contacts (to \"find friends\")\n- Camera and microphone\n- Location (to tag posts)\n- Photos (to upload)\n- Calendar\n\nBest Practice:\n- Deny by default\n- Grant only when needed\n- Revoke after use if possible\n\n## Additional Privacy Measures\n\n### Two-Factor Authentication\n\nEnable MFA on all accounts:\n- Prevents unauthorized access even if password leaks\n- Use authenticator app (not SMS)\n\n### Email Address Management\n\nUse separate email for social media:\n- Prevents primary email exposure\n- Limits spam if email is leaked\n- Easier to abandon if needed\n\n### Linked Accounts\n\nBe cautious with \"Sign in with Facebook/Google\":\n- Creates data sharing between platforms\n- Review what linked accounts can access\n- Unlink accounts you don't need\n\n### Photo Metadata\n\nPhotos contain metadata (EXIF):\n- GPS coordinates (where photo taken)\n- Date and time\n- Camera/phone model\n\nRemove metadata before posting:\n- iOS: Screenshots automatically remove metadata\n- Android: Use metadata removal apps\n- Desktop: ExifTool or similar software\n\n### Facial Recognition Opt-Out\n\nMany platforms use facial recognition:\n- Disable in settings when available\n- Consider how your face data is stored\n- European GDPR gives you more control\n\n## Teaching Kids Social Media Privacy\n\nAge Limits:\n- Most platforms require age 13+ (COPPA law)\n- Monitor younger kids' device usage\n\nRules for Kids:\n- Never share full name, age, school, address\n- Never meet online friends in person\n- Tell parents if anything makes them uncomfortable\n- Think before posting (will this embarrass me later?)\n- Privacy settings to Friends only\n\nParent Monitoring:\n- Follow/friend your kids on social media\n- Regular check-ins about online activity\n- Open conversation about online risks\n- Lead by example with your own privacy practices\n\n## Key Takeaways\n\n- Default all accounts to \"Friends only\" not Public\n- Review privacy settings quarterly (platforms change them)\n- Enable two-factor authentication on all social media accounts\n- Limit third-party app access and review regularly\n- Turn off location services and remove geotags from posts\n- Make your profile unsearchable by email/phone\n- Use private/incognito mode when researching sensitive topics\n- Think before posting - permanent internet footprint\n- Review and limit app permissions on mobile devices\n- Disable ad personalization and off-platform tracking\n- Never post your full birth date, address, or real-time location\n- Remove metadata from photos before posting\n- Make accounts private and approve followers manually\n- Regularly review tagged photos and remove unwanted tags",
       order: 6,
       courseId: courses[4].id,
       moduleId: course5Modules[1].id
@@ -1848,7 +1848,7 @@ Proactively searching for threats that have evaded existing security controls.
     data: {
       title: "Cyber Kill Chain",
       videoUrl: "https://www.youtube.com/watch?v=bPVaOlJ6ln0",
-      content: "# Understanding the Cyber Kill Chain\n\n## What is the Cyber Kill Chain?\n\nFramework for understanding the stages of a cyberattack, developed by Lockheed Martin in 2011.\n\nKey Insight: If you break the chain at any point, you stop the attack.\n\n## The 7 Stages\n\n1. Reconnaissance - Research and identify targets\n2. Weaponization - Create malicious payload\n3. Delivery - Transmit weapon to target\n4. Exploitation - Exploit vulnerability to execute\n5. Installation - Install malware on system\n6. Command and Control - Establish communication channel\n7. Actions on Objectives - Achieve attacker's goal\n\n## Defense Strategy\n\n**Left of Boom (Proactive):**\n- Stop early stages (Recon, Delivery, Exploitation)\n- More cost-effective, less damage\n\n**Right of Boom (Reactive):**\n- Later stages (Installation, C2, Actions)\n- Attack succeeded, focus on containment\n\n## Breaking the Kill Chain\n\nEach stage offers opportunities to disrupt:\n- Delivery: Email filtering, web filtering\n- Exploitation: Patch management, EDR\n- C2: Network monitoring, firewall rules\n- Actions: Backups, segmentation\n\n## Key Takeaways\n\n- 7-stage framework for understanding attacks\n- Breaking any stage stops the attack\n- Focus on early stages for prevention\n- Use with MITRE ATT&CK for comprehensive defense\n- Map security controls to each stage",
+      content: "# Understanding the Cyber Kill Chain\n\n## What is the Cyber Kill Chain?\n\nFramework for understanding the stages of a cyberattack, developed by Lockheed Martin in 2011.\n\nKey Insight: If you break the chain at any point, you stop the attack.\n\n## The 7 Stages\n\n1. Reconnaissance - Research and identify targets\n2. Weaponization - Create malicious payload\n3. Delivery - Transmit weapon to target\n4. Exploitation - Exploit vulnerability to execute\n5. Installation - Install malware on system\n6. Command and Control - Establish communication channel\n7. Actions on Objectives - Achieve attacker's goal\n\n## Defense Strategy\n\n<strong>Left of Boom (Proactive):</strong>\n- Stop early stages (Recon, Delivery, Exploitation)\n- More cost-effective, less damage\n\n<strong>Right of Boom (Reactive):</strong>\n- Later stages (Installation, C2, Actions)\n- Attack succeeded, focus on containment\n\n## Breaking the Kill Chain\n\nEach stage offers opportunities to disrupt:\n- Delivery: Email filtering, web filtering\n- Exploitation: Patch management, EDR\n- C2: Network monitoring, firewall rules\n- Actions: Backups, segmentation\n\n## Key Takeaways\n\n- 7-stage framework for understanding attacks\n- Breaking any stage stops the attack\n- Focus on early stages for prevention\n- Use with MITRE ATT&CK for comprehensive defense\n- Map security controls to each stage",
       order: 5,
       courseId: courses[5].id,
       moduleId: course6Modules[0].id
@@ -1859,7 +1859,7 @@ Proactively searching for threats that have evaded existing security controls.
     data: {
       title: "Indicators of Compromise",
       videoUrl: "https://www.youtube.com/watch?v=_GzE99AmAQU",
-      content: "# Indicators of Compromise (IOCs)\n\n## What are IOCs?\n\nForensic artifacts or observable evidence indicating a potential security breach.\n\nThink of IOCs as digital fingerprints left by attackers.\n\n## Types of IOCs\n\n**Network-Based:**\n- IP addresses (C2 servers)\n- Domain names\n- URLs\n- Email addresses\n- Network traffic patterns\n\n**Host-Based:**\n- File hashes (MD5, SHA-256)\n- File names and paths\n- Registry keys\n- Mutex names\n- Processes\n\n**Behavioral:**\n- User behavior anomalies\n- System behavior changes\n- Application behavior\n\n## IOC Pyramid of Pain\n\n**Easy to Change (Low Value):**\n- Hash values - change one byte\n- IP addresses - cheap to change\n- Domain names - easy to register\n\n**Hard to Change (High Value):**\n- Tools - requires development\n- TTPs (Tactics, Techniques, Procedures) - fundamental methodology\n\nFocus on detecting behaviors (TTPs) over signatures.\n\n## Using IOCs\n\n**Threat Hunting:**\n- Search environment for known IOCs\n- Proactive detection\n- Find compromised systems\n\n**Incident Response:**\n- Extract IOCs from compromised systems\n- Search historical data\n- Identify other affected systems\n\n## Key Takeaways\n\n- IOCs are evidence of security breaches\n- TTPs more valuable than IPs/hashes\n- IOCs have short shelf life - update regularly\n- Use for threat hunting and incident response\n- Share via standardized formats (STIX/TAXII)\n- Automate IOC collection and distribution",
+      content: "# Indicators of Compromise (IOCs)\n\n## What are IOCs?\n\nForensic artifacts or observable evidence indicating a potential security breach.\n\nThink of IOCs as digital fingerprints left by attackers.\n\n## Types of IOCs\n\n<strong>Network-Based:</strong>\n- IP addresses (C2 servers)\n- Domain names\n- URLs\n- Email addresses\n- Network traffic patterns\n\n<strong>Host-Based:</strong>\n- File hashes (MD5, SHA-256)\n- File names and paths\n- Registry keys\n- Mutex names\n- Processes\n\n<strong>Behavioral:</strong>\n- User behavior anomalies\n- System behavior changes\n- Application behavior\n\n## IOC Pyramid of Pain\n\n<strong>Easy to Change (Low Value):</strong>\n- Hash values - change one byte\n- IP addresses - cheap to change\n- Domain names - easy to register\n\n<strong>Hard to Change (High Value):</strong>\n- Tools - requires development\n- TTPs (Tactics, Techniques, Procedures) - fundamental methodology\n\nFocus on detecting behaviors (TTPs) over signatures.\n\n## Using IOCs\n\n<strong>Threat Hunting:</strong>\n- Search environment for known IOCs\n- Proactive detection\n- Find compromised systems\n\n<strong>Incident Response:</strong>\n- Extract IOCs from compromised systems\n- Search historical data\n- Identify other affected systems\n\n## Key Takeaways\n\n- IOCs are evidence of security breaches\n- TTPs more valuable than IPs/hashes\n- IOCs have short shelf life - update regularly\n- Use for threat hunting and incident response\n- Share via standardized formats (STIX/TAXII)\n- Automate IOC collection and distribution",
       order: 6,
       courseId: courses[5].id,
       moduleId: course6Modules[1].id
@@ -1870,7 +1870,7 @@ Proactively searching for threats that have evaded existing security controls.
     data: {
       title: "Containment",
       videoUrl: "https://www.youtube.com/watch?v=rcDO8km6R6c",
-      content: "# Incident Response: Containment\n\n## What is Containment?\n\nContainment is the phase of incident response focused on limiting the scope and impact of a security incident.\n\nGoal: Stop the bleeding before fixing the wound.\n\n## Why Containment Matters\n\nQuick containment prevents:\n- Further data exfiltration\n- Lateral movement to other systems\n- Additional system compromises\n- Escalating damage and costs\n\n**Speed is critical:** Every minute counts during an active incident.\n\n## Types of Containment\n\n### Short-Term Containment\n\nImmediate actions to stop active attack:\n\n**Network Isolation:**\n- Disconnect compromised systems\n- Block attacker C2 communications\n- Segment affected network areas\n\n**Account Lockdown:**\n- Disable compromised accounts\n- Reset passwords\n- Revoke access tokens\n- Force MFA re-enrollment\n\n**Process Termination:**\n- Kill malicious processes\n- Stop malware execution\n- Disable scheduled tasks\n\n### Long-Term Containment\n\nTemporary fixes while planning recovery:\n\n**System Patching:**\n- Apply critical security updates\n- Close exploited vulnerabilities\n- Harden configurations\n\n**Monitoring Enhancement:**\n- Increase logging\n- Deploy additional sensors\n- Watch for attacker return\n\n**Backup Systems:**\n- Deploy temporary replacements\n- Restore critical services\n- Maintain business operations\n\n## Containment Strategies\n\n### Complete Isolation\n\n**When to Use:**\n- Active data exfiltration\n- Ransomware spreading\n- Critical system compromise\n\n**Actions:**\n- Physically disconnect network cable\n- Disable wireless\n- Isolate VLAN\n- Shutdown system (last resort)\n\n**Caution:** May alert attacker, lose volatile evidence\n\n### Network Segmentation\n\n**When to Use:**\n- Limiting lateral movement\n- Protecting critical assets\n- Partial compromise\n\n**Actions:**\n- ACL changes on firewall\n- VLAN reconfiguration\n- Micro-segmentation\n- Block specific traffic flows\n\n### Monitoring Without Disruption\n\n**When to Use:**\n- Gathering intelligence\n- Observing attacker TTPs\n- Building legal case\n\n**Actions:**\n- Enhanced logging\n- Network taps\n- Silent observation\n- Coordinated takedown later\n\n**Risk:** Allows continued damage\n\n## Containment Decision Matrix\n\nConsider these factors:\n\n**Business Impact:**\n- Revenue loss from downtime\n- Customer trust damage\n- Regulatory penalties\n\n**Technical Impact:**\n- Data sensitivity\n- Number of systems affected\n- Attacker capabilities\n\n**Evidence Preservation:**\n- Legal requirements\n- Forensic needs\n- Attribution goals\n\n**Resource Availability:**\n- Incident response team size\n- Time of day/week\n- Vendor support\n\n## Containment Actions by Incident Type\n\n### Ransomware\n\n1. Isolate infected systems immediately\n2. Identify patient zero\n3. Block C2 communication\n4. Disable backups access\n5. Prevent lateral spread\n6. DO NOT pay ransom immediately\n\n### Data Breach\n\n1. Block data exfiltration paths\n2. Identify compromised data\n3. Revoke attacker access\n4. Preserve evidence\n5. Notify stakeholders\n6. Engage legal/PR teams\n\n### Phishing Campaign\n\n1. Block sender domains\n2. Delete malicious emails\n3. Disable compromised accounts\n4. Reset credentials\n5. Scan for malware\n6. User awareness alert\n\n### DDoS Attack\n\n1. Activate DDoS mitigation\n2. Rate limiting\n3. ISP coordination\n4. Cloud scrubbing service\n5. Identify attack vector\n6. Block source IPs (if feasible)\n\n## Common Containment Mistakes\n\n**Mistake 1: Acting Too Slowly**\n- Hesitation allows spread\n- Every minute matters\n- Have playbooks ready\n\n**Mistake 2: Alerting the Attacker**\n- Obvious containment tips off attacker\n- May trigger data destruction\n- Coordinate simultaneous actions\n\n**Mistake 3: Inadequate Containment**\n- Partial containment allows resumption\n- Attacker finds alternate path\n- Must be thorough\n\n**Mistake 4: Destroying Evidence**\n- Hasty shutdown loses volatile data\n- Needed for forensics and legal\n- Image before containment when possible\n\n**Mistake 5: Poor Communication**\n- Team not coordinated\n- Actions conflict\n- Stakeholders uninformed\n\n## Containment Tools\n\n**Network:**\n- Firewall rules\n- IDS/IPS blocking\n- DNS sinkholing\n- Network access control (NAC)\n\n**Endpoint:**\n- EDR isolation features\n- Process termination\n- Account disablement\n- Host firewall\n\n**Cloud:**\n- Security group changes\n- Identity and Access Management\n- API throttling\n- Account suspension\n\n## Documentation During Containment\n\nRecord everything:\n- Actions taken and time\n- Who authorized decisions\n- Systems affected\n- Evidence preserved\n- Containment effectiveness\n\nThis is critical for:\n- Post-incident review\n- Legal proceedings\n- Regulatory compliance\n- Future improvements\n\n## After Containment\n\nNext Steps:\n\n1. **Eradication:** Remove attacker presence completely\n2. **Recovery:** Restore systems to normal\n3. **Lessons Learned:** Document and improve\n\nBut first ensure:\n- Containment is complete\n- No attacker access remains\n- Monitoring in place\n\n## Key Takeaways\n\n- Containment limits damage and prevents spread\n- Speed is critical - every minute counts\n- Short-term: stop active attack (isolation, account lockdown)\n- Long-term: temporary fixes during recovery planning\n- Consider business impact, technical impact, evidence preservation\n- Complete isolation for active threats (ransomware, exfiltration)\n- Network segmentation to limit lateral movement\n- Document all actions taken during containment\n- Don't alert attacker - coordinate simultaneous actions\n- Have pre-approved playbooks for common scenarios\n- Containment must be thorough - partial containment fails",
+      content: "# Incident Response: Containment\n\n## What is Containment?\n\nContainment is the phase of incident response focused on limiting the scope and impact of a security incident.\n\nGoal: Stop the bleeding before fixing the wound.\n\n## Why Containment Matters\n\nQuick containment prevents:\n- Further data exfiltration\n- Lateral movement to other systems\n- Additional system compromises\n- Escalating damage and costs\n\n<strong>Speed is critical:</strong> Every minute counts during an active incident.\n\n## Types of Containment\n\n### Short-Term Containment\n\nImmediate actions to stop active attack:\n\n<strong>Network Isolation:</strong>\n- Disconnect compromised systems\n- Block attacker C2 communications\n- Segment affected network areas\n\n<strong>Account Lockdown:</strong>\n- Disable compromised accounts\n- Reset passwords\n- Revoke access tokens\n- Force MFA re-enrollment\n\n<strong>Process Termination:</strong>\n- Kill malicious processes\n- Stop malware execution\n- Disable scheduled tasks\n\n### Long-Term Containment\n\nTemporary fixes while planning recovery:\n\n<strong>System Patching:</strong>\n- Apply critical security updates\n- Close exploited vulnerabilities\n- Harden configurations\n\n<strong>Monitoring Enhancement:</strong>\n- Increase logging\n- Deploy additional sensors\n- Watch for attacker return\n\n<strong>Backup Systems:</strong>\n- Deploy temporary replacements\n- Restore critical services\n- Maintain business operations\n\n## Containment Strategies\n\n### Complete Isolation\n\n<strong>When to Use:</strong>\n- Active data exfiltration\n- Ransomware spreading\n- Critical system compromise\n\n<strong>Actions:</strong>\n- Physically disconnect network cable\n- Disable wireless\n- Isolate VLAN\n- Shutdown system (last resort)\n\n<strong>Caution:</strong> May alert attacker, lose volatile evidence\n\n### Network Segmentation\n\n<strong>When to Use:</strong>\n- Limiting lateral movement\n- Protecting critical assets\n- Partial compromise\n\n<strong>Actions:</strong>\n- ACL changes on firewall\n- VLAN reconfiguration\n- Micro-segmentation\n- Block specific traffic flows\n\n### Monitoring Without Disruption\n\n<strong>When to Use:</strong>\n- Gathering intelligence\n- Observing attacker TTPs\n- Building legal case\n\n<strong>Actions:</strong>\n- Enhanced logging\n- Network taps\n- Silent observation\n- Coordinated takedown later\n\n<strong>Risk:</strong> Allows continued damage\n\n## Containment Decision Matrix\n\nConsider these factors:\n\n<strong>Business Impact:</strong>\n- Revenue loss from downtime\n- Customer trust damage\n- Regulatory penalties\n\n<strong>Technical Impact:</strong>\n- Data sensitivity\n- Number of systems affected\n- Attacker capabilities\n\n<strong>Evidence Preservation:</strong>\n- Legal requirements\n- Forensic needs\n- Attribution goals\n\n<strong>Resource Availability:</strong>\n- Incident response team size\n- Time of day/week\n- Vendor support\n\n## Containment Actions by Incident Type\n\n### Ransomware\n\n1. Isolate infected systems immediately\n2. Identify patient zero\n3. Block C2 communication\n4. Disable backups access\n5. Prevent lateral spread\n6. DO NOT pay ransom immediately\n\n### Data Breach\n\n1. Block data exfiltration paths\n2. Identify compromised data\n3. Revoke attacker access\n4. Preserve evidence\n5. Notify stakeholders\n6. Engage legal/PR teams\n\n### Phishing Campaign\n\n1. Block sender domains\n2. Delete malicious emails\n3. Disable compromised accounts\n4. Reset credentials\n5. Scan for malware\n6. User awareness alert\n\n### DDoS Attack\n\n1. Activate DDoS mitigation\n2. Rate limiting\n3. ISP coordination\n4. Cloud scrubbing service\n5. Identify attack vector\n6. Block source IPs (if feasible)\n\n## Common Containment Mistakes\n\n<strong>Mistake 1: Acting Too Slowly</strong>\n- Hesitation allows spread\n- Every minute matters\n- Have playbooks ready\n\n<strong>Mistake 2: Alerting the Attacker</strong>\n- Obvious containment tips off attacker\n- May trigger data destruction\n- Coordinate simultaneous actions\n\n<strong>Mistake 3: Inadequate Containment</strong>\n- Partial containment allows resumption\n- Attacker finds alternate path\n- Must be thorough\n\n<strong>Mistake 4: Destroying Evidence</strong>\n- Hasty shutdown loses volatile data\n- Needed for forensics and legal\n- Image before containment when possible\n\n<strong>Mistake 5: Poor Communication</strong>\n- Team not coordinated\n- Actions conflict\n- Stakeholders uninformed\n\n## Containment Tools\n\n<strong>Network:</strong>\n- Firewall rules\n- IDS/IPS blocking\n- DNS sinkholing\n- Network access control (NAC)\n\n<strong>Endpoint:</strong>\n- EDR isolation features\n- Process termination\n- Account disablement\n- Host firewall\n\n<strong>Cloud:</strong>\n- Security group changes\n- Identity and Access Management\n- API throttling\n- Account suspension\n\n## Documentation During Containment\n\nRecord everything:\n- Actions taken and time\n- Who authorized decisions\n- Systems affected\n- Evidence preserved\n- Containment effectiveness\n\nThis is critical for:\n- Post-incident review\n- Legal proceedings\n- Regulatory compliance\n- Future improvements\n\n## After Containment\n\nNext Steps:\n\n1. <strong>Eradication:</strong> Remove attacker presence completely\n2. <strong>Recovery:</strong> Restore systems to normal\n3. <strong>Lessons Learned:</strong> Document and improve\n\nBut first ensure:\n- Containment is complete\n- No attacker access remains\n- Monitoring in place\n\n## Key Takeaways\n\n- Containment limits damage and prevents spread\n- Speed is critical - every minute counts\n- Short-term: stop active attack (isolation, account lockdown)\n- Long-term: temporary fixes during recovery planning\n- Consider business impact, technical impact, evidence preservation\n- Complete isolation for active threats (ransomware, exfiltration)\n- Network segmentation to limit lateral movement\n- Document all actions taken during containment\n- Don't alert attacker - coordinate simultaneous actions\n- Have pre-approved playbooks for common scenarios\n- Containment must be thorough - partial containment fails",
       order: 7,
       courseId: courses[5].id,
       moduleId: course6Modules[2].id
@@ -1881,7 +1881,7 @@ Proactively searching for threats that have evaded existing security controls.
     data: {
       title: "Post-Incident Review",
       videoUrl: "https://www.youtube.com/watch?v=njPY7pQTRWg",
-      content: "# Post-Incident Review and Lessons Learned\n\n## What is a Post-Incident Review?\n\nA structured meeting held after resolving a security incident to analyze what happened, what went well, what didn't, and how to improve.\n\nAlso called: Lessons Learned, After Action Review, Retrospective\n\n## Why Post-Incident Reviews Matter\n\nBenefits:\n- Prevent future incidents\n- Improve incident response process\n- Identify security gaps\n- Document institutional knowledge\n- Meet compliance requirements\n- Build team cohesion\n\n**Most important:** Organizations that skip this step repeat the same mistakes.\n\n## When to Conduct Review\n\nTiming:\n- Schedule within 1-2 weeks of incident resolution\n- Soon enough that details are fresh\n- Late enough that emotions have cooled\n- After immediate crisis is over\n\nAll Incidents:\n- Major incidents (definitely)\n- Medium incidents (recommended)\n- Minor incidents (if patterns emerge)\n\n## Who Should Attend\n\nRequired Participants:\n- Incident response team\n- Security operations\n- IT operations\n- System owners\n- Management (appropriate level)\n\nOptional:\n- Legal counsel\n- PR/Communications\n- External consultants\n- Third-party vendors\n\n## Review Agenda\n\n### 1. Incident Summary (5-10 min)\n\nBrief overview:\n- What happened?\n- When was it detected?\n- What systems were affected?\n- What data was impacted?\n\nKeep factual, not judgmental.\n\n### 2. Timeline Review (15-20 min)\n\nWalk through chronologically:\n- Initial compromise\n- Dwell time (time before detection)\n- Detection point\n- Response actions\n- Containment achieved\n- Recovery completed\n\nIdentify key decision points.\n\n### 3. What Went Well (10-15 min)\n\nPositive aspects:\n- What processes worked?\n- Which tools were effective?\n- Who performed excellently?\n- What decisions were correct?\n\nImportant: Recognize successes, not just failures.\n\n### 4. What Went Wrong (15-20 min)\n\nProblems encountered:\n- Detection delays\n- Communication breakdowns\n- Tool failures\n- Knowledge gaps\n- Process issues\n\nBlameless: Focus on systems, not individuals.\n\n### 5. Root Cause Analysis (10-15 min)\n\n**5 Whys Technique:**\n- Why did the incident occur?\n  - Phishing email was successful\n- Why was it successful?\n  - User clicked and entered credentials\n- Why did user fall for it?\n  - Email looked legitimate, no training\n- Why no training?\n  - No security awareness program\n- Why no program?\n  - No budget allocated\n\n**Root cause:** Lack of security awareness investment\n\n### 6. Action Items (15-20 min)\n\nSpecific, actionable improvements:\n- Technical fixes\n- Process changes\n- Training needs\n- Tool purchases\n- Policy updates\n\nEach action item needs:\n- Clear description\n- Owner assigned\n- Due date\n- Success criteria\n\n### 7. Follow-up Plan (5 min)\n\n- Who will track action items?\n- When to review progress?\n- How to measure success?\n\n## Blameless Culture\n\nCritical Principle: Focus on systems, not people.\n\n**Bad Approach:**\n- \"Bob clicked the phishing email\"\n- \"Sarah failed to detect the intrusion\"\n- \"IT didn't patch the server\"\n\n**Good Approach:**\n- \"Our email filtering didn't catch this attack\"\n- \"Detection tools lack visibility into this technique\"\n- \"Patch management process needs improvement\"\n\nWhy Blameless:\n- Encourages honesty\n- Surfaces real problems\n- Retains talented staff\n- Fosters learning culture\n\n## Sample Action Items\n\n**Technical Controls:**\n- Implement EDR on all endpoints (Owner: IT, Due: 60 days)\n- Enable MFA for all accounts (Owner: Security, Due: 30 days)\n- Deploy email sandbox (Owner: Email Admin, Due: 90 days)\n\n**Process Improvements:**\n- Create incident response playbook (Owner: IR Team, Due: 45 days)\n- Establish on-call rotation (Owner: Manager, Due: 30 days)\n- Document escalation procedures (Owner: Security, Due: 30 days)\n\n**Training:**\n- Conduct phishing simulation (Owner: Security Awareness, Due: 60 days)\n- IR team tabletop exercise (Owner: IR Lead, Due: 90 days)\n- Executive cyber crisis simulation (Owner: CISO, Due: 120 days)\n\n## Metrics to Track\n\n**Detection Metrics:**\n- Dwell time (time from compromise to detection)\n- Mean time to detect (MTTD)\n- Detection source (tool, user report, vendor)\n\n**Response Metrics:**\n- Mean time to respond (MTTR)\n- Mean time to contain (MTTC)\n- Mean time to recover (MTTR)\n\n**Impact Metrics:**\n- Systems affected\n- Data compromised\n- Downtime duration\n- Financial cost\n\nTrack over time: Are we improving?\n\n## Documentation\n\nCreate Written Report:\n\n**Executive Summary:**\n- High-level overview\n- Business impact\n- Key findings\n- Critical actions\n\n**Technical Details:**\n- Complete timeline\n- Indicators of compromise\n- Attack methodology\n- Affected systems\n\n**Lessons Learned:**\n- What worked\n- What didn't\n- Root causes\n- Action items with owners and dates\n\n**Appendices:**\n- Logs and evidence\n- IOCs\n- Communications\n- External reports\n\nDistribute to:\n- Incident response team\n- Management\n- Compliance (if required)\n- Board (for major incidents)\n\nProtect as privileged: Legal/attorney-client privilege\n\n## Tracking Action Items\n\n**Dashboard:**\n- List all action items\n- Current status (not started, in progress, complete)\n- Owner, due date, priority\n\n**Regular Review:**\n- Weekly check-ins for critical items\n- Monthly review of all items\n- Escalate overdue items\n\n**Measure Success:**\n- Track completion rate\n- Verify effectiveness (did it solve the problem?)\n- Adjust approach if needed\n\n## Common Pitfalls\n\n**Pitfall 1: Skipping the Review**\n- \"Too busy\"\n- \"Everyone knows what happened\"\n- Result: Repeat incidents\n\n**Pitfall 2: Blame Game**\n- Focuses on person, not system\n- Discourages honesty\n- People hide problems\n\n**Pitfall 3: No Follow-Through**\n- Create action items\n- Never implement them\n- Same problems recur\n\n**Pitfall 4: Too High-Level**\n- \"We need better security\"\n- Not actionable\n- No one takes ownership\n\n**Pitfall 5: Analysis Paralysis**\n- Endless discussion\n- No conclusions\n- No action items\n\n## Key Takeaways\n\n- Conduct post-incident review within 1-2 weeks of resolution\n- Blameless culture - focus on systems, not people\n- Review what went well AND what went wrong\n- Use 5 Whys technique for root cause analysis\n- Create specific, actionable improvements with owners and due dates\n- Track action items to completion\n- Document findings in written report\n- Measure key metrics (MTTD, MTTR, MTTC) to track improvement\n- Include technical, process, and training action items\n- Review is required for major incidents, recommended for all\n- Don't skip this step - organizations that don't learn from incidents repeat them",
+      content: "# Post-Incident Review and Lessons Learned\n\n## What is a Post-Incident Review?\n\nA structured meeting held after resolving a security incident to analyze what happened, what went well, what didn't, and how to improve.\n\nAlso called: Lessons Learned, After Action Review, Retrospective\n\n## Why Post-Incident Reviews Matter\n\nBenefits:\n- Prevent future incidents\n- Improve incident response process\n- Identify security gaps\n- Document institutional knowledge\n- Meet compliance requirements\n- Build team cohesion\n\n<strong>Most important:</strong> Organizations that skip this step repeat the same mistakes.\n\n## When to Conduct Review\n\nTiming:\n- Schedule within 1-2 weeks of incident resolution\n- Soon enough that details are fresh\n- Late enough that emotions have cooled\n- After immediate crisis is over\n\nAll Incidents:\n- Major incidents (definitely)\n- Medium incidents (recommended)\n- Minor incidents (if patterns emerge)\n\n## Who Should Attend\n\nRequired Participants:\n- Incident response team\n- Security operations\n- IT operations\n- System owners\n- Management (appropriate level)\n\nOptional:\n- Legal counsel\n- PR/Communications\n- External consultants\n- Third-party vendors\n\n## Review Agenda\n\n### 1. Incident Summary (5-10 min)\n\nBrief overview:\n- What happened?\n- When was it detected?\n- What systems were affected?\n- What data was impacted?\n\nKeep factual, not judgmental.\n\n### 2. Timeline Review (15-20 min)\n\nWalk through chronologically:\n- Initial compromise\n- Dwell time (time before detection)\n- Detection point\n- Response actions\n- Containment achieved\n- Recovery completed\n\nIdentify key decision points.\n\n### 3. What Went Well (10-15 min)\n\nPositive aspects:\n- What processes worked?\n- Which tools were effective?\n- Who performed excellently?\n- What decisions were correct?\n\nImportant: Recognize successes, not just failures.\n\n### 4. What Went Wrong (15-20 min)\n\nProblems encountered:\n- Detection delays\n- Communication breakdowns\n- Tool failures\n- Knowledge gaps\n- Process issues\n\nBlameless: Focus on systems, not individuals.\n\n### 5. Root Cause Analysis (10-15 min)\n\n<strong>5 Whys Technique:</strong>\n- Why did the incident occur?\n  - Phishing email was successful\n- Why was it successful?\n  - User clicked and entered credentials\n- Why did user fall for it?\n  - Email looked legitimate, no training\n- Why no training?\n  - No security awareness program\n- Why no program?\n  - No budget allocated\n\n<strong>Root cause:</strong> Lack of security awareness investment\n\n### 6. Action Items (15-20 min)\n\nSpecific, actionable improvements:\n- Technical fixes\n- Process changes\n- Training needs\n- Tool purchases\n- Policy updates\n\nEach action item needs:\n- Clear description\n- Owner assigned\n- Due date\n- Success criteria\n\n### 7. Follow-up Plan (5 min)\n\n- Who will track action items?\n- When to review progress?\n- How to measure success?\n\n## Blameless Culture\n\nCritical Principle: Focus on systems, not people.\n\n<strong>Bad Approach:</strong>\n- \"Bob clicked the phishing email\"\n- \"Sarah failed to detect the intrusion\"\n- \"IT didn't patch the server\"\n\n<strong>Good Approach:</strong>\n- \"Our email filtering didn't catch this attack\"\n- \"Detection tools lack visibility into this technique\"\n- \"Patch management process needs improvement\"\n\nWhy Blameless:\n- Encourages honesty\n- Surfaces real problems\n- Retains talented staff\n- Fosters learning culture\n\n## Sample Action Items\n\n<strong>Technical Controls:</strong>\n- Implement EDR on all endpoints (Owner: IT, Due: 60 days)\n- Enable MFA for all accounts (Owner: Security, Due: 30 days)\n- Deploy email sandbox (Owner: Email Admin, Due: 90 days)\n\n<strong>Process Improvements:</strong>\n- Create incident response playbook (Owner: IR Team, Due: 45 days)\n- Establish on-call rotation (Owner: Manager, Due: 30 days)\n- Document escalation procedures (Owner: Security, Due: 30 days)\n\n<strong>Training:</strong>\n- Conduct phishing simulation (Owner: Security Awareness, Due: 60 days)\n- IR team tabletop exercise (Owner: IR Lead, Due: 90 days)\n- Executive cyber crisis simulation (Owner: CISO, Due: 120 days)\n\n## Metrics to Track\n\n<strong>Detection Metrics:</strong>\n- Dwell time (time from compromise to detection)\n- Mean time to detect (MTTD)\n- Detection source (tool, user report, vendor)\n\n<strong>Response Metrics:</strong>\n- Mean time to respond (MTTR)\n- Mean time to contain (MTTC)\n- Mean time to recover (MTTR)\n\n<strong>Impact Metrics:</strong>\n- Systems affected\n- Data compromised\n- Downtime duration\n- Financial cost\n\nTrack over time: Are we improving?\n\n## Documentation\n\nCreate Written Report:\n\n<strong>Executive Summary:</strong>\n- High-level overview\n- Business impact\n- Key findings\n- Critical actions\n\n<strong>Technical Details:</strong>\n- Complete timeline\n- Indicators of compromise\n- Attack methodology\n- Affected systems\n\n<strong>Lessons Learned:</strong>\n- What worked\n- What didn't\n- Root causes\n- Action items with owners and dates\n\n<strong>Appendices:</strong>\n- Logs and evidence\n- IOCs\n- Communications\n- External reports\n\nDistribute to:\n- Incident response team\n- Management\n- Compliance (if required)\n- Board (for major incidents)\n\nProtect as privileged: Legal/attorney-client privilege\n\n## Tracking Action Items\n\n<strong>Dashboard:</strong>\n- List all action items\n- Current status (not started, in progress, complete)\n- Owner, due date, priority\n\n<strong>Regular Review:</strong>\n- Weekly check-ins for critical items\n- Monthly review of all items\n- Escalate overdue items\n\n<strong>Measure Success:</strong>\n- Track completion rate\n- Verify effectiveness (did it solve the problem?)\n- Adjust approach if needed\n\n## Common Pitfalls\n\n<strong>Pitfall 1: Skipping the Review</strong>\n- \"Too busy\"\n- \"Everyone knows what happened\"\n- Result: Repeat incidents\n\n<strong>Pitfall 2: Blame Game</strong>\n- Focuses on person, not system\n- Discourages honesty\n- People hide problems\n\n<strong>Pitfall 3: No Follow-Through</strong>\n- Create action items\n- Never implement them\n- Same problems recur\n\n<strong>Pitfall 4: Too High-Level</strong>\n- \"We need better security\"\n- Not actionable\n- No one takes ownership\n\n<strong>Pitfall 5: Analysis Paralysis</strong>\n- Endless discussion\n- No conclusions\n- No action items\n\n## Key Takeaways\n\n- Conduct post-incident review within 1-2 weeks of resolution\n- Blameless culture - focus on systems, not people\n- Review what went well AND what went wrong\n- Use 5 Whys technique for root cause analysis\n- Create specific, actionable improvements with owners and due dates\n- Track action items to completion\n- Document findings in written report\n- Measure key metrics (MTTD, MTTR, MTTC) to track improvement\n- Include technical, process, and training action items\n- Review is required for major incidents, recommended for all\n- Don't skip this step - organizations that don't learn from incidents repeat them",
       order: 8,
       courseId: courses[5].id,
       moduleId: course6Modules[2].id
@@ -2438,7 +2438,7 @@ You will face 6 different scenarios. For each:
 ### Scenario 1: The Urgent IT Request
 You receive a call from someone claiming to be from IT support saying your account will be locked unless you verify your password immediately.
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Identify red flags in the approach
 - Determine appropriate response
 - Document what you would do instead
@@ -2446,7 +2446,7 @@ You receive a call from someone claiming to be from IT support saying your accou
 ### Scenario 2: The Helpful Stranger
 Someone in the parking lot with arms full of boxes asks you to badge them into the building.
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Assess the security risk
 - Decide how to handle the situation
 - Consider alternative ways to help
@@ -2454,7 +2454,7 @@ Someone in the parking lot with arms full of boxes asks you to badge them into t
 ### Scenario 3: The Executive Email
 You receive an email appearing to be from the CEO requesting an urgent wire transfer to a new vendor.
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Analyze email indicators
 - Identify verification steps needed
 - Document proper escalation procedure
@@ -2462,7 +2462,7 @@ You receive an email appearing to be from the CEO requesting an urgent wire tran
 ### Scenario 4: The Survey Scam
 A caller says you've been selected for a customer satisfaction survey with a prize, but needs to verify your employee ID.
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Recognize the scam indicators
 - Determine what information is safe to share
 - Plan appropriate response
@@ -2470,7 +2470,7 @@ A caller says you've been selected for a customer satisfaction survey with a pri
 ### Scenario 5: The Vendor Visit
 Someone arrives claiming to be from a maintenance company to inspect fire safety equipment but has no appointment on record.
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Assess credibility indicators
 - Determine verification requirements
 - Follow proper protocol
@@ -2478,7 +2478,7 @@ Someone arrives claiming to be from a maintenance company to inspect fire safety
 ### Scenario 6: The LinkedIn Connection
 You receive a LinkedIn message from a recruiter for an amazing opportunity who wants your personal email and phone number right away.
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Identify potential risks
 - Determine safe information sharing
 - Recognize professional vs. suspicious behavior
@@ -2634,7 +2634,7 @@ Learn to properly classify data and apply appropriate security controls for each
 ### Task 1: Data Classification
 Classify the following data types according to the framework (Public, Internal, Confidential, Restricted):
 
-**Personal Information:**
+<strong>Personal Information:</strong>
 - Your name
 - Social Security Number
 - Home address
@@ -2644,7 +2644,7 @@ Classify the following data types according to the framework (Public, Internal, 
 - Phone number
 - Employment history
 
-**Business Information:**
+<strong>Business Information:</strong>
 - Company marketing materials
 - Internal memos
 - Customer database
@@ -2666,25 +2666,25 @@ For each data type classified as Confidential or Restricted:
 ### Task 3: Protection Implementation
 Implement appropriate controls for sample files:
 
-**File 1: Personal Tax Returns (Restricted)**
+<strong>File 1: Personal Tax Returns (Restricted)</strong>
 - Encrypt the file
 - Set up password protection
 - Configure secure storage location
 - Document access procedures
 
-**File 2: Medical Records (Restricted)**
+<strong>File 2: Medical Records (Restricted)</strong>
 - Apply encryption
 - Set up access logging
 - Configure backup procedures
 - Document retention policy
 
-**File 3: Financial Statements (Confidential)**
+<strong>File 3: Financial Statements (Confidential)</strong>
 - Apply appropriate encryption
 - Set sharing restrictions
 - Configure audit trail
 - Document handling procedures
 
-**File 4: Internal Project Notes (Internal)**
+<strong>File 4: Internal Project Notes (Internal)</strong>
 - Basic access control
 - Storage location
 - Sharing guidelines
@@ -2766,9 +2766,9 @@ Experience a realistic incident response scenario as part of the incident respon
 You will work through a ransomware incident from detection to resolution.
 
 ### Hour 0 - Detection (08:00 AM)
-**Situation:** Multiple users report they cannot access files. Desktop backgrounds changed to ransom notes.
+<strong>Situation:</strong> Multiple users report they cannot access files. Desktop backgrounds changed to ransom notes.
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Assess initial indicators
 - Determine incident severity
 - Activate incident response team
@@ -2776,13 +2776,13 @@ You will work through a ransomware incident from detection to resolution.
 - Establish communication channels
 
 ### Hour 1 - Analysis (09:00 AM)
-**New Information:**
+<strong>New Information:</strong>
 - 50+ workstations affected
 - Ransomware identified as REvil variant
 - Network shares encrypted
 - Ransom demand: 50 Bitcoin
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Map affected systems
 - Identify patient zero
 - Determine ransomware variant
@@ -2791,14 +2791,14 @@ You will work through a ransomware incident from detection to resolution.
 - Update stakeholders
 
 ### Hour 2 - Containment (10:00 AM)
-**Actions Required:**
+<strong>Actions Required:</strong>
 - Isolate affected systems
 - Block C2 communication
 - Prevent lateral movement
 - Secure backups
 - Document all actions
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Create isolation plan
 - Identify IOCs for blocking
 - Check for persistence mechanisms
@@ -2806,9 +2806,9 @@ You will work through a ransomware incident from detection to resolution.
 - Update containment status
 
 ### Hour 4 - Eradication (12:00 PM)
-**Status:** Threat contained, moving to eradication
+<strong>Status:</strong> Threat contained, moving to eradication
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Remove ransomware from all systems
 - Patch vulnerabilities exploited
 - Reset compromised credentials
@@ -2817,9 +2817,9 @@ You will work through a ransomware incident from detection to resolution.
 - Document all changes
 
 ### Hour 8 - Recovery (04:00 PM)
-**Status:** Clean systems ready for restoration
+<strong>Status:</strong> Clean systems ready for restoration
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Restore from backups
 - Verify data integrity
 - Test critical systems
@@ -2828,9 +2828,9 @@ You will work through a ransomware incident from detection to resolution.
 - Document recovery steps
 
 ### Day 3 - Post-Incident
-**Status:** Operations restored, lessons learned phase
+<strong>Status:</strong> Operations restored, lessons learned phase
 
-**Your Tasks:**
+<strong>Your Tasks:</strong>
 - Complete incident report
 - Timeline reconstruction
 - Root cause analysis
@@ -2841,37 +2841,37 @@ You will work through a ransomware incident from detection to resolution.
 ## Documentation Requirements
 
 ### Incident Report Sections:
-1. **Executive Summary**
+1. <strong>Executive Summary</strong>
    - Incident overview
    - Impact assessment
    - Response summary
    - Recommendations
 
-2. **Timeline**
+2. <strong>Timeline</strong>
    - Chronological event log
    - All actions taken
    - Decisions made
    - Key findings
 
-3. **Technical Analysis**
+3. <strong>Technical Analysis</strong>
    - Attack vector identification
    - Ransomware variant analysis
    - Affected systems inventory
    - IOCs documented
 
-4. **Response Actions**
+4. <strong>Response Actions</strong>
    - Containment measures
    - Eradication procedures
    - Recovery steps
    - Verification activities
 
-5. **Lessons Learned**
+5. <strong>Lessons Learned</strong>
    - What worked well
    - What needs improvement
    - Security gaps identified
    - Recommended changes
 
-6. **Appendices**
+6. <strong>Appendices</strong>
    - IOC list
    - Communications log
    - Evidence inventory
@@ -2932,81 +2932,81 @@ Use threat intelligence and the MITRE ATT&CK framework to hunt for sophisticated
 ## Threat Hunting Missions
 
 ### Mission 1: Credential Access Hunt
-**Hypothesis:** Attackers may be dumping credentials using LSASS memory access.
+<strong>Hypothesis:</strong> Attackers may be dumping credentials using LSASS memory access.
 
-**ATT&CK Techniques:** T1003.001 (LSASS Memory)
+<strong>ATT&CK Techniques:</strong> T1003.001 (LSASS Memory)
 
-**Hunt Steps:**
+<strong>Hunt Steps:</strong>
 1. Review Sysmon logs for process access to LSASS
 2. Identify unusual tools (Mimikatz, ProcDump)
 3. Check for credential dumping indicators
 4. Analyze memory dumps if found
 5. Document findings
 
-**Data Sources:**
+<strong>Data Sources:</strong>
 - Sysmon Event ID 10 (Process Access)
 - Security Event ID 4656 (Handle to Object)
 - PowerShell logs
 
-**Queries to Run:**
+<strong>Queries to Run:</strong>
 
 Sysmon: EventID=10 TargetImage="*lsass.exe"
 Security: EventID=4656 ObjectName="*lsass.exe"
 PowerShell: Look for Invoke-Mimikatz
 
 ### Mission 2: Persistence Mechanism Hunt
-**Hypothesis:** APT may have established persistence through scheduled tasks or registry run keys.
+<strong>Hypothesis:</strong> APT may have established persistence through scheduled tasks or registry run keys.
 
-**ATT&CK Techniques:** T1053.005 (Scheduled Task), T1547.001 (Registry Run Keys)
+<strong>ATT&CK Techniques:</strong> T1053.005 (Scheduled Task), T1547.001 (Registry Run Keys)
 
-**Hunt Steps:**
+<strong>Hunt Steps:</strong>
 1. Enumerate all scheduled tasks
 2. Check registry run key locations
 3. Identify suspicious entries
 4. Validate task/binary legitimacy
 5. Check creation timestamps
 
-**Registry Locations:**
+<strong>Registry Locations:</strong>
 - HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
 - HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
 - Startup folders
 
-**PowerShell Commands:**
+<strong>PowerShell Commands:</strong>
 
 Get-ScheduledTask | Where Author -notlike "*Microsoft*"
 Get-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
 ### Mission 3: Lateral Movement Hunt
-**Hypothesis:** Attackers using RDP or WMI for lateral movement.
+<strong>Hypothesis:</strong> Attackers using RDP or WMI for lateral movement.
 
-**ATT&CK Techniques:** T1021.001 (RDP), T1047 (WMI)
+<strong>ATT&CK Techniques:</strong> T1021.001 (RDP), T1047 (WMI)
 
-**Hunt Steps:**
+<strong>Hunt Steps:</strong>
 1. Analyze RDP connections
 2. Check for unusual WMI activity
 3. Look for admin share access
 4. Identify service creation events
 5. Map movement timeline
 
-**Data Sources:**
+<strong>Data Sources:</strong>
 - Security Event ID 4624 (Logon) Type 10
 - Security Event ID 4672 (Special Logon)
 - Security Event ID 4697 (Service Creation)
 - WMI Event Logs
 
 ### Mission 4: Command & Control Hunt
-**Hypothesis:** Malware communicating with C2 servers using encoded or encrypted channels.
+<strong>Hypothesis:</strong> Malware communicating with C2 servers using encoded or encrypted channels.
 
-**ATT&CK Techniques:** T1071 (Application Layer Protocol), T1573 (Encrypted Channel)
+<strong>ATT&CK Techniques:</strong> T1071 (Application Layer Protocol), T1573 (Encrypted Channel)
 
-**Hunt Steps:**
+<strong>Hunt Steps:</strong>
 1. Analyze network traffic patterns
 2. Identify beaconing behavior
 3. Check for unusual DNS requests
 4. Look for data encoding
 5. Investigate suspicious connections
 
-**Analysis:**
+<strong>Analysis:</strong>
 - Long connection duration analysis
 - Periodic/beaconing traffic patterns
 - Unusual ports or protocols
@@ -3014,18 +3014,18 @@ Get-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
 - Domain generation algorithms (DGA)
 
 ### Mission 5: Data Exfiltration Hunt
-**Hypothesis:** Large data transfers to external locations.
+<strong>Hypothesis:</strong> Large data transfers to external locations.
 
-**ATT&CK Techniques:** T1041 (Exfiltration Over C2), T1048 (Exfiltration Over Alternative Protocol)
+<strong>ATT&CK Techniques:</strong> T1041 (Exfiltration Over C2), T1048 (Exfiltration Over Alternative Protocol)
 
-**Hunt Steps:**
+<strong>Hunt Steps:</strong>
 1. Analyze outbound data volumes
 2. Identify unusual destinations
 3. Check for data compression
 4. Look for unusual protocols
 5. Correlate with user activity
 
-**Metrics:**
+<strong>Metrics:</strong>
 - Baseline outbound traffic per user
 - Anomalous upload volumes
 - Off-hours transfers
