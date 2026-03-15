@@ -16,7 +16,13 @@ const convertMarkdownToHtml = (content: string): string => {
 
   // Check if content is already HTML
   const hasHTML = /<[a-z][\s\S]*>/i.test(content);
-  if (hasHTML) return content;
+  if (hasHTML) {
+    // Still convert inline markdown that may be mixed in
+    return content
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
 
   // Convert markdown to HTML
   let textContent = content
@@ -87,7 +93,14 @@ const convertMarkdownToHtml = (content: string): string => {
   if (inUnorderedList) htmlLines.push('</ul>');
   if (inOrderedList) htmlLines.push('</ol>');
 
-  return htmlLines.join('\n');
+  // Convert inline markdown: **bold**, *italic*, `code`
+  let result = htmlLines.join('\n');
+  result = result
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  return result;
 };
 
 // Video Preview Component (copied from admin-content for now, could be extracted to shared component)
