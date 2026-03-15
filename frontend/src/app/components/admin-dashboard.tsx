@@ -121,7 +121,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
     return {
       percent: isPositive ? changePercent : -changePercent,
       isPositive,
-      text: `${isPositive ? '+' : ''}${changePercent}% from last month`
+      text: `${isPositive ? '+' : '-'}${changePercent}% from last month`
     };
   };
 
@@ -441,7 +441,7 @@ export function AdminDashboard({ userEmail, onNavigate, onLogout }: AdminDashboa
                     </div>
                     <div>
                       <p className="font-medium">Lesson Completion</p>
-                      <p className="text-sm text-muted-foreground">Out of {stats?.totalLessons || 0} total lessons</p>
+                      <p className="text-sm text-muted-foreground">Across {stats?.totalLessons || 0} lessons</p>
                     </div>
                   </div>
                   <span className="text-2xl font-bold">{stats?.completedLessonProgress || 0}</span>

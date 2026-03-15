@@ -22,11 +22,13 @@ import {
   Loader2,
   AlertCircle,
   Target,
-  Sparkles
+  Sparkles,
+  MessageCircle
 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useSettings } from "../context/SettingsContext";
 import { UserProfileDropdown } from "./user-profile-dropdown";
+import { LessonChatPanel } from "./lesson-chat-panel";
 import courseService, {
   Course,
   Module,
@@ -108,6 +110,12 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   // Labs state
   const [labs, setLabs] = useState<LabWithProgress[]>([]);
   const [loadingLabs, setLoadingLabs] = useState(false);
+
+  // AI Chat state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ id: number; role: "user" | "assistant" | "system"; content: string; timestamp: Date }[]>([
+    { id: 1, role: "assistant", content: "", timestamp: new Date() }
+  ]);
 
   const toggleModuleCollapse = (moduleId: string) => {
     setCollapsedModules(prev => {
@@ -1090,6 +1098,27 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
           </div>
         </div>
       </div>
+
+      {/* AI Chat FAB */}
+      <Button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-40 gap-0"
+        size="icon"
+        aria-label="Ask AI about this lesson"
+      >
+        <MessageCircle className="w-6 h-6" />
+      </Button>
+
+      {/* AI Lesson Chat Panel */}
+      <LessonChatPanel
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        lessonTitle={currentLesson?.title || ""}
+        lessonContent={currentLesson?.content || ""}
+        courseTitle={course.title}
+        messages={chatMessages}
+        onMessagesChange={setChatMessages}
+      />
     </div>
   );
 }

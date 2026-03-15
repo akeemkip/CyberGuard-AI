@@ -9,7 +9,7 @@ import { sendChatMessage, getQuizExplanation, getLabHint, getAnalyticsInsights, 
  */
 export async function handleChatMessage(req: AuthRequest, res: Response) {
   try {
-    const { message } = req.body;
+    const { message, context } = req.body;
     const userId = req.userId!;
 
     // Validate message exists
@@ -22,8 +22,8 @@ export async function handleChatMessage(req: AuthRequest, res: Response) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    // Call AI service with user context
-    const aiResponse = await sendChatMessage(message, userId);
+    // Call AI service with user context and optional lesson context
+    const aiResponse = await sendChatMessage(message, userId, context);
 
     // Return response
     return res.status(200).json({

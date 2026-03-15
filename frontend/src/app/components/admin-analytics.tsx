@@ -428,7 +428,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
     const percentChange = ((secondTotal - firstTotal) / firstTotal) * 100;
     const direction = percentChange > 0 ? 'up' : percentChange < 0 ? 'down' : 'neutral';
 
-    return { change: Math.abs(Math.round(percentChange)), direction };
+    return { change: Math.min(Math.abs(Math.round(percentChange)), 99), direction };
   };
 
   if (isLoading) {
@@ -695,7 +695,7 @@ export function AdminAnalytics({ userEmail, onNavigate, onLogout }: AdminAnalyti
                 })()}
               </div>
               <Badge className="bg-chart-3/20 text-chart-3 mt-1">
-                of {stats?.totalLessons || 0} total
+                across {stats?.totalLessons || 0} lessons
               </Badge>
             </Card>
           </div>

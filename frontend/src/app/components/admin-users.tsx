@@ -592,7 +592,7 @@ export function AdminUsers({ userEmail, onNavigate, onLogout }: AdminUsersProps)
                               Locked
                             </Badge>
                           )}
-                          {!isAccountLocked(user) && user.loginAttempts && user.loginAttempts > 0 && (
+                          {!isAccountLocked(user) && (user.loginAttempts ?? 0) > 0 && (
                             <Badge variant="outline" className="text-xs text-yellow-600 dark:text-yellow-400">
                               {user.loginAttempts} failed attempt{user.loginAttempts !== 1 ? 's' : ''}
                             </Badge>

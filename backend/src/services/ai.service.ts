@@ -32,7 +32,11 @@ Tone: Friendly, encouraging, professional, and educational.`;
  * @param userId - The ID of the user asking the question
  * @returns AI-generated response as a string
  */
-export async function sendChatMessage(userMessage: string, userId: string): Promise<string> {
+export async function sendChatMessage(
+  userMessage: string,
+  userId: string,
+  lessonContext?: { courseTitle?: string; lessonTitle?: string; lessonContent?: string }
+): Promise<string> {
   try {
     // Validate API key exists
     if (!process.env.GEMINI_API_KEY) {
@@ -98,8 +102,13 @@ export async function sendChatMessage(userMessage: string, userId: string): Prom
     // Get Gemini model (using stable 2.5-flash - current model as of 2026)
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
+    // Build optional lesson context
+    const lessonContextStr = lessonContext?.lessonTitle
+      ? `\n\nCURRENT LESSON CONTEXT:\nCourse: ${lessonContext.courseTitle || 'Unknown'}\nLesson: ${lessonContext.lessonTitle || 'Unknown'}\nLesson Content:\n${(lessonContext.lessonContent || '').replace(/<[^>]*>/g, '').substring(0, 2000)}\n\nThe student is currently reading this lesson. Answer their question in the context of this specific lesson content. Reference specific concepts from the lesson when relevant.`
+      : '';
+
     // Prepare the full prompt with system instructions, platform context, user context
-    const fullPrompt = `${SYSTEM_PROMPT}\n\n${platformContext}\n\n${userContext}\n\nStudent question: ${userMessage}`;
+    const fullPrompt = `${SYSTEM_PROMPT}\n\n${platformContext}\n\n${userContext}${lessonContextStr}\n\nStudent question: ${userMessage}`;
 
     // Generate AI response
     const result = await model.generateContent(fullPrompt);
