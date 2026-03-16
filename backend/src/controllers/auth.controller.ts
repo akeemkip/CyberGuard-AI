@@ -55,18 +55,21 @@ const generateToken = async (userId: string, role: string): Promise<string> => {
 // Register new user
 export const register = async (req: Request, res: Response) => {
   try {
-    // Fetch minPasswordLength from platform settings
-    let minPasswordLength = 8; // Default changed from 6 to 8 for security
+    // Fetch platform settings for registration
+    let minPasswordLength = 8;
     try {
       const settings = await prisma.platformSettings.findUnique({
         where: { id: PLATFORM_SETTINGS_ID },
-        select: { minPasswordLength: true }
+        select: { minPasswordLength: true, allowSelfRegistration: true }
       });
+      if (settings?.allowSelfRegistration === false) {
+        return res.status(403).json({ error: 'Public registration is currently disabled. Please contact an administrator.' });
+      }
       if (settings?.minPasswordLength) {
-        minPasswordLength = Math.max(settings.minPasswordLength, 8); // Enforce minimum of 8
+        minPasswordLength = Math.max(settings.minPasswordLength, 8);
       }
     } catch (err) {
-      logger.error('Failed to fetch password settings, using default:', err);
+      logger.error('Failed to fetch registration settings, using defaults:', err);
     }
 
     // Create dynamic schema with strong password requirements

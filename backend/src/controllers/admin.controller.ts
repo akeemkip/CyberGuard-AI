@@ -1381,10 +1381,23 @@ export const getQuizById = async (req: Request, res: Response) => {
 // Create new quiz
 export const createQuiz = async (req: Request, res: Response) => {
   try {
-    const { lessonId, title, passingScore, questions } = req.body;
+    let { lessonId, title, passingScore, questions } = req.body;
+
+    // If no passing score provided, use platform default
+    if (passingScore === undefined || passingScore === null) {
+      try {
+        const settings = await prisma.platformSettings.findUnique({
+          where: { id: 'singleton' },
+          select: { defaultQuizPassingScore: true }
+        });
+        passingScore = settings?.defaultQuizPassingScore ?? 70;
+      } catch {
+        passingScore = 70;
+      }
+    }
 
     // Validation
-    if (!lessonId || !title || !passingScore || !questions || !Array.isArray(questions)) {
+    if (!lessonId || !title || !questions || !Array.isArray(questions)) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 

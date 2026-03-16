@@ -301,7 +301,7 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
                   <span>SSO & compliance</span>
                 </li>
               </ul>
-              <Button className="w-full" variant="outline" onClick={() => window.location.href = "mailto:sales@cyberguard.ai?subject=Enterprise%20Inquiry"}>Contact Sales</Button>
+              <Button className="w-full" variant="outline" onClick={() => window.location.href = `mailto:${platformSettings.contactEmail || 'contact@cyberguard.com'}?subject=Enterprise%20Inquiry`}>Contact Sales</Button>
             </Card>
           </div>
         </div>
@@ -317,7 +317,7 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
                 <span className="font-semibold">{platformSettings.platformName}</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                AI-powered cybersecurity training for the modern workforce.
+                {platformSettings.platformDescription || 'AI-powered cybersecurity training for the modern workforce.'}
               </p>
             </div>
             <div>
@@ -334,8 +334,12 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
               <ul className="space-y-2 text-sm">
                 <li><button onClick={() => onNavigate("login")} className="font-normal text-muted-foreground hover:text-foreground transition-colors">Login</button></li>
                 <li><button onClick={() => onNavigate("register")} className="font-normal text-muted-foreground hover:text-foreground transition-colors">Create Account</button></li>
-                <li><a href="mailto:support@cyberguard.ai" className="text-muted-foreground hover:text-foreground transition-colors">Contact Support</a></li>
-                <li><a href="mailto:sales@cyberguard.ai" className="text-muted-foreground hover:text-foreground transition-colors">Sales Inquiry</a></li>
+                {platformSettings.supportEmail && (
+                  <li><a href={`mailto:${platformSettings.supportEmail}`} className="text-muted-foreground hover:text-foreground transition-colors">Contact Support</a></li>
+                )}
+                {platformSettings.contactEmail && (
+                  <li><a href={`mailto:${platformSettings.contactEmail}`} className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</a></li>
+                )}
               </ul>
             </div>
             <div>

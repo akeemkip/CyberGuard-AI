@@ -12,6 +12,9 @@ const PASSWORD_MASK = '\x00__SMTP_PASSWORD_UNCHANGED__\x00';
 // Default settings for public endpoint
 const defaultPublicSettings = {
   platformName: 'CyberGuard AI',
+  platformDescription: 'Advanced cybersecurity training platform',
+  supportEmail: 'support@cyberguard.com',
+  contactEmail: 'contact@cyberguard.com',
   primaryColor: '#3b82f6',
   secondaryColor: '#10b981',
   accentColor: '#f59e0b',
@@ -33,6 +36,9 @@ export const getPublicSettings = async (req: Request, res: Response) => {
       where: { id: PLATFORM_SETTINGS_ID },
       select: {
         platformName: true,
+        platformDescription: true,
+        supportEmail: true,
+        contactEmail: true,
         primaryColor: true,
         secondaryColor: true,
         accentColor: true,

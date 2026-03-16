@@ -114,6 +114,19 @@ export const createCourse = async (req: AuthRequest, res: Response) => {
   try {
     const validatedData = createCourseSchema.parse(req.body);
 
+    // If isPublished not specified, use platform default course visibility
+    if (validatedData.isPublished === undefined) {
+      try {
+        const settings = await prisma.platformSettings.findUnique({
+          where: { id: PLATFORM_SETTINGS_ID },
+          select: { defaultCourseVisibility: true }
+        });
+        validatedData.isPublished = settings?.defaultCourseVisibility === 'public';
+      } catch {
+        validatedData.isPublished = false;
+      }
+    }
+
     const course = await prisma.course.create({
       data: validatedData
     });
@@ -595,20 +608,26 @@ const checkAndCompleteCourse = async (userId: string, courseId: string): Promise
         }
       });
 
-      // Create or update certificate
-      await tx.certificate.upsert({
-        where: {
-          userId_courseId: { userId, courseId }
-        },
-        create: {
-          userId,
-          courseId,
-          issuedAt: new Date()
-        },
-        update: {
-          issuedAt: new Date()
-        }
+      // Create or update certificate (if certificates are enabled)
+      const platformSettings = await tx.platformSettings.findUnique({
+        where: { id: 'singleton' },
+        select: { enableCertificates: true }
       });
+      if (platformSettings?.enableCertificates !== false) {
+        await tx.certificate.upsert({
+          where: {
+            userId_courseId: { userId, courseId }
+          },
+          create: {
+            userId,
+            courseId,
+            issuedAt: new Date()
+          },
+          update: {
+            issuedAt: new Date()
+          }
+        });
+      }
 
       return true;
     }

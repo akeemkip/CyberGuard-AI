@@ -2,6 +2,9 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 export interface PublicPlatformSettings {
   platformName: string;
+  platformDescription: string;
+  supportEmail: string;
+  contactEmail: string;
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
@@ -23,6 +26,9 @@ interface PlatformSettingsContextType {
 
 const defaultSettings: PublicPlatformSettings = {
   platformName: 'CyberGuard AI',
+  platformDescription: 'Advanced cybersecurity training platform',
+  supportEmail: 'support@cyberguard.com',
+  contactEmail: 'contact@cyberguard.com',
   primaryColor: '#3b82f6',
   secondaryColor: '#10b981',
   accentColor: '#f59e0b',
