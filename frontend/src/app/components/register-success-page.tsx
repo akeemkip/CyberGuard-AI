@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Shield, CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
+import { Shield, CheckCircle2, Sparkles } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export function RegisterSuccessPage({
@@ -10,16 +9,34 @@ export function RegisterSuccessPage({
   onNavigate: (page: string) => void;
 }) {
   const { user } = useAuth();
-  const [showContinueButton, setShowContinueButton] = useState(false);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdown, setCountdown] = useState(5);
   const firstName = localStorage.getItem('newUserFirstName') || user?.firstName || 'there';
 
-  // Show continue button after animation plays
+  // Show countdown after animation plays
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowContinueButton(true);
-    }, 1200); // Show button after 1.2 seconds
+      setShowCountdown(true);
+    }, 1200);
     return () => clearTimeout(timer);
   }, []);
+
+  // Countdown and redirect
+  useEffect(() => {
+    if (!showCountdown) return;
+
+    if (countdown <= 0) {
+      localStorage.removeItem('newUserFirstName');
+      onNavigate("welcome");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [showCountdown, countdown, onNavigate]);
 
   // Clean up stored first name when component unmounts
   useEffect(() => {
@@ -27,11 +44,6 @@ export function RegisterSuccessPage({
       localStorage.removeItem('newUserFirstName');
     };
   }, []);
-
-  const handleContinue = () => {
-    const dashboard = user?.role === "ADMIN" ? "admin-dashboard" : "student-dashboard";
-    onNavigate(dashboard);
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -79,20 +91,17 @@ export function RegisterSuccessPage({
                 Welcome to CyberGuard AI, <span className="font-semibold text-foreground">{firstName}</span>!
               </p>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Your cybersecurity learning journey starts now. Get ready to explore courses, take quizzes, and earn certificates!
+                Your cybersecurity learning journey starts now. Let's begin with a quick skills assessment to personalize your experience.
               </p>
             </div>
 
-            {/* Continue Button */}
-            {showContinueButton ? (
-              <Button
-                size="lg"
-                onClick={handleContinue}
-                className="animate-fade-in-up shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
-              >
-                Continue to Dashboard
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
+            {/* Countdown */}
+            {showCountdown ? (
+              <div className="animate-fade-in-up">
+                <p className="text-sm text-muted-foreground">
+                  Redirecting in <span className="font-bold text-primary text-lg">{countdown}</span>
+                </p>
+              </div>
             ) : (
               <div className="h-11 flex items-center justify-center">
                 <div className="flex gap-1">
