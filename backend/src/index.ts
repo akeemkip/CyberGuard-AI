@@ -124,10 +124,22 @@ app.use('/api/phishing', phishingRoutes);
 app.use('/api/assessment', assessmentRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
-});
+// In production, serve the frontend SPA from the backend
+// This avoids CSRF cookie cross-domain issues by keeping everything on one origin
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendPath));
+
+  // SPA catch-all: any non-API route returns index.html so client-side routing works
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+} else {
+  // In development, just return 404 for unknown routes (frontend runs on its own dev server)
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Endpoint not found' });
+  });
+}
 
 // Error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

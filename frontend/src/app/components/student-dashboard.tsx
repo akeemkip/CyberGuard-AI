@@ -43,6 +43,7 @@ import { PlatformLogo } from "./PlatformLogo";
 import { UserProfileDropdown } from "./user-profile-dropdown";
 import userService, { UserStats } from "../services/user.service";
 import courseService, { Course, EnrolledCourse } from "../services/course.service";
+import { getActiveSurvey } from "../services/feedback.service";
 
 interface StudentDashboardProps {
   userEmail: string;
@@ -67,16 +68,18 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
   const [hasCertificates, setHasCertificates] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<string | null>(null);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [isSurveyActive, setIsSurveyActive] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
         // Fetch all data in parallel — use allSettled so one failure doesn't block the rest
-        const [statsResult, enrolledResult, allCoursesResult] = await Promise.allSettled([
+        const [statsResult, enrolledResult, allCoursesResult, feedbackResult] = await Promise.allSettled([
           userService.getMyStats(),
           courseService.getEnrolledCourses(),
-          courseService.getAllCourses(true) // Only published courses
+          courseService.getAllCourses(true), // Only published courses
+          getActiveSurvey()
         ]);
 
         const statsData = statsResult.status === 'fulfilled' ? statsResult.value : null;
@@ -95,6 +98,11 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
         // Check if user has any certificates (completed courses)
         const hasAnyCertificates = enrolledData.some(e => e.completedAt);
         setHasCertificates(hasAnyCertificates);
+
+        // Show feedback card only if an active survey exists (feedbackStatus returns 404 when none active)
+        if (feedbackResult.status === 'fulfilled') {
+          setIsSurveyActive(true);
+        }
 
         // Get recommended courses (courses user isn't enrolled in)
         const enrolledIds = new Set(enrolledData.map(e => e.courseId));
@@ -623,21 +631,23 @@ export function StudentDashboard({ userEmail, onNavigate, onLogout }: StudentDas
               </Button>
             </Card>
 
-            {/* Platform Feedback CTA */}
-            <Card className="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
-              <ClipboardCheck className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mb-4" />
-              <h3 className="font-semibold mb-2">Share Feedback</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Help us improve by rating your experience
-              </p>
-              <Button
-                variant="outline"
-                className="w-full border-emerald-500/30 hover:bg-emerald-500/10"
-                onClick={() => onNavigate("sus-feedback")}
-              >
-                Give Feedback
-              </Button>
-            </Card>
+            {/* Platform Feedback CTA — only shown when admin has an active survey */}
+            {isSurveyActive && (
+              <Card className="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border-emerald-500/20">
+                <ClipboardCheck className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mb-4" />
+                <h3 className="font-semibold mb-2">Share Feedback</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Help us improve by rating your experience
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full border-emerald-500/30 hover:bg-emerald-500/10"
+                  onClick={() => onNavigate("sus-feedback")}
+                >
+                  Give Feedback
+                </Button>
+              </Card>
+            )}
           </div>
         </div>
       </div>
