@@ -278,7 +278,6 @@ model PlatformSettings {
   contactEmail             String   @default("contact@cyberguard.com")
 
   // Security
-  requireEmailVerification Boolean  @default(false)
   minPasswordLength        Int      @default(8)
   sessionTimeout           Int      @default(7) // Days
   maxLoginAttempts         Int      @default(5)

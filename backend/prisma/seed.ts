@@ -68,7 +68,6 @@ async function main() {
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'minPasswordLength', oldValue: '6', newValue: '8', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-05T14:00:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'maxLoginAttempts', oldValue: '10', newValue: '5', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-05T14:05:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'sessionTimeout', oldValue: '30', newValue: '7', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-10T09:15:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'requireEmailVerification', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2025-12-12T11:05:00Z') },
 
       // === User Management Settings ===
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'allowSelfRegistration', oldValue: 'true', newValue: 'false', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-20T16:00:00Z') },

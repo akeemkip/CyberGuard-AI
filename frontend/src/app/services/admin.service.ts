@@ -8,7 +8,6 @@ export interface PlatformSettings {
   supportEmail: string;
   contactEmail: string;
   // Security
-  requireEmailVerification: boolean;
   minPasswordLength: number;
   sessionTimeout: number;
   maxLoginAttempts: number;

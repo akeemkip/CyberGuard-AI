@@ -78,7 +78,6 @@ interface PlatformSettings {
   contactEmail: string;
 
   // Security
-  requireEmailVerification: boolean;
   minPasswordLength: number;
   sessionTimeout: number;
   maxLoginAttempts: number;
@@ -129,7 +128,6 @@ interface SettingsExport {
       contactEmail: string;
     };
     security: {
-      requireEmailVerification: boolean;
       minPasswordLength: number;
       sessionTimeout: number;
       maxLoginAttempts: number;
@@ -190,7 +188,6 @@ const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
   contactEmail: "contact@cyberguard.com",
 
   // Security
-  requireEmailVerification: false,
   minPasswordLength: 8,
   sessionTimeout: 7,
   maxLoginAttempts: 5,
@@ -241,7 +238,6 @@ const SETTINGS_INDEX: SearchableSetting[] = [
   { id: "contactEmail", tab: "general", label: "Contact Email", description: "General contact email address", keywords: ["contact", "email", "general"] },
 
   // Security
-  { id: "requireEmailVerification", tab: "security", label: "Require Email Verification", description: "Users must verify their email before accessing the platform", keywords: ["email", "verification", "verify", "confirm"] },
   { id: "minPasswordLength", tab: "security", label: "Minimum Password Length", description: "Minimum characters required for passwords", keywords: ["password", "length", "characters", "security"] },
   { id: "sessionTimeout", tab: "security", label: "Session Timeout", description: "Days until auto-logout", keywords: ["session", "timeout", "logout", "expiry", "days"] },
   { id: "maxLoginAttempts", tab: "security", label: "Max Login Attempts", description: "Before account lockout", keywords: ["login", "attempts", "lockout", "security", "brute force"] },
@@ -811,7 +807,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
           contactEmail: settings.contactEmail,
         },
         security: {
-          requireEmailVerification: settings.requireEmailVerification,
           minPasswordLength: settings.minPasswordLength,
           sessionTimeout: settings.sessionTimeout,
           maxLoginAttempts: settings.maxLoginAttempts,
@@ -1004,7 +999,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
         contactEmail: { type: "string", settingsKey: "contactEmail" },
       },
       security: {
-        requireEmailVerification: { type: "boolean", settingsKey: "requireEmailVerification" },
         minPasswordLength: { type: "number", settingsKey: "minPasswordLength" },
         sessionTimeout: { type: "number", settingsKey: "sessionTimeout" },
         maxLoginAttempts: { type: "number", settingsKey: "maxLoginAttempts" },
@@ -1194,7 +1188,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       platformDescription: "General",
       supportEmail: "General",
       contactEmail: "General",
-      requireEmailVerification: "Security",
       minPasswordLength: "Security",
       sessionTimeout: "Security",
       maxLoginAttempts: "Security",
@@ -1626,20 +1619,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
               <Card className="p-6">
                 <h2 className="text-xl font-semibold mb-4">Security Settings</h2>
                 <div className="space-y-6">
-                  <div className={`flex items-center justify-between transition-all duration-300 ${isHighlighted("requireEmailVerification") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
-                    <div className="flex-1">
-                      <Label htmlFor="requireEmailVerification">Require Email Verification</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Users must verify their email before accessing the platform
-                      </p>
-                    </div>
-                    <Switch
-                      id="requireEmailVerification"
-                      checked={settings.requireEmailVerification}
-                      onCheckedChange={(checked) => handleChange("requireEmailVerification", checked)}
-                    />
-                  </div>
-
                   <div className="grid grid-cols-3 gap-6">
                     <div className={`transition-all duration-300 ${isHighlighted("minPasswordLength") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                       <Label htmlFor="minPasswordLength">Minimum Password Length</Label>

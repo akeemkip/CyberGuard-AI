@@ -127,7 +127,6 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
       contactEmail,
 
       // Security
-      requireEmailVerification,
       minPasswordLength,
       sessionTimeout,
       maxLoginAttempts,
@@ -191,7 +190,6 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
       ...(contactEmail !== undefined && { contactEmail }),
 
       // Security
-      ...(requireEmailVerification !== undefined && { requireEmailVerification }),
       ...(minPasswordLength !== undefined && { minPasswordLength }),
       ...(sessionTimeout !== undefined && { sessionTimeout }),
       ...(maxLoginAttempts !== undefined && { maxLoginAttempts }),
@@ -239,7 +237,6 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
         contactEmail: contactEmail || 'contact@cyberguard.com',
 
         // Security
-        requireEmailVerification: requireEmailVerification ?? false,
         minPasswordLength: minPasswordLength ?? 8,
         sessionTimeout: sessionTimeout ?? 7,
         maxLoginAttempts: maxLoginAttempts ?? 5,
@@ -284,7 +281,7 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
       // Compare all fields and log changes
       const fieldsToCompare = [
         'platformName', 'platformDescription', 'supportEmail', 'contactEmail',
-        'requireEmailVerification', 'minPasswordLength', 'sessionTimeout', 'maxLoginAttempts',
+        'minPasswordLength', 'sessionTimeout', 'maxLoginAttempts',
         'defaultCourseVisibility', 'defaultQuizPassingScore', 'enableCertificates',
         'allowSelfRegistration',
         'enableEmailNotifications', 'enableEnrollmentEmails', 'enableCompletionEmails',
