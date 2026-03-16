@@ -646,7 +646,19 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                     </div>
                   ) : (
                     <iframe
-                      src={`${currentLesson.videoUrl.replace('watch?v=', 'embed/')}${savedSettings.autoPlayVideos ? '?autoplay=1' : ''}`}
+                      src={(() => {
+                        const url = currentLesson.videoUrl;
+                        let videoId = '';
+                        // Extract video ID from various YouTube URL formats
+                        const watchMatch = url.match(/[?&]v=([^&]+)/);
+                        const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+                        const embedMatch = url.match(/embed\/([^?&]+)/);
+                        if (watchMatch) videoId = watchMatch[1];
+                        else if (shortMatch) videoId = shortMatch[1];
+                        else if (embedMatch) videoId = embedMatch[1];
+                        if (!videoId) return url; // fallback to raw URL
+                        return `https://www.youtube.com/embed/${videoId}${savedSettings.autoPlayVideos ? '?autoplay=1' : ''}`;
+                      })()}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
