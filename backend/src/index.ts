@@ -166,7 +166,6 @@ if (!process.env.JWT_SECRET) {
 
 // Start server
 app.listen(PORT, () => {
-  logger.info(`Server running on http://localhost:${PORT}`);
-  logger.info(`Health check: http://localhost:${PORT}/api/health`);
+  logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
