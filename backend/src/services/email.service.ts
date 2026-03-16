@@ -83,23 +83,47 @@ export async function createTransporter(): Promise<nodemailer.Transporter | null
 }
 
 /**
- * Send an email using the configured SMTP settings
+ * Send an email — tries Resend first (works on Render), falls back to SMTP
  */
 export async function sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const settings = await prisma.platformSettings.findUnique({
+    where: { id: PLATFORM_SETTINGS_ID },
+    select: { smtpUser: true, platformName: true },
+  });
+  const platformName = settings?.platformName || 'CyberGuard AI';
+
+  // Try Resend first (works on Render free tier since it uses HTTPS, not SMTP)
+  if (resend) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: `${platformName} <onboarding@resend.dev>`,
+        to: [options.to],
+        subject: options.subject,
+        html: options.html || options.text || '',
+      });
+
+      if (error) {
+        logger.error('Resend error:', error);
+        // Fall through to SMTP
+      } else {
+        return { success: true, messageId: data?.id };
+      }
+    } catch (err: any) {
+      logger.error('Resend send failed, trying SMTP:', err);
+      // Fall through to SMTP
+    }
+  }
+
+  // Fallback to SMTP
   try {
     const transporter = await createTransporter();
 
     if (!transporter) {
-      logger.warn(`Email not sent to ${options.to} (subject: "${options.subject}"): SMTP not configured`);
-      return { success: false, error: 'SMTP not configured. Please configure SMTP settings first.' };
+      logger.warn(`Email not sent to ${options.to} (subject: "${options.subject}"): No email provider configured`);
+      return { success: false, error: 'No email provider configured. Set RESEND_API_KEY or configure SMTP settings.' };
     }
 
-    const settings = await prisma.platformSettings.findUnique({
-      where: { id: PLATFORM_SETTINGS_ID },
-      select: { smtpUser: true, platformName: true },
-    });
-
-    const from = `"${settings?.platformName || 'CyberGuard AI'}" <${settings?.smtpUser}>`;
+    const from = `"${platformName}" <${settings?.smtpUser}>`;
 
     const info = await transporter.sendMail({
       from,
@@ -271,7 +295,7 @@ export async function sendTestEmail(toEmail: string): Promise<{ success: boolean
 }
 
 /**
- * Send password reset email via Resend
+ * Send password reset email
  */
 export async function sendPasswordResetEmail(
   toEmail: string,
@@ -287,55 +311,30 @@ export async function sendPasswordResetEmail(
   });
   const platformName = settings?.platformName || 'CyberGuard AI';
 
-  const htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #3b82f6;">Password Reset Request</h1>
-      <p>Hi ${userName},</p>
-      <p>We received a request to reset your password for your ${platformName} account.</p>
-      <p>Click the button below to set a new password:</p>
-      <p style="text-align: center; margin: 30px 0;">
-        <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold;">
-          Reset Password
-        </a>
-      </p>
-      <p style="color: #6b7280; font-size: 14px;">This link expires in 15 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
-      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
-      <p style="color: #9ca3af; font-size: 12px;">
-        If the button doesn't work, copy and paste this URL into your browser:<br />
-        <a href="${resetUrl}" style="color: #3b82f6;">${resetUrl}</a>
-      </p>
-      <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">
-        This is an automated message from ${platformName}.
-      </p>
-    </div>
-  `;
-
-  // Try Resend first (works on Render free tier since it uses HTTPS, not SMTP)
-  if (resend) {
-    try {
-      const { error } = await resend.emails.send({
-        from: `${platformName} <onboarding@resend.dev>`,
-        to: [toEmail],
-        subject: `Reset Your Password - ${platformName}`,
-        html: htmlContent,
-      });
-
-      if (error) {
-        logger.error('Resend error:', error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (err: any) {
-      logger.error('Resend send failed:', err);
-      return { success: false, error: err.message || 'Failed to send email' };
-    }
-  }
-
-  // Fallback to SMTP if Resend is not configured
   return sendEmail({
     to: toEmail,
     subject: `Reset Your Password - ${platformName}`,
-    html: htmlContent,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #3b82f6;">Password Reset Request</h1>
+        <p>Hi ${userName},</p>
+        <p>We received a request to reset your password for your ${platformName} account.</p>
+        <p>Click the button below to set a new password:</p>
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold;">
+            Reset Password
+          </a>
+        </p>
+        <p style="color: #6b7280; font-size: 14px;">This link expires in 15 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+        <p style="color: #9ca3af; font-size: 12px;">
+          If the button doesn't work, copy and paste this URL into your browser:<br />
+          <a href="${resetUrl}" style="color: #3b82f6;">${resetUrl}</a>
+        </p>
+        <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">
+          This is an automated message from ${platformName}.
+        </p>
+      </div>
+    `,
   });
 }
