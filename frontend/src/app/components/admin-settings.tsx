@@ -81,27 +81,20 @@ interface PlatformSettings {
   requireEmailVerification: boolean;
   minPasswordLength: number;
   sessionTimeout: number;
-  enableTwoFactor: boolean;
   maxLoginAttempts: number;
 
   // Course Settings
-  autoEnrollNewUsers: boolean;
   defaultCourseVisibility: "public" | "private";
   defaultQuizPassingScore: number;
   enableCertificates: boolean;
-  allowCourseReviews: boolean;
 
   // User Settings
-  defaultUserRole: "STUDENT" | "ADMIN";
   allowSelfRegistration: boolean;
-  requireProfileCompletion: boolean;
-  enablePublicProfiles: boolean;
 
   // Email/Notifications
   enableEmailNotifications: boolean;
   enableEnrollmentEmails: boolean;
   enableCompletionEmails: boolean;
-  enableWeeklyDigest: boolean;
   smtpHost: string;
   smtpPort: string;
   smtpUser: string;
@@ -139,27 +132,20 @@ interface SettingsExport {
       requireEmailVerification: boolean;
       minPasswordLength: number;
       sessionTimeout: number;
-      enableTwoFactor: boolean;
       maxLoginAttempts: number;
     };
     courses: {
-      autoEnrollNewUsers: boolean;
       defaultCourseVisibility: "public" | "private";
       defaultQuizPassingScore: number;
       enableCertificates: boolean;
-      allowCourseReviews: boolean;
     };
     users: {
-      defaultUserRole: "STUDENT" | "ADMIN";
       allowSelfRegistration: boolean;
-      requireProfileCompletion: boolean;
-      enablePublicProfiles: boolean;
     };
     email: {
       enableEmailNotifications: boolean;
       enableEnrollmentEmails: boolean;
       enableCompletionEmails: boolean;
-      enableWeeklyDigest: boolean;
       smtpHost: string;
       smtpPort: string;
       smtpUser: string;
@@ -207,27 +193,20 @@ const FACTORY_DEFAULTS: Omit<PlatformSettings, "hasSmtpPassword"> = {
   requireEmailVerification: false,
   minPasswordLength: 8,
   sessionTimeout: 7,
-  enableTwoFactor: false,
   maxLoginAttempts: 5,
 
   // Course Settings
-  autoEnrollNewUsers: false,
   defaultCourseVisibility: "public",
   defaultQuizPassingScore: 70,
   enableCertificates: true,
-  allowCourseReviews: true,
 
   // User Settings
-  defaultUserRole: "STUDENT",
   allowSelfRegistration: true,
-  requireProfileCompletion: false,
-  enablePublicProfiles: false,
 
   // Email/Notifications
   enableEmailNotifications: false,
   enableEnrollmentEmails: true,
   enableCompletionEmails: true,
-  enableWeeklyDigest: false,
   smtpHost: "",
   smtpPort: "587",
   smtpUser: "",
@@ -263,29 +242,22 @@ const SETTINGS_INDEX: SearchableSetting[] = [
 
   // Security
   { id: "requireEmailVerification", tab: "security", label: "Require Email Verification", description: "Users must verify their email before accessing the platform", keywords: ["email", "verification", "verify", "confirm"] },
-  { id: "enableTwoFactor", tab: "security", label: "Enable Two-Factor Authentication", description: "Allow users to enable 2FA for their accounts", keywords: ["2fa", "two-factor", "authentication", "security", "mfa"] },
   { id: "minPasswordLength", tab: "security", label: "Minimum Password Length", description: "Minimum characters required for passwords", keywords: ["password", "length", "characters", "security"] },
   { id: "sessionTimeout", tab: "security", label: "Session Timeout", description: "Days until auto-logout", keywords: ["session", "timeout", "logout", "expiry", "days"] },
   { id: "maxLoginAttempts", tab: "security", label: "Max Login Attempts", description: "Before account lockout", keywords: ["login", "attempts", "lockout", "security", "brute force"] },
 
   // Courses
-  { id: "autoEnrollNewUsers", tab: "courses", label: "Auto-Enroll New Users", description: "Automatically enroll new users in beginner courses", keywords: ["enroll", "auto", "new users", "beginner"] },
   { id: "enableCertificates", tab: "courses", label: "Enable Certificates", description: "Generate certificates upon course completion", keywords: ["certificates", "completion", "badge", "credential"] },
-  { id: "allowCourseReviews", tab: "courses", label: "Allow Course Reviews", description: "Let students leave reviews and ratings on courses", keywords: ["reviews", "ratings", "feedback", "comments"] },
   { id: "defaultCourseVisibility", tab: "courses", label: "Default Course Visibility", description: "Default visibility for new courses", keywords: ["visibility", "public", "private", "access"] },
   { id: "defaultQuizPassingScore", tab: "courses", label: "Default Quiz Passing Score", description: "Minimum score to pass quizzes", keywords: ["quiz", "passing", "score", "percentage", "grade"] },
 
   // Users
   { id: "allowSelfRegistration", tab: "users", label: "Allow Self-Registration", description: "Allow users to create accounts without invitation", keywords: ["registration", "signup", "self", "invite"] },
-  { id: "requireProfileCompletion", tab: "users", label: "Require Profile Completion", description: "Users must complete their profile before accessing courses", keywords: ["profile", "completion", "required", "mandatory"] },
-  { id: "enablePublicProfiles", tab: "users", label: "Enable Public Profiles", description: "Allow user profiles to be publicly viewable", keywords: ["public", "profiles", "visible", "privacy"] },
-  { id: "defaultUserRole", tab: "users", label: "Default User Role", description: "Default role assigned to new users", keywords: ["role", "default", "student", "admin", "permissions"] },
 
   // Email
   { id: "enableEmailNotifications", tab: "email", label: "Enable Email Notifications", description: "Master switch for all email notifications", keywords: ["email", "notifications", "alerts", "messages"] },
   { id: "enableEnrollmentEmails", tab: "email", label: "Enrollment Emails", description: "Send email when user enrolls in a course", keywords: ["enrollment", "email", "course", "notification"] },
   { id: "enableCompletionEmails", tab: "email", label: "Completion Emails", description: "Send email when user completes a course", keywords: ["completion", "email", "finished", "notification"] },
-  { id: "enableWeeklyDigest", tab: "email", label: "Weekly Digest", description: "Send weekly progress summary to users", keywords: ["weekly", "digest", "summary", "progress", "report"] },
   { id: "smtpHost", tab: "email", label: "SMTP Host", description: "SMTP server hostname", keywords: ["smtp", "host", "server", "mail", "email"] },
   { id: "smtpPort", tab: "email", label: "SMTP Port", description: "SMTP server port", keywords: ["smtp", "port", "587", "465", "25"] },
   { id: "smtpUser", tab: "email", label: "SMTP Username", description: "SMTP authentication username", keywords: ["smtp", "username", "user", "email", "authentication"] },
@@ -842,27 +814,20 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
           requireEmailVerification: settings.requireEmailVerification,
           minPasswordLength: settings.minPasswordLength,
           sessionTimeout: settings.sessionTimeout,
-          enableTwoFactor: settings.enableTwoFactor,
           maxLoginAttempts: settings.maxLoginAttempts,
         },
         courses: {
-          autoEnrollNewUsers: settings.autoEnrollNewUsers,
           defaultCourseVisibility: settings.defaultCourseVisibility,
           defaultQuizPassingScore: settings.defaultQuizPassingScore,
           enableCertificates: settings.enableCertificates,
-          allowCourseReviews: settings.allowCourseReviews,
         },
         users: {
-          defaultUserRole: settings.defaultUserRole,
           allowSelfRegistration: settings.allowSelfRegistration,
-          requireProfileCompletion: settings.requireProfileCompletion,
-          enablePublicProfiles: settings.enablePublicProfiles,
         },
         email: {
           enableEmailNotifications: settings.enableEmailNotifications,
           enableEnrollmentEmails: settings.enableEnrollmentEmails,
           enableCompletionEmails: settings.enableCompletionEmails,
-          enableWeeklyDigest: settings.enableWeeklyDigest,
           smtpHost: settings.smtpHost,
           smtpPort: settings.smtpPort,
           smtpUser: settings.smtpUser,
@@ -988,11 +953,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
             return `${key}: Must be "public" or "private"`;
           }
           break;
-        case "defaultUserRole":
-          if (!["STUDENT", "ADMIN"].includes(value)) {
-            return `${key}: Must be "STUDENT" or "ADMIN"`;
-          }
-          break;
       }
     }
 
@@ -1047,27 +1007,20 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
         requireEmailVerification: { type: "boolean", settingsKey: "requireEmailVerification" },
         minPasswordLength: { type: "number", settingsKey: "minPasswordLength" },
         sessionTimeout: { type: "number", settingsKey: "sessionTimeout" },
-        enableTwoFactor: { type: "boolean", settingsKey: "enableTwoFactor" },
         maxLoginAttempts: { type: "number", settingsKey: "maxLoginAttempts" },
       },
       courses: {
-        autoEnrollNewUsers: { type: "boolean", settingsKey: "autoEnrollNewUsers" },
         defaultCourseVisibility: { type: "string", settingsKey: "defaultCourseVisibility" },
         defaultQuizPassingScore: { type: "number", settingsKey: "defaultQuizPassingScore" },
         enableCertificates: { type: "boolean", settingsKey: "enableCertificates" },
-        allowCourseReviews: { type: "boolean", settingsKey: "allowCourseReviews" },
       },
       users: {
-        defaultUserRole: { type: "string", settingsKey: "defaultUserRole" },
         allowSelfRegistration: { type: "boolean", settingsKey: "allowSelfRegistration" },
-        requireProfileCompletion: { type: "boolean", settingsKey: "requireProfileCompletion" },
-        enablePublicProfiles: { type: "boolean", settingsKey: "enablePublicProfiles" },
       },
       email: {
         enableEmailNotifications: { type: "boolean", settingsKey: "enableEmailNotifications" },
         enableEnrollmentEmails: { type: "boolean", settingsKey: "enableEnrollmentEmails" },
         enableCompletionEmails: { type: "boolean", settingsKey: "enableCompletionEmails" },
-        enableWeeklyDigest: { type: "boolean", settingsKey: "enableWeeklyDigest" },
         smtpHost: { type: "string", settingsKey: "smtpHost" },
         smtpPort: { type: "string", settingsKey: "smtpPort" },
         smtpUser: { type: "string", settingsKey: "smtpUser" },
@@ -1244,21 +1197,14 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
       requireEmailVerification: "Security",
       minPasswordLength: "Security",
       sessionTimeout: "Security",
-      enableTwoFactor: "Security",
       maxLoginAttempts: "Security",
-      autoEnrollNewUsers: "Courses",
       defaultCourseVisibility: "Courses",
       defaultQuizPassingScore: "Courses",
       enableCertificates: "Courses",
-      allowCourseReviews: "Courses",
-      defaultUserRole: "Users",
       allowSelfRegistration: "Users",
-      requireProfileCompletion: "Users",
-      enablePublicProfiles: "Users",
       enableEmailNotifications: "Email",
       enableEnrollmentEmails: "Email",
       enableCompletionEmails: "Email",
-      enableWeeklyDigest: "Email",
       smtpHost: "Email",
       smtpPort: "Email",
       smtpUser: "Email",
@@ -1694,20 +1640,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     />
                   </div>
 
-                  <div className={`flex items-center justify-between transition-all duration-300 ${isHighlighted("enableTwoFactor") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
-                    <div className="flex-1">
-                      <Label htmlFor="enableTwoFactor">Enable Two-Factor Authentication</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Allow users to enable 2FA for their accounts
-                      </p>
-                    </div>
-                    <Switch
-                      id="enableTwoFactor"
-                      checked={settings.enableTwoFactor}
-                      onCheckedChange={(checked) => handleChange("enableTwoFactor", checked)}
-                    />
-                  </div>
-
                   <div className="grid grid-cols-3 gap-6">
                     <div className={`transition-all duration-300 ${isHighlighted("minPasswordLength") ? "ring-2 ring-primary ring-offset-2 rounded-lg p-3 -m-3 bg-primary/5" : ""}`}>
                       <Label htmlFor="minPasswordLength">Minimum Password Length</Label>
@@ -1818,20 +1750,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <Label htmlFor="autoEnrollNewUsers">Auto-Enroll New Users</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Automatically enroll new users in beginner courses
-                      </p>
-                    </div>
-                    <Switch
-                      id="autoEnrollNewUsers"
-                      checked={settings.autoEnrollNewUsers}
-                      onCheckedChange={(checked) => handleChange("autoEnrollNewUsers", checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
                       <Label htmlFor="enableCertificates">Enable Certificates</Label>
                       <p className="text-sm text-muted-foreground mt-1">
                         Generate certificates upon course completion
@@ -1841,20 +1759,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       id="enableCertificates"
                       checked={settings.enableCertificates}
                       onCheckedChange={(checked) => handleChange("enableCertificates", checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <Label htmlFor="allowCourseReviews">Allow Course Reviews</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Let students leave reviews and ratings on courses
-                      </p>
-                    </div>
-                    <Switch
-                      id="allowCourseReviews"
-                      checked={settings.allowCourseReviews}
-                      onCheckedChange={(checked) => handleChange("allowCourseReviews", checked)}
                     />
                   </div>
 
@@ -1937,52 +1841,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <Label htmlFor="requireProfileCompletion">Require Profile Completion</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Users must complete their profile before accessing courses
-                      </p>
-                    </div>
-                    <Switch
-                      id="requireProfileCompletion"
-                      checked={settings.requireProfileCompletion}
-                      onCheckedChange={(checked) => handleChange("requireProfileCompletion", checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <Label htmlFor="enablePublicProfiles">Enable Public Profiles</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Allow user profiles to be publicly viewable
-                      </p>
-                    </div>
-                    <Switch
-                      id="enablePublicProfiles"
-                      checked={settings.enablePublicProfiles}
-                      onCheckedChange={(checked) => handleChange("enablePublicProfiles", checked)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="defaultUserRole">Default User Role</Label>
-                    <Select
-                      value={settings.defaultUserRole}
-                      onValueChange={(value: "STUDENT" | "ADMIN") => handleChange("defaultUserRole", value)}
-                    >
-                      <SelectTrigger id="defaultUserRole" className="max-w-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="STUDENT">Student</SelectItem>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Default role assigned to new users
-                    </p>
-                  </div>
                 </div>
               </Card>
             </TabsContent>
@@ -2041,22 +1899,6 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
                       />
                     </div>
 
-                    <div className={`flex items-center justify-between ${!settings.enableEmailNotifications ? 'opacity-50' : ''}`}>
-                      <div className="flex-1">
-                        <Label htmlFor="enableWeeklyDigest" className={!settings.enableEmailNotifications ? 'cursor-not-allowed' : ''}>
-                          Weekly Digest
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Send weekly progress summary to users
-                        </p>
-                      </div>
-                      <Switch
-                        id="enableWeeklyDigest"
-                        checked={settings.enableWeeklyDigest}
-                        onCheckedChange={(checked) => handleChange("enableWeeklyDigest", checked)}
-                        disabled={!settings.enableEmailNotifications}
-                      />
-                    </div>
                   </div>
 
                   {!settings.enableEmailNotifications && (

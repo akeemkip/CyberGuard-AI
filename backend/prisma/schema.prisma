@@ -281,27 +281,20 @@ model PlatformSettings {
   requireEmailVerification Boolean  @default(false)
   minPasswordLength        Int      @default(8)
   sessionTimeout           Int      @default(7) // Days
-  enableTwoFactor          Boolean  @default(false)
   maxLoginAttempts         Int      @default(5)
 
   // Course Settings
-  autoEnrollNewUsers       Boolean  @default(false)
   defaultCourseVisibility  String   @default("public")
   defaultQuizPassingScore  Int      @default(70)
   enableCertificates       Boolean  @default(true)
-  allowCourseReviews       Boolean  @default(true)
 
   // User Settings
-  defaultUserRole          String   @default("STUDENT")
   allowSelfRegistration    Boolean  @default(true)
-  requireProfileCompletion Boolean  @default(false)
-  enablePublicProfiles     Boolean  @default(false)
 
   // Email/Notifications
   enableEmailNotifications Boolean  @default(false)
   enableEnrollmentEmails   Boolean  @default(true)
   enableCompletionEmails   Boolean  @default(true)
-  enableWeeklyDigest       Boolean  @default(false)
   smtpHost                 String   @default("")
   smtpPort                 String   @default("587")
   smtpUser                 String   @default("")

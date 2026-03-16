@@ -68,29 +68,21 @@ async function main() {
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'minPasswordLength', oldValue: '6', newValue: '8', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-05T14:00:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'maxLoginAttempts', oldValue: '10', newValue: '5', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-05T14:05:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'sessionTimeout', oldValue: '30', newValue: '7', ipAddress: '127.0.0.1', timestamp: new Date('2025-12-10T09:15:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableTwoFactor', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2025-12-12T11:00:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'requireEmailVerification', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2025-12-12T11:05:00Z') },
 
       // === User Management Settings ===
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'allowSelfRegistration', oldValue: 'true', newValue: 'false', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-20T16:00:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'allowSelfRegistration', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-22T08:30:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'autoEnrollNewUsers', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-25T10:00:00Z') },
-      { adminId: a, adminEmail: ae, action: 'ROLLBACK', fieldName: 'autoEnrollNewUsers', oldValue: 'true', newValue: 'false', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-25T10:30:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultUserRole', oldValue: 'STUDENT', newValue: 'STUDENT', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-25T10:35:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'requireProfileCompletion', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2026-01-28T14:00:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enablePublicProfiles', oldValue: 'false', newValue: 'true', ipAddress: '192.168.1.100', timestamp: new Date('2026-01-28T14:05:00Z') },
 
       // === Course Settings ===
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultCourseVisibility', oldValue: 'draft', newValue: 'published', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:00:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultQuizPassingScore', oldValue: '60', newValue: '70', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:05:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableCertificates', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:10:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'allowCourseReviews', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-01-10T09:15:00Z') },
 
       // === Email/Notification Settings ===
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableEmailNotifications', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:00:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableEnrollmentEmails', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:05:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableCompletionEmails', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:10:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableWeeklyDigest', oldValue: 'false', newValue: 'true', ipAddress: '127.0.0.1', timestamp: new Date('2026-02-01T08:15:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'smtpHost', oldValue: null, newValue: 'smtp.gmail.com', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-01T08:20:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'smtpPort', oldValue: null, newValue: '587', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-01T08:25:00Z') },
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'smtpUser', oldValue: null, newValue: 'notifications@cyberguard.com', ipAddress: '192.168.1.100', timestamp: new Date('2026-02-01T08:30:00Z') },
@@ -116,7 +108,6 @@ async function main() {
       // === Recent activity (March) ===
       { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'defaultQuizPassingScore', oldValue: '70', newValue: '75', ipAddress: '127.0.0.1', timestamp: new Date('2026-03-05T10:00:00Z') },
       { adminId: a, adminEmail: ae, action: 'ROLLBACK', fieldName: 'defaultQuizPassingScore', oldValue: '75', newValue: '70', ipAddress: '127.0.0.1', timestamp: new Date('2026-03-05T10:15:00Z') },
-      { adminId: a, adminEmail: ae, action: 'UPDATE', fieldName: 'enableWeeklyDigest', oldValue: 'true', newValue: 'false', ipAddress: '192.168.1.100', timestamp: new Date('2026-03-10T14:00:00Z') },
     ]
   });
   console.log('✅ Created settings audit log entries');

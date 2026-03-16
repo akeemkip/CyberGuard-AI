@@ -124,27 +124,20 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
       requireEmailVerification,
       minPasswordLength,
       sessionTimeout,
-      enableTwoFactor,
       maxLoginAttempts,
 
       // Course Settings
-      autoEnrollNewUsers,
       defaultCourseVisibility,
       defaultQuizPassingScore,
       enableCertificates,
-      allowCourseReviews,
 
       // User Settings
-      defaultUserRole,
       allowSelfRegistration,
-      requireProfileCompletion,
-      enablePublicProfiles,
 
       // Email/Notifications
       enableEmailNotifications,
       enableEnrollmentEmails,
       enableCompletionEmails,
-      enableWeeklyDigest,
       smtpHost,
       smtpPort,
       smtpUser,
@@ -195,27 +188,20 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
       ...(requireEmailVerification !== undefined && { requireEmailVerification }),
       ...(minPasswordLength !== undefined && { minPasswordLength }),
       ...(sessionTimeout !== undefined && { sessionTimeout }),
-      ...(enableTwoFactor !== undefined && { enableTwoFactor }),
       ...(maxLoginAttempts !== undefined && { maxLoginAttempts }),
 
       // Course Settings
-      ...(autoEnrollNewUsers !== undefined && { autoEnrollNewUsers }),
       ...(defaultCourseVisibility !== undefined && { defaultCourseVisibility }),
       ...(defaultQuizPassingScore !== undefined && { defaultQuizPassingScore }),
       ...(enableCertificates !== undefined && { enableCertificates }),
-      ...(allowCourseReviews !== undefined && { allowCourseReviews }),
 
       // User Settings
-      ...(defaultUserRole !== undefined && { defaultUserRole }),
       ...(allowSelfRegistration !== undefined && { allowSelfRegistration }),
-      ...(requireProfileCompletion !== undefined && { requireProfileCompletion }),
-      ...(enablePublicProfiles !== undefined && { enablePublicProfiles }),
 
       // Email/Notifications
       ...(enableEmailNotifications !== undefined && { enableEmailNotifications }),
       ...(enableEnrollmentEmails !== undefined && { enableEnrollmentEmails }),
       ...(enableCompletionEmails !== undefined && { enableCompletionEmails }),
-      ...(enableWeeklyDigest !== undefined && { enableWeeklyDigest }),
       ...(smtpHost !== undefined && { smtpHost }),
       ...(smtpPort !== undefined && { smtpPort }),
       ...(smtpUser !== undefined && { smtpUser }),
@@ -248,29 +234,22 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
 
         // Security
         requireEmailVerification: requireEmailVerification ?? false,
-        minPasswordLength: minPasswordLength ?? 6,
+        minPasswordLength: minPasswordLength ?? 8,
         sessionTimeout: sessionTimeout ?? 7,
-        enableTwoFactor: enableTwoFactor ?? false,
         maxLoginAttempts: maxLoginAttempts ?? 5,
 
         // Course Settings
-        autoEnrollNewUsers: autoEnrollNewUsers ?? false,
         defaultCourseVisibility: defaultCourseVisibility || 'public',
         defaultQuizPassingScore: defaultQuizPassingScore ?? 70,
         enableCertificates: enableCertificates ?? true,
-        allowCourseReviews: allowCourseReviews ?? true,
 
         // User Settings
-        defaultUserRole: defaultUserRole || 'STUDENT',
         allowSelfRegistration: allowSelfRegistration ?? true,
-        requireProfileCompletion: requireProfileCompletion ?? false,
-        enablePublicProfiles: enablePublicProfiles ?? false,
 
         // Email/Notifications
         enableEmailNotifications: enableEmailNotifications ?? false,
         enableEnrollmentEmails: enableEnrollmentEmails ?? true,
         enableCompletionEmails: enableCompletionEmails ?? true,
-        enableWeeklyDigest: enableWeeklyDigest ?? false,
         smtpHost: smtpHost || '',
         smtpPort: smtpPort || '587',
         smtpUser: smtpUser || '',
@@ -299,10 +278,10 @@ export const updatePlatformSettings = async (req: AuthRequest, res: Response) =>
       // Compare all fields and log changes
       const fieldsToCompare = [
         'platformName', 'platformDescription', 'supportEmail', 'contactEmail',
-        'requireEmailVerification', 'minPasswordLength', 'sessionTimeout', 'enableTwoFactor', 'maxLoginAttempts',
-        'autoEnrollNewUsers', 'defaultCourseVisibility', 'defaultQuizPassingScore', 'enableCertificates', 'allowCourseReviews',
-        'defaultUserRole', 'allowSelfRegistration', 'requireProfileCompletion', 'enablePublicProfiles',
-        'enableEmailNotifications', 'enableEnrollmentEmails', 'enableCompletionEmails', 'enableWeeklyDigest',
+        'requireEmailVerification', 'minPasswordLength', 'sessionTimeout', 'maxLoginAttempts',
+        'defaultCourseVisibility', 'defaultQuizPassingScore', 'enableCertificates',
+        'allowSelfRegistration',
+        'enableEmailNotifications', 'enableEnrollmentEmails', 'enableCompletionEmails',
         'smtpHost', 'smtpPort', 'smtpUser',
         'primaryColor', 'secondaryColor', 'accentColor', 'fontFamily', 'fontSize', 'borderRadius', 'darkModeDefault',
         'logoUrl', 'favicon', 'customCss',

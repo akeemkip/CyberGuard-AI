@@ -11,24 +11,17 @@ export interface PlatformSettings {
   requireEmailVerification: boolean;
   minPasswordLength: number;
   sessionTimeout: number;
-  enableTwoFactor: boolean;
   maxLoginAttempts: number;
   // Course Settings
-  autoEnrollNewUsers: boolean;
   defaultCourseVisibility: "public" | "private";
   defaultQuizPassingScore: number;
   enableCertificates: boolean;
-  allowCourseReviews: boolean;
   // User Settings
-  defaultUserRole: "STUDENT" | "ADMIN";
   allowSelfRegistration: boolean;
-  requireProfileCompletion: boolean;
-  enablePublicProfiles: boolean;
   // Email/Notifications
   enableEmailNotifications: boolean;
   enableEnrollmentEmails: boolean;
   enableCompletionEmails: boolean;
-  enableWeeklyDigest: boolean;
   smtpHost: string;
   smtpPort: string;
   smtpUser: string;

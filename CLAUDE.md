@@ -37,15 +37,15 @@ No shared types between frontend/backend — they are independent Node.js projec
 - **ORM**: Prisma 5.22 (PostgreSQL)
 - **Auth**: JWT (jsonwebtoken) with bcryptjs password hashing
 - **AI**: Google Gemini (`@google/generative-ai`)
-- **Email**: Nodemailer with AES-256-GCM encrypted SMTP credentials
+- **Email**: Resend (transactional emails like password reset) + Nodemailer (SMTP-based emails)
 - **Validation**: Zod
-- **Security**: CSRF (double-submit cookie), rate limiting (express-rate-limit), sanitize-html, DOMPurify
+- **Security**: Helmet.js (security headers), CSRF (double-submit cookie), rate limiting (express-rate-limit), sanitize-html, DOMPurify
 
 ### Database
 - **Engine**: PostgreSQL
 - **ORM**: Prisma — schema at `backend/prisma/schema.prisma`
 - **Migrations**: Uses `prisma db push` workflow (no migration files)
-- **Key models**: User, Course, Module, Lesson, Quiz, Lab, Enrollment, Certificate, PhishingScenario, IntroAssessment, PlatformSettings, SettingsAuditLog, LabProgress
+- **Key models**: User, Course, Module, Lesson, Quiz, Lab, Enrollment, Certificate, PhishingScenario, IntroAssessment, PlatformSettings, SettingsAuditLog, LabProgress, PasswordResetToken
 - **Enums**: Role (STUDENT/ADMIN), LabType (8 types), LabStatus, PhishingAction
 - **Seed data**: 5 students, 6 courses, 18 modules, 48 lessons, 6 quizzes, 11 labs, phishing scenarios/attempts (Rajesh + Vishnu only — requires completing phishing course), audit log entries, intro assessment attempts for all 5 students
 
@@ -91,6 +91,7 @@ PORT=3000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 GEMINI_API_KEY=...
+RESEND_API_KEY=...          # For password reset emails (optional locally, required on Render)
 ```
 
 ### Frontend (`frontend/.env`)
@@ -116,8 +117,9 @@ VITE_API_BASE_URL=http://localhost:3000/api
 1. Login via `AuthContext.login()` → JWT + user stored in localStorage
 2. CSRF token fetched post-login
 3. `App.tsx` redirects based on auth state and role
-4. New students get redirected through welcome → intro assessment flow
+4. New students get redirected through register-success (5s countdown) → welcome → intro assessment flow
 5. Token expiry caught by Axios 401 interceptor
+6. Password reset: forgot-password → Resend email with token → new-password page → reset-password endpoint
 
 ### Security (Backend)
 - CSRF: double-submit cookie + `x-csrf-token` header on mutations
@@ -158,3 +160,11 @@ VITE_API_BASE_URL=http://localhost:3000/api
 - **Test data**: Use timestamp-based emails (`test-${Date.now()}@example.com`) to avoid collisions
 - **Cleanup**: `afterAll()` with `deleteMany` on test records
 - **Coverage is minimal** — only `auth.test.ts` exists currently
+
+## Deployment
+- **Live URL**: `https://cyberguard-ai-rt1n.onrender.com`
+- **Host**: Render free tier (single web service serving both frontend + backend)
+- **Build**: `render-build.sh` or inline build command builds frontend → backend → prisma generate → db push → seed
+- **Start**: `cd backend && npm start`
+- **Production mode**: Backend serves frontend `dist/` via `express.static` + SPA catch-all, so CSRF cookies stay same-origin
+- **Known limitation**: YouTube embeds don't work on Render free tier (blocked outbound ad domains)
