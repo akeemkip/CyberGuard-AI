@@ -129,8 +129,8 @@ VITE_API_BASE_URL=http://localhost:3000/api
 - Startup validation: fails fast if `ENCRYPTION_KEY` or `JWT_SECRET` missing
 
 ## Test Accounts (from seed)
-- **Admin**: `admin@cyberguard.com` / `admin123`
-- **Students** (all use password `student123`):
+- **Admin**: `admin@cyberguard.com` / `CyberAdmin@2026!Sec`
+- **Students** (all use password `Learner#2026$Safe`):
   - Rajesh Singh: `rajesh.singh@gmail.com` (Active Learner — 4 enrollments, 2 completed, quizzes 85/90%)
   - Priya Persaud: `priya.persaud@yahoo.com` (Improving — 2 enrollments, failed quiz then retook and passed)
   - Kumar Ramnauth: `kumar.ramnauth@outlook.com` (High Risk — minimal engagement, 1 lesson done, assessment 40%)

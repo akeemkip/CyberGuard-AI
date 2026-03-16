@@ -40,7 +40,7 @@ async function main() {
   console.log('✅ Ensured platform settings exist');
 
   // Create Admin User
-  const adminPassword = await bcrypt.hash('admin123', 10);
+  const adminPassword = await bcrypt.hash('CyberAdmin@2026!Sec', 10);
   const admin = await prisma.user.create({
     data: {
       email: 'admin@cyberguard.com',
@@ -50,7 +50,7 @@ async function main() {
       role: 'ADMIN'
     }
   });
-  console.log('✅ Created admin user: admin@cyberguard.com / admin123');
+  console.log('✅ Created admin user: admin@cyberguard.com');
 
   // Seed Settings Audit Log entries — covers all filter categories
   const a = admin.id;
@@ -122,7 +122,7 @@ async function main() {
   console.log('✅ Created settings audit log entries');
 
   // Create Student Users (including original + new Guyanese students)
-  const studentPassword = await bcrypt.hash('student123', 10);
+  const studentPassword = await bcrypt.hash('Learner#2026$Safe', 10);
 
   const students = await Promise.all([
     // [0] Rajesh Singh - Active Learner
