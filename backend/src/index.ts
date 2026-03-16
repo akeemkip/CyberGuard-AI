@@ -67,6 +67,7 @@ const aiLimiter = rateLimit({
 // Security headers (X-Frame-Options, CSP, X-Content-Type-Options, etc.)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow cross-origin for uploaded files
+  crossOriginEmbedderPolicy: false, // Allow YouTube iframe embeds
   contentSecurityPolicy: false, // Disabled — frontend is a separate SPA, not served from this origin
 }));
 
