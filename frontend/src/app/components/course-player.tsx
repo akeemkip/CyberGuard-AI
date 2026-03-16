@@ -363,105 +363,15 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
     }
   };
 
-  // Render HTML content from rich text editor
+  // Render lesson content — supports both markdown and HTML
   const renderContent = (content: string) => {
     if (!content) return null;
 
-    // Check if content has structural HTML (block-level tags, not just inline like <strong>)
-    const hasHTML = /<(p|div|h[1-6]|ul|ol|li|table|br|blockquote)[\s>]/i.test(content);
+    // Always run through marked() to convert any markdown to HTML,
+    // then sanitize the output. marked() passes through existing HTML untouched.
+    const htmlContent = marked(content) as string;
 
-    let processedContent = content;
-
-    // If it's plain text or markdown-like text, convert to HTML
-    if (!hasHTML) {
-      // First, insert newlines before markdown headers if they're inline
-      let textContent = content
-        .replace(/\s*(#{1,4})\s+/g, '\n$1 ')  // Add newline before headers
-        .replace(/\s*###\s+/g, '\n### ')       // Ensure ### headers have newlines
-        .trim();
-
-      // Parse markdown-style formatting
-      const lines = textContent.split('\n');
-      const htmlLines: string[] = [];
-      let inUnorderedList = false;
-      let inOrderedList = false;
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-
-        if (!line) {
-          // Close any open lists
-          if (inUnorderedList) {
-            htmlLines.push('</ul>');
-            inUnorderedList = false;
-          }
-          if (inOrderedList) {
-            htmlLines.push('</ol>');
-            inOrderedList = false;
-          }
-          htmlLines.push('<br>');
-          continue;
-        }
-
-        // Check for headers (must be at start of line)
-        if (line.startsWith('#### ')) {
-          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-          htmlLines.push(`<h4>${line.substring(5).trim()}</h4>`);
-        } else if (line.startsWith('### ')) {
-          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-          htmlLines.push(`<h3>${line.substring(4).trim()}</h3>`);
-        } else if (line.startsWith('## ')) {
-          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-          htmlLines.push(`<h2>${line.substring(3).trim()}</h2>`);
-        } else if (line.startsWith('# ')) {
-          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-          htmlLines.push(`<h1>${line.substring(2).trim()}</h1>`);
-        }
-        // Check for unordered list items
-        else if (line.startsWith('- ') || line.startsWith('* ')) {
-          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-          if (!inUnorderedList) {
-            htmlLines.push('<ul>');
-            inUnorderedList = true;
-          }
-          htmlLines.push(`<li>${line.substring(2).trim()}</li>`);
-        }
-        // Check for numbered lists
-        else if (/^\d+\.\s/.test(line)) {
-          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-          if (!inOrderedList) {
-            htmlLines.push('<ol>');
-            inOrderedList = true;
-          }
-          htmlLines.push(`<li>${line.replace(/^\d+\.\s/, '').trim()}</li>`);
-        }
-        // Regular paragraph
-        else {
-          if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-          if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-          htmlLines.push(`<p>${line}</p>`);
-        }
-      }
-
-      // Close any remaining open lists
-      if (inUnorderedList) htmlLines.push('</ul>');
-      if (inOrderedList) htmlLines.push('</ol>');
-
-      processedContent = htmlLines.join('\n');
-    }
-
-    // Convert inline markdown: **bold**, *italic*, `code`
-    processedContent = processedContent
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    // Sanitize HTML to prevent XSS attacks
-    const sanitizedHTML = DOMPurify.sanitize(processedContent, {
+    const sanitizedHTML = DOMPurify.sanitize(htmlContent, {
       ALLOWED_TAGS: [
         'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -469,7 +379,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
         'blockquote',
         'a', 'img',
         'table', 'thead', 'tbody', 'tr', 'th', 'td',
-        'span', 'div'
+        'span', 'div', 'hr'
       ],
       ALLOWED_ATTR: [
         'href', 'target', 'rel', 'src', 'alt', 'title',
@@ -487,7 +397,7 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
 
     return (
       <div
-        className="lesson-content"
+        className="lesson-content prose prose-sm dark:prose-invert max-w-none"
         dangerouslySetInnerHTML={{ __html: sanitizedHTML }}
       />
     );
