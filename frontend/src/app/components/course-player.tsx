@@ -367,8 +367,8 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
   const renderContent = (content: string) => {
     if (!content) return null;
 
-    // Check if content is HTML or plain text
-    const hasHTML = /<[a-z][\s\S]*>/i.test(content);
+    // Check if content has structural HTML (block-level tags, not just inline like <strong>)
+    const hasHTML = /<(p|div|h[1-6]|ul|ol|li|table|br|blockquote)[\s>]/i.test(content);
 
     let processedContent = content;
 
