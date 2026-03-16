@@ -39,14 +39,15 @@ import { WelcomePage } from "./components/welcome-page";
 import { IntroAssessmentPage } from "./components/intro-assessment-page";
 import { checkIntroAssessmentRequired } from "./services/assessment.service";
 import { SusFeedback } from "./components/sus-feedback";
+import { NewPasswordPage } from "./components/new-password-page";
 
-type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "welcome" | "intro-assessment" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "phishing-simulation" | "sus-feedback" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-phishing-edit" | "admin-analytics" | "admin-settings";
+type Page = "landing" | "login" | "register" | "register-success" | "reset-password" | "new-password" | "privacy-policy" | "terms-of-service" | "cookie-policy" | "welcome" | "intro-assessment" | "student-dashboard" | "course-catalog" | "course-player" | "lab-player" | "ai-chat" | "certificates" | "assessments" | "profile" | "settings" | "phishing-simulation" | "sus-feedback" | "admin-dashboard" | "admin-users" | "admin-user-profile" | "admin-content" | "admin-lesson-edit" | "admin-quiz-edit" | "admin-lab-edit" | "admin-phishing-edit" | "admin-analytics" | "admin-settings";
 
 // Pages that require authentication
 const protectedPages: Page[] = ["welcome", "intro-assessment", "student-dashboard", "course-catalog", "course-player", "lab-player", "ai-chat", "certificates", "assessments", "profile", "settings", "phishing-simulation", "sus-feedback", "admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
 
 // Pages that guests should see (not logged in)
-const guestPages: Page[] = ["landing", "login", "register", "register-success", "reset-password", "privacy-policy", "terms-of-service", "cookie-policy"];
+const guestPages: Page[] = ["landing", "login", "register", "register-success", "reset-password", "new-password", "privacy-policy", "terms-of-service", "cookie-policy"];
 
 // Admin-only pages (require ADMIN role)
 const adminOnlyPages: Page[] = ["admin-dashboard", "admin-users", "admin-user-profile", "admin-content", "admin-lesson-edit", "admin-quiz-edit", "admin-lab-edit", "admin-phishing-edit", "admin-analytics", "admin-settings"];
@@ -88,8 +89,23 @@ const pageVariants = {
 function AppContent() {
   const { user, isAuthenticated, isInitializing, logout } = useAuth();
 
+  // Password reset token from URL query string (?token=xxx)
+  const [resetToken] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("token");
+  });
+
   // Initialize page from history state, localStorage, or default
   const [currentPage, setCurrentPage] = useState<Page>(() => {
+    // Check URL query string for page param (used by password reset email links)
+    const params = new URLSearchParams(window.location.search);
+    const urlPage = params.get("page") as Page | undefined;
+    if (urlPage && guestPages.includes(urlPage)) {
+      // Clean the URL so query params don't stick around
+      window.history.replaceState({ page: urlPage }, "", window.location.pathname);
+      return urlPage;
+    }
+
     // First check browser history state (preserved on refresh)
     const historyPage = window.history.state?.page as Page | undefined;
     if (historyPage) {
@@ -517,6 +533,8 @@ function AppContent() {
         return <RegisterSuccessPage onNavigate={handleNavigate} />;
       case "reset-password":
         return <ResetPasswordPage onNavigate={handleNavigate} />;
+      case "new-password":
+        return <NewPasswordPage onNavigate={handleNavigate} token={resetToken} />;
       case "privacy-policy":
         return <PrivacyPolicyPage onNavigate={handleNavigate} />;
       case "terms-of-service":

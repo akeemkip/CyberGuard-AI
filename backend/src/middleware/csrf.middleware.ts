@@ -66,7 +66,7 @@ export const csrfProtection = (req: AuthRequest, res: Response, next: NextFuncti
   }
 
   // Skip CSRF for health check and public endpoints
-  const publicPaths = ['/api/health', '/api/auth/login', '/api/auth/register', '/api/settings/public'];
+  const publicPaths = ['/api/health', '/api/auth/login', '/api/auth/register', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/settings/public'];
   if (publicPaths.some(path => req.path === path)) {
     return next();
   }

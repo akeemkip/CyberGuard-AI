@@ -1,7 +1,11 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import prisma, { PLATFORM_SETTINGS_ID } from '../config/database';
 import { decrypt } from '../utils/encryption';
 import { logger } from '../utils/logger';
+
+// Resend client for transactional emails (password reset, etc.)
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export interface EmailOptions {
   to: string;
@@ -264,4 +268,74 @@ export async function sendTestEmail(toEmail: string): Promise<{ success: boolean
 
     return { success: false, message, details };
   }
+}
+
+/**
+ * Send password reset email via Resend
+ */
+export async function sendPasswordResetEmail(
+  toEmail: string,
+  userName: string,
+  resetToken: string
+): Promise<{ success: boolean; error?: string }> {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const resetUrl = `${frontendUrl}?page=new-password&token=${resetToken}`;
+
+  const settings = await prisma.platformSettings.findUnique({
+    where: { id: PLATFORM_SETTINGS_ID },
+    select: { platformName: true },
+  });
+  const platformName = settings?.platformName || 'CyberGuard AI';
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h1 style="color: #3b82f6;">Password Reset Request</h1>
+      <p>Hi ${userName},</p>
+      <p>We received a request to reset your password for your ${platformName} account.</p>
+      <p>Click the button below to set a new password:</p>
+      <p style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="display: inline-block; padding: 14px 28px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold;">
+          Reset Password
+        </a>
+      </p>
+      <p style="color: #6b7280; font-size: 14px;">This link expires in 15 minutes. If you didn't request a password reset, you can safely ignore this email.</p>
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;" />
+      <p style="color: #9ca3af; font-size: 12px;">
+        If the button doesn't work, copy and paste this URL into your browser:<br />
+        <a href="${resetUrl}" style="color: #3b82f6;">${resetUrl}</a>
+      </p>
+      <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">
+        This is an automated message from ${platformName}.
+      </p>
+    </div>
+  `;
+
+  // Try Resend first (works on Render free tier since it uses HTTPS, not SMTP)
+  if (resend) {
+    try {
+      const { error } = await resend.emails.send({
+        from: `${platformName} <onboarding@resend.dev>`,
+        to: [toEmail],
+        subject: `Reset Your Password - ${platformName}`,
+        html: htmlContent,
+      });
+
+      if (error) {
+        logger.error('Resend error:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      logger.error('Resend send failed:', err);
+      return { success: false, error: err.message || 'Failed to send email' };
+    }
+  }
+
+  // Fallback to SMTP if Resend is not configured
+  return sendEmail({
+    to: toEmail,
+    subject: `Reset Your Password - ${platformName}`,
+    html: htmlContent,
+  });
 }

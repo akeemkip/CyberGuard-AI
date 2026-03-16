@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { z } from 'zod';
 import prisma, { PLATFORM_SETTINGS_ID } from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { createPasswordSchema } from '../utils/validation';
 import { logger } from '../utils/logger';
+import { sendPasswordResetEmail } from '../services/email.service';
 
 // Base validation schema (password validation is dynamic based on settings)
 const baseRegisterSchema = z.object({
@@ -251,5 +253,100 @@ export const getMe = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     logger.error('GetMe error:', error);
     res.status(500).json({ error: 'Failed to get user info' });
+  }
+};
+
+// Forgot password - send reset email
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = z.object({ email: z.string().trim().email() }).parse(req.body);
+
+    // Always return the same response to prevent user enumeration
+    const successMessage = 'If an account with that email exists, a password reset link has been sent.';
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.json({ message: successMessage });
+    }
+
+    // Generate a secure random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Store hashed token with 15-minute expiry (upsert = one token per user)
+    await prisma.passwordResetToken.upsert({
+      where: { userId: user.id },
+      update: { token: hashedToken, expiresAt: new Date(Date.now() + 15 * 60 * 1000) },
+      create: { userId: user.id, token: hashedToken, expiresAt: new Date(Date.now() + 15 * 60 * 1000) },
+    });
+
+    // Send email with the unhashed token
+    const result = await sendPasswordResetEmail(user.email, user.firstName, resetToken);
+    if (!result.success) {
+      logger.error('Failed to send password reset email:', result.error);
+    }
+
+    res.json({ message: successMessage });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+    logger.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to process password reset request' });
+  }
+};
+
+// Reset password with token
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    // Fetch password requirements
+    let minPasswordLength = 8;
+    try {
+      const settings = await prisma.platformSettings.findUnique({
+        where: { id: PLATFORM_SETTINGS_ID },
+        select: { minPasswordLength: true }
+      });
+      if (settings?.minPasswordLength) {
+        minPasswordLength = Math.max(settings.minPasswordLength, 8);
+      }
+    } catch (err) {
+      // Use default
+    }
+
+    const schema = z.object({
+      token: z.string().min(1, 'Reset token is required'),
+      password: createPasswordSchema(minPasswordLength),
+    });
+
+    const { token, password } = schema.parse(req.body);
+
+    // Hash the submitted token and look it up
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const resetRecord = await prisma.passwordResetToken.findFirst({
+      where: { token: hashedToken, expiresAt: { gt: new Date() } },
+    });
+
+    if (!resetRecord) {
+      return res.status(400).json({ error: 'Invalid or expired reset link. Please request a new one.' });
+    }
+
+    // Update the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: resetRecord.userId },
+      data: { password: hashedPassword },
+    });
+
+    // Delete the used token
+    await prisma.passwordResetToken.delete({ where: { id: resetRecord.id } });
+
+    res.json({ message: 'Password has been reset successfully. You can now log in with your new password.' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+    logger.error('Reset password error:', error);
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 };

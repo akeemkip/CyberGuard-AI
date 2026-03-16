@@ -25,8 +25,8 @@ api.interceptors.request.use(
       config.method?.toLowerCase() || ''
     );
 
-    // Skip CSRF for login/register endpoints
-    const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
+    // Skip CSRF for public auth endpoints (login, register, password reset)
+    const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register') || config.url?.includes('/auth/forgot-password') || config.url?.includes('/auth/reset-password');
 
     if (isStateChanging && !isAuthEndpoint && token) {
       let csrfToken = await getCsrfToken();

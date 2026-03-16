@@ -3,17 +3,30 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { Shield, Moon, Sun, ArrowLeft } from "lucide-react";
+import { Shield, Moon, Sun, ArrowLeft, Loader2 } from "lucide-react";
 import { useTheme } from "./theme-provider";
+import api from "../services/api";
 
 export function ResetPasswordPage({ onNavigate }: { onNavigate: (page: string) => void }) {
   const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setError("");
+    setIsLoading(true);
+
+    try {
+      await api.post("/auth/forgot-password", { email });
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -21,8 +34,8 @@ export function ResetPasswordPage({ onNavigate }: { onNavigate: (page: string) =
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div 
-            className="flex items-center gap-2 cursor-pointer" 
+          <div
+            className="flex items-center gap-2 cursor-pointer"
             onClick={() => onNavigate("landing")}
           >
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
@@ -56,12 +69,18 @@ export function ResetPasswordPage({ onNavigate }: { onNavigate: (page: string) =
                 </p>
               </div>
 
+              {error && (
+                <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+                  {error}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
+                  <Input
+                    id="email"
+                    type="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -70,8 +89,15 @@ export function ResetPasswordPage({ onNavigate }: { onNavigate: (page: string) =
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Send Reset Link
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Reset Link"
+                  )}
                 </Button>
               </form>
             </>
@@ -94,14 +120,14 @@ export function ResetPasswordPage({ onNavigate }: { onNavigate: (page: string) =
               </div>
               <h2 className="text-2xl font-bold mb-2">Check Your Email</h2>
               <p className="text-muted-foreground mb-6">
-                We've sent a password reset link to <strong>{email}</strong>
+                If an account exists for <strong>{email}</strong>, we've sent a password reset link. Check your inbox and spam folder.
               </p>
               <Button onClick={() => onNavigate("login")} className="w-full">
                 Back to Login
               </Button>
               <button
-                onClick={() => setSubmitted(false)}
-                className="text-sm text-primary hover:underline mt-4"
+                onClick={() => { setSubmitted(false); setError(""); }}
+                className="text-sm text-primary hover:underline mt-4 block mx-auto"
               >
                 Didn't receive the email? Try again
               </button>

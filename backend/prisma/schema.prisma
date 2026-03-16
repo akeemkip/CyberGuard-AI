@@ -161,6 +161,7 @@ model User {
   fullAssessmentAttempts   FullAssessmentAttempt[]
   settingsAuditLogs       SettingsAuditLog[]
   susResponses            SusResponse[]
+  passwordResetToken      PasswordResetToken?
 
   @@index([role])
   @@map("users")
@@ -468,6 +469,18 @@ model SusResponse {
   @@index([surveyId])
   @@index([completedAt])
   @@map("sus_responses")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("password_reset_tokens")
 }
 
 model FullAssessmentAttempt {
