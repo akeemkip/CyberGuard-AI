@@ -13,11 +13,14 @@ export function LandingPage({ onNavigate }: { onNavigate: (page: string) => void
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
     setMobileMenuOpen(false);
+    // Delay scroll until after mobile menu closes and layout settles
+    setTimeout(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   };
 
   return (
