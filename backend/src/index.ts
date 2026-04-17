@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
+import https from 'https';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
@@ -166,8 +168,33 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-// Start server
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Start server — use HTTPS if SSL cert/key are configured, otherwise plain HTTP
+const sslCert = process.env.SSL_CERT_PATH;
+const sslKey = process.env.SSL_KEY_PATH;
+
+if (sslCert && sslKey) {
+  const certPath = path.resolve(__dirname, '..', sslCert);
+  const keyPath = path.resolve(__dirname, '..', sslKey);
+
+  if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+    const httpsOptions = {
+      cert: fs.readFileSync(certPath),
+      key: fs.readFileSync(keyPath),
+    };
+    https.createServer(httpsOptions, app).listen(PORT, () => {
+      logger.info(`HTTPS server running on port ${PORT}`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } else {
+    logger.error(`SSL cert/key not found at ${certPath} / ${keyPath}. Falling back to HTTP.`);
+    app.listen(PORT, () => {
+      logger.info(`HTTP server running on port ${PORT} (SSL files missing)`);
+      logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  }
+} else {
+  app.listen(PORT, () => {
+    logger.info(`HTTP server running on port ${PORT}`);
+    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
