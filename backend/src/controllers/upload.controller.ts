@@ -2,8 +2,7 @@ import { Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-// file-type uses ESM exports — dynamic import for CJS compatibility
-const loadFileType = () => import('file-type').then(m => m.fromBuffer);
+import { fromBuffer } from 'file-type';
 import { logger } from '../utils/logger';
 
 // Ensure uploads directory exists
@@ -83,7 +82,6 @@ export const uploadImage = async (req: Request, res: Response) => {
 
     // Validate magic bytes match the claimed MIME type
     const fileBuffer = fs.readFileSync(req.file.path);
-    const fromBuffer = await loadFileType();
     const detectedType = await fromBuffer(fileBuffer);
     const allowedMagicMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     const extLower = path.extname(req.file.originalname).toLowerCase();
