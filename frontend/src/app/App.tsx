@@ -388,7 +388,7 @@ function AppContent() {
 
     // Set initial history state
     if (isInitialized && !window.history.state?.page) {
-      const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId || selectedLabId;
+      const idParam = selectedCourseId || selectedUserId || selectedLessonId || selectedQuizId || selectedLabId || selectedPhishingScenarioId;
       devLog('[App] Setting initial history state:', { page: currentPage, idParam });
 
       // For transient pages, first push the parent page so back button works

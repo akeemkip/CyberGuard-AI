@@ -2,6 +2,7 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Shield, ChevronLeft, Moon, Sun } from "lucide-react";
 import { useTheme } from "./theme-provider";
+import { usePlatformSettings } from "../context/PlatformSettingsContext";
 
 interface TermsOfServicePageProps {
   onNavigate: (page: string) => void;
@@ -9,6 +10,7 @@ interface TermsOfServicePageProps {
 
 export function TermsOfServicePage({ onNavigate }: TermsOfServicePageProps) {
   const { theme, toggleTheme } = useTheme();
+  const { settings: platformSettings } = usePlatformSettings();
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,7 +30,7 @@ export function TermsOfServicePage({ onNavigate }: TermsOfServicePageProps) {
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <Shield className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-semibold">CyberGuard AI</span>
+              <span className="text-xl font-semibold">{platformSettings?.platformName || "CyberGuard AI"}</span>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}>

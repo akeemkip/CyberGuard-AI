@@ -14,7 +14,7 @@ import { PlatformLogo } from "./PlatformLogo";
 interface AdminSidebarProps {
   userEmail: string;
   currentPage: string;
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, idParam?: string) => void;
   onLogout: () => void;
 }
 

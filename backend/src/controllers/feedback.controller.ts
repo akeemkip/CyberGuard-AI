@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/database';
 import { z } from 'zod';
 import { logger } from '../utils/logger';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 // GET /api/feedback/survey - Get active survey with questions
 export const getActiveSurvey = async (req: Request, res: Response) => {
@@ -27,9 +28,9 @@ export const getActiveSurvey = async (req: Request, res: Response) => {
 };
 
 // GET /api/feedback/status - Check if user has already submitted feedback
-export const getFeedbackStatus = async (req: Request, res: Response) => {
+export const getFeedbackStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId!;
 
     const survey = await prisma.susSurvey.findFirst({
       where: { isActive: true }
@@ -63,9 +64,9 @@ const submitSchema = z.object({
   }))
 });
 
-export const submitFeedback = async (req: Request, res: Response) => {
+export const submitFeedback = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.userId!;
     const parsed = submitSchema.safeParse(req.body);
 
     if (!parsed.success) {

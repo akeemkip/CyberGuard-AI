@@ -144,20 +144,27 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
         setLoading(true);
         setError(null);
 
-        const [courseData, progressData] = await Promise.all([
+        const [courseResult, progressResult] = await Promise.allSettled([
           courseService.getCourseById(courseId),
           courseService.getCourseProgress(courseId)
         ]);
 
         if (cancelled) return;
 
-        setCourse(courseData);
-        setProgress(progressData);
+        if (courseResult.status === "rejected") {
+          throw courseResult.reason;
+        }
 
-        // Find first incomplete lesson or start at beginning
-        if (progressData.lessons) {
-          const firstIncompleteIndex = progressData.lessons.findIndex(l => !l.completed);
-          setCurrentLessonIndex(firstIncompleteIndex >= 0 ? firstIncompleteIndex : 0);
+        setCourse(courseResult.value);
+
+        if (progressResult.status === "fulfilled") {
+          setProgress(progressResult.value);
+
+          // Find first incomplete lesson or start at beginning
+          if (progressResult.value.lessons) {
+            const firstIncompleteIndex = progressResult.value.lessons.findIndex(l => !l.completed);
+            setCurrentLessonIndex(firstIncompleteIndex >= 0 ? firstIncompleteIndex : 0);
+          }
         }
 
         // Load labs for this course

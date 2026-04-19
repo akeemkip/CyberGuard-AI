@@ -1,8 +1,17 @@
 import { Response } from 'express';
+import { z } from 'zod';
 import prisma from '../config/database';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
 import { FULL_ASSESSMENT_QUESTIONS, FULL_ASSESSMENT_PASSING_SCORE, QUESTION_ANSWER_MAP } from '../data/full-assessment-questions';
+
+const introAssessmentSchema = z.object({
+  assessmentId: z.string().min(1),
+  answers: z.array(z.object({
+    questionId: z.string().min(1),
+    selectedAnswer: z.number().int()
+  }))
+});
 
 // Check if user needs to take intro assessment
 export const checkIntroAssessmentRequired = async (req: AuthRequest, res: Response) => {
@@ -79,7 +88,13 @@ export const getIntroAssessment = async (req: AuthRequest, res: Response) => {
 export const submitIntroAssessment = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId!;
-    const { assessmentId, answers } = req.body;
+    const parsed = introAssessmentSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid input', details: parsed.error.errors });
+    }
+
+    const { assessmentId, answers } = parsed.data;
 
     // Get assessment with questions
     const assessment = await prisma.introAssessment.findUnique({
@@ -93,7 +108,7 @@ export const submitIntroAssessment = async (req: AuthRequest, res: Response) => 
 
     // Calculate score
     let correctAnswers = 0;
-    const detailedAnswers = answers.map((answer: any) => {
+    const detailedAnswers = answers.map((answer) => {
       const question = assessment.questions.find(q => q.id === answer.questionId);
       const isCorrect = question && question.correctAnswer === answer.selectedAnswer;
       if (isCorrect) correctAnswers++;
