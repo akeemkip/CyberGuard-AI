@@ -701,45 +701,27 @@ function AppContent() {
           />
         );
       case "admin-quiz-edit":
-        return selectedQuizId ? (
+        return (
           <AdminQuizEdit
             quizId={selectedQuizId}
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
           />
-        ) : (
-          <AdminContent
-            userEmail={userEmail}
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
         );
       case "admin-lab-edit":
-        return selectedLabId ? (
+        return (
           <AdminLabEdit
             labId={selectedLabId}
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
           />
-        ) : (
-          <AdminContent
-            userEmail={userEmail}
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
         );
       case "admin-phishing-edit":
-        return selectedPhishingScenarioId ? (
+        return (
           <AdminPhishingEdit
             scenarioId={selectedPhishingScenarioId}
-            userEmail={userEmail}
-            onNavigate={handleNavigate}
-            onLogout={handleLogout}
-          />
-        ) : (
-          <AdminContent
             userEmail={userEmail}
             onNavigate={handleNavigate}
             onLogout={handleLogout}
