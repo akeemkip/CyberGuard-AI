@@ -99,10 +99,10 @@ export const IntroAssessmentPage: React.FC<IntroAssessmentPageProps> = ({ onComp
   };
 
   useEffect(() => {
-    if (result) {
+    if (result && assessment) {
       fetchLearningPath(result);
     }
-  }, [result]);
+  }, [result, assessment]);
 
   const handleAnswerSelect = (questionId: string, answerIndex: number) => {
     setSelectedAnswers(prev => ({

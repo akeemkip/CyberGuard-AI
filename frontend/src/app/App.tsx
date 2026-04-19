@@ -407,7 +407,7 @@ function AppContent() {
     }
 
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [isInitialized, user, currentPage, selectedCourseId, selectedUserId, selectedLessonId, selectedQuizId, selectedLabId]);
+  }, [isInitialized, user, currentPage, selectedCourseId, selectedUserId, selectedLessonId, selectedQuizId, selectedLabId, selectedPhishingScenarioId]);
 
   const handleLogout = () => {
     // Show logout notification FIRST

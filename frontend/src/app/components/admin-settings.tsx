@@ -324,6 +324,14 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [highlightedSettings, setHighlightedSettings] = useState<Set<string>>(new Set());
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const highlightTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Clean up highlight timers on unmount
+  useEffect(() => {
+    return () => {
+      highlightTimersRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   // Initialize with default settings
   const [settings, setSettings] = useState<PlatformSettings>({
@@ -1325,19 +1333,23 @@ export function AdminSettings({ userEmail, onNavigate, onLogout }: AdminSettings
     // Highlight the setting temporarily
     setHighlightedSettings(new Set([setting.id]));
 
+    // Clear any previous timers
+    highlightTimersRef.current.forEach(clearTimeout);
+    highlightTimersRef.current = [];
+
     // Scroll to the setting after a brief delay (to allow tab switch)
-    setTimeout(() => {
+    highlightTimersRef.current.push(setTimeout(() => {
       const element = document.getElementById(setting.id);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
         element.focus();
       }
-    }, 100);
+    }, 100));
 
     // Remove highlight after 3 seconds
-    setTimeout(() => {
+    highlightTimersRef.current.push(setTimeout(() => {
       setHighlightedSettings(new Set());
-    }, 3000);
+    }, 3000));
   };
 
   const clearSearch = () => {
