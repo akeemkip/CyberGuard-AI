@@ -426,7 +426,7 @@ function VideoPreview({ url }: VideoPreviewProps) {
 
 interface AdminContentProps {
   userEmail: string;
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, idParam?: string) => void;
   onLogout: () => void;
 }
 

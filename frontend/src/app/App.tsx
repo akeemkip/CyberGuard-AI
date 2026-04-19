@@ -78,11 +78,11 @@ const pageVariants = {
   enter: { opacity: 0 },
   center: {
     opacity: 1,
-    transition: { duration: 0.25, ease: "easeOut" },
+    transition: { duration: 0.12, ease: "easeOut" },
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.15, ease: "easeIn" },
+    transition: { duration: 0.08, ease: "easeIn" },
   },
 };
 
@@ -479,6 +479,12 @@ function AppContent() {
     if (page === "admin-quiz-edit" && idParam) {
       setSelectedQuizId(idParam);
       localStorage.setItem("selectedQuizId", idParam);
+    }
+
+    // Clear quiz ID when creating new quiz
+    if (page === "admin-quiz-edit" && !idParam) {
+      setSelectedQuizId(null);
+      localStorage.removeItem("selectedQuizId");
     }
 
     // Handle lab ID for lab player or lab edit
