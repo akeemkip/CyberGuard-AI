@@ -101,7 +101,14 @@ export function PhishingSimulation({ onNavigate }: PhishingSimulationProps) {
   };
 
   const handleRestartSimulation = async () => {
-    // Reset completion state and fetch new scenario
+    // Wipe backend attempts first so the next scenario fetch actually returns
+    // a fresh scenario instead of reporting "all completed" and flashing back
+    // to the completion screen.
+    try {
+      await phishingService.resetAttempts();
+    } catch (err) {
+      console.error('Failed to reset phishing attempts:', err);
+    }
     setIsCompleted(false);
     fetchScenario();
   };

@@ -3,7 +3,8 @@ import {
   getNextScenario,
   submitAttempt,
   getStats,
-  getHistory
+  getHistory,
+  resetAttempts
 } from '../controllers/phishing.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -23,5 +24,8 @@ router.get('/stats', getStats);
 
 // GET /api/phishing/history - Get attempt history
 router.get('/history', getHistory);
+
+// POST /api/phishing/reset - Clear user's attempts so they can practice again
+router.post('/reset', resetAttempts);
 
 export default router;

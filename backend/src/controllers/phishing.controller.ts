@@ -312,3 +312,15 @@ export const getHistory = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch history' });
   }
 };
+
+// Wipe the user's phishing attempts so "Practice Again" starts fresh
+export const resetAttempts = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { count } = await prisma.phishingAttempt.deleteMany({ where: { userId } });
+    res.json({ deleted: count });
+  } catch (error) {
+    logger.error('ResetAttempts error:', error);
+    res.status(500).json({ error: 'Failed to reset phishing attempts' });
+  }
+};

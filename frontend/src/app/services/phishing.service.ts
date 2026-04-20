@@ -213,6 +213,12 @@ const phishingService = {
     return response.data;
   },
 
+  // Wipe the user's phishing attempts (for "Practice Again")
+  async resetAttempts(): Promise<{ deleted: number }> {
+    const response = await api.post<{ deleted: number }>('/phishing/reset');
+    return response.data;
+  },
+
   // Get user's stats
   async getStats(): Promise<PhishingStats> {
     const response = await api.get<PhishingStats>('/phishing/stats');
