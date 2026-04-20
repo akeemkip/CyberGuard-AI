@@ -63,10 +63,19 @@ npm run build        # Production build to dist/
 cd backend
 npm run dev          # Start with ts-node-dev hot reload (port 3000)
 npm run build        # Compile TypeScript to dist/
-npm start            # Run compiled JS
+npm start            # Run compiled JS directly (local/dev only — production uses NSSM service)
 npm test             # Run Jest tests
 npm run test:watch   # Watch mode
 npm run test:coverage
+```
+
+### Windows Server service (production)
+```bash
+nssm start CyberGuard         # Start service
+nssm stop CyberGuard          # Stop service
+nssm restart CyberGuard       # Restart (use after rebuilding dist/)
+nssm edit CyberGuard          # GUI config editor
+sc query CyberGuard           # Windows-native status check
 ```
 
 ### Database
@@ -84,19 +93,26 @@ npm run db:seed      # Run main seed (courses, users, labs, quizzes)
 ### Backend (`backend/.env`)
 ```
 DATABASE_URL=postgresql://...
-JWT_SECRET=...
+JWT_SECRET=...                       # 64-byte hex; rotate via `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
 JWT_EXPIRES_IN=7d
 ENCRYPTION_KEY=<64-char hex>
-PORT=3000
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+PORT=3000                            # 443 in production so HTTPS binds directly
+NODE_ENV=development                 # "production" on the server
+FRONTEND_URL=http://localhost:5173   # Comma-separated list in prod, e.g. "https://cyberguard.ai,https://10.0.9.1"
 GEMINI_API_KEY=...
-RESEND_API_KEY=...          # For password reset emails (optional locally, required on Render)
+RESEND_API_KEY=...                   # For password reset emails (optional if SMTP is configured)
+SSL_CERT_PATH=../server.crt          # Production only — enables HTTPS when both cert and key are present
+SSL_KEY_PATH=../server.key
 ```
 
 ### Frontend (`frontend/.env`)
 ```
+# Local dev
 VITE_API_BASE_URL=http://localhost:3000/api
+
+# Production: use a RELATIVE path so the SPA calls whichever host served it
+# (prevents CORS/origin mismatch when the app is hit via https://cyberguard.ai vs https://10.0.9.1)
+VITE_API_BASE_URL=/api
 ```
 
 ## Key Patterns
@@ -123,8 +139,9 @@ VITE_API_BASE_URL=http://localhost:3000/api
 
 ### Security (Backend)
 - CSRF: double-submit cookie + `x-csrf-token` header on mutations
-- Rate limiting: 100 req/15min general, 10 req/15min auth, 20 req/15min AI
+- Rate limiting (LAN-sized): 50000 req/15min general, 1000/15min auth (skipSuccessfulRequests), 1000/15min AI
 - XSS: sanitize-html on request bodies (rich text fields exempted), DOMPurify on all `dangerouslySetInnerHTML`
+- Referrer-Policy: `strict-origin-when-cross-origin` — required for YouTube embeds (Helmet's default `no-referrer` triggers player Error 153)
 - Password: bcryptjs, min 8 chars with complexity requirements
 - Account lockout after failed login attempts
 - Registration always forces STUDENT role (admins created via seed/DB only)
@@ -162,9 +179,20 @@ VITE_API_BASE_URL=http://localhost:3000/api
 - **Coverage is minimal** — only `auth.test.ts` exists currently
 
 ## Deployment
-- **Live URL**: `https://cyberguard-ai-rt1n.onrender.com`
-- **Host**: Render free tier (single web service serving both frontend + backend)
-- **Build**: `render-build.sh` or inline build command builds frontend → backend → prisma generate → db push → seed
-- **Start**: `cd backend && npm start`
+- **Live URL**: `https://cyberguard.ai` (LAN-only, hosts-file mapped to `10.0.9.1`)
+- **Host**: Self-hosted Windows Server 2022 at `10.0.9.1`, running as a Windows service via NSSM
+- **Service name**: `CyberGuard` (DisplayName "CyberGuard AI Platform"), auto-starts on boot, auto-restarts on crash
+- **Ports**: 443 (HTTPS, main app) + 80 (plain HTTP → 301 redirect to HTTPS)
+- **TLS**: self-signed via mkcert; cert SAN covers `cyberguard.ai, 10.0.9.1, localhost, 127.0.0.1`
+  - Regenerate: `mkcert -cert-file server.crt -key-file server.key cyberguard.ai 10.0.9.1 localhost 127.0.0.1`
+  - mkcert root CA lives in `%LOCALAPPDATA%\mkcert\rootCA.pem`
 - **Production mode**: Backend serves frontend `dist/` via `express.static` + SPA catch-all, so CSRF cookies stay same-origin
-- **Known limitation**: YouTube embeds don't work on Render free tier (blocked outbound ad domains)
+- **Build workflow**: `cd frontend && npm run build && cd ../backend && npm run build && nssm restart CyberGuard`
+- **Service logs**: `backend/logs/service-stdout.log` and `service-stderr.log`, rotated at 10 MB via NSSM registry flags
+- **Legacy**: `render-build.sh` is still in the repo for reference — the old Render deployment is retired
+
+### Client PC setup
+- Installer folder on the server: `C:\Users\Administrator\Desktop\CyberGuard Client Setup\`
+- Contains: `rootCA.pem`, `cyberguard-icon.ico`, `setup-cyberguard-client.bat`, `README.txt`
+- The script self-elevates, imports the mkcert root CA into Windows Trusted Root, adds `10.0.9.1 cyberguard.ai` to the hosts file, and creates a Public Desktop shortcut
+- Every client PC that will use the app must run this script once, otherwise the browser will show "Not secure" and YouTube embeds will fail with Error 153

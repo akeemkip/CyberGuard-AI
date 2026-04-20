@@ -10,10 +10,13 @@
 - Cookie: `httpOnly: false` (JS needs access for double-submit), `sameSite: strict`, `secure: true` in prod
 
 ## Rate Limiting
-- General: 100 req / 15 min on all `/api/` routes
-- Auth: 10 req / 15 min on `/api/auth/*` routes
-- AI: 20 req / 15 min on `/api/ai/*` routes (protects free Gemini quota)
-- Library: `express-rate-limit`
+- Sized for a LAN/classroom deployment where many users share one NAT'd IP.
+  Acts as a safety net against runaway loops, not DoS protection.
+- General: 50,000 req / 15 min on all `/api/` routes
+- Auth: 1,000 req / 15 min on `/api/auth/*` with `skipSuccessfulRequests: true`
+  (only failed logins count against the budget)
+- AI: 1,000 req / 15 min on `/api/ai/*` (Gemini's own free-tier quota — 10 RPM, 250 RPD — is the real ceiling)
+- Library: `express-rate-limit`, in-memory store (restart clears it)
 
 ## Input Sanitization
 - **Location**: `backend/src/utils/sanitization.ts`
@@ -56,6 +59,17 @@
 
 ## Registration Security
 - Public registration always forces `role: 'STUDENT'` — admin accounts can only be created via seed or direct DB access
+
+## Helmet / Response Headers
+- `Referrer-Policy: strict-origin-when-cross-origin` — set explicitly; Helmet's default `no-referrer` breaks YouTube embeds (player "Error 153")
+- `Cross-Origin-Resource-Policy: cross-origin` — allows uploaded files to be fetched by the SPA
+- `crossOriginEmbedderPolicy: false`, `crossOriginOpenerPolicy: false` — needed for third-party iframes (YouTube)
+- `contentSecurityPolicy: false` — intentionally disabled; historical note, SPA is same-origin in production
+
+## HTTPS & Port Setup (production)
+- Main app listens on 443 with mkcert TLS material
+- A second `http.createServer` on port 80 issues `301 https://host<url>` for any plain-HTTP request
+- Both listeners are started from the same `if (sslCert && sslKey)` branch in `index.ts`
 
 ## Middleware Order (index.ts)
 1. CORS → 2. JSON parsing (10MB) → 3. Cookie parsing → 4. Sanitization → 5. Rate limiting → 6. CSRF → 7. File uploads → 8. Routes
