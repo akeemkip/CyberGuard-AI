@@ -574,7 +574,9 @@ export function CoursePlayer({ userEmail, onNavigate, onLogout, courseId }: Cour
                         else if (shortMatch) videoId = shortMatch[1];
                         else if (embedMatch) videoId = embedMatch[1];
                         if (!videoId) return url; // fallback to raw URL
-                        return `https://www.youtube.com/embed/${videoId}${savedSettings.autoPlayVideos ? '?autoplay=1' : ''}`;
+                        const params = new URLSearchParams({ rel: '0', modestbranding: '1' });
+                        if (savedSettings.autoPlayVideos) params.set('autoplay', '1');
+                        return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
                       })()}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

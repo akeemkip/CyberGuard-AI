@@ -346,7 +346,7 @@ function VideoPreview({ url }: VideoPreviewProps) {
     // YouTube
     const youtubeMatch = videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     if (youtubeMatch) {
-      return { platform: 'youtube', id: youtubeMatch[1], embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}` };
+      return { platform: 'youtube', id: youtubeMatch[1], embedUrl: `https://www.youtube-nocookie.com/embed/${youtubeMatch[1]}?rel=0&modestbranding=1` };
     }
 
     // Vimeo
@@ -459,22 +459,16 @@ export function AdminContent({ userEmail, onNavigate, onLogout }: AdminContentPr
   const [courseFilterDifficulty, setCourseFilterDifficulty] = useState<string>("all");
   const [courseFilterStatus, setCourseFilterStatus] = useState<string>("all");
 
-  // Convert markdown to HTML for rich text editor
+  // Convert markdown to HTML for rich text editor.
+  // Always run through marked — it passes inline HTML through untouched,
+  // so mixed markdown+HTML (our seed data) converts correctly.
   const convertMarkdownToHtml = (markdown: string): string => {
     if (!markdown) return '';
-
-    // Check if content is already HTML (contains HTML tags)
-    const hasHtmlTags = /<[^>]+>/.test(markdown);
-    if (hasHtmlTags) {
-      return markdown; // Already HTML, return as is
-    }
-
-    // Convert markdown to HTML
     try {
       return marked.parse(markdown, { breaks: true, gfm: true }) as string;
     } catch (error) {
       console.error('Error converting markdown:', error);
-      return markdown; // Return original if conversion fails
+      return markdown;
     }
   };
 

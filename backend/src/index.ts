@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import http from 'http';
 import https from 'https';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
@@ -41,25 +42,28 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // Rate limiting configuration
+// Sized high for a LAN/classroom deployment where many users share one NAT'd IP.
+// These act as a safety net against runaway loops rather than DoS protection.
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 50000,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 login attempts per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
   message: 'Too many login attempts from this IP, please try again after 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
+  skipSuccessfulRequests: true,
 });
 
 const aiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit each IP to 20 AI requests per 15 min (protects free Gemini quota)
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
   message: 'Too many AI requests. Please wait a few minutes before trying again.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -72,6 +76,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false, // Allow YouTube iframe embeds
   crossOriginOpenerPolicy: false, // Allow YouTube embed auth/popup flows
   contentSecurityPolicy: false, // Disabled — frontend is a separate SPA, not served from this origin
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }, // Let YouTube see our origin so embeds don't fail with "Error 153"
 }));
 
 // CORS configuration - supports comma-separated origins in FRONTEND_URL
@@ -184,6 +189,17 @@ if (sslCert && sslKey) {
     https.createServer(httpsOptions, app).listen(PORT, () => {
       logger.info(`HTTPS server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+
+    // HTTP → HTTPS redirect listener on port 80
+    http.createServer((req, res) => {
+      const host = (req.headers.host || '').replace(/:\d+$/, '');
+      res.writeHead(301, { Location: `https://${host}${req.url}` });
+      res.end();
+    }).listen(80, () => {
+      logger.info('HTTP→HTTPS redirect listening on port 80');
+    }).on('error', (err) => {
+      logger.error(`HTTP redirect listener failed: ${err.message}`);
     });
   } else {
     logger.error(`SSL cert/key not found at ${certPath} / ${keyPath}. Falling back to HTTP.`);

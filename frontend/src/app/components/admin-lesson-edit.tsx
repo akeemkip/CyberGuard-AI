@@ -9,98 +9,20 @@ import { AdminSidebar } from "./admin-sidebar";
 import { useTheme } from "./theme-provider";
 import courseService, { Lesson } from "../services/course.service";
 import { ArrowLeft, Save, Loader2, Moon, Sun } from "lucide-react";
+import { marked } from "marked";
 
 // Helper function to convert markdown-style text to HTML
+// Convert markdown (and mixed markdown+HTML) to HTML for the rich text editor.
+// Marked passes inline HTML through untouched, so content like
+// "- <strong>Persistence</strong>: ..." converts correctly.
 const convertMarkdownToHtml = (content: string): string => {
   if (!content) return '';
-
-  // Check if content is already HTML
-  const hasHTML = /<[a-z][\s\S]*>/i.test(content);
-  if (hasHTML) {
-    // Still convert inline markdown that may be mixed in
-    return content
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  try {
+    return marked.parse(content, { breaks: true, gfm: true }) as string;
+  } catch (error) {
+    console.error('Error converting markdown:', error);
+    return content;
   }
-
-  // Convert markdown to HTML
-  let textContent = content
-    .replace(/\s*(#{1,4})\s+/g, '\n$1 ')  // Add newline before headers
-    .replace(/\s*###\s+/g, '\n### ')       // Ensure ### headers have newlines
-    .trim();
-
-  const lines = textContent.split('\n');
-  const htmlLines: string[] = [];
-  let inUnorderedList = false;
-  let inOrderedList = false;
-
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-
-    if (!trimmedLine) {
-      if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-      if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-      htmlLines.push('<p><br></p>');
-      continue;
-    }
-
-    // Check for headers
-    if (trimmedLine.startsWith('#### ')) {
-      if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-      if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-      htmlLines.push(`<h4>${trimmedLine.substring(5).trim()}</h4>`);
-    } else if (trimmedLine.startsWith('### ')) {
-      if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-      if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-      htmlLines.push(`<h3>${trimmedLine.substring(4).trim()}</h3>`);
-    } else if (trimmedLine.startsWith('## ')) {
-      if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-      if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-      htmlLines.push(`<h2>${trimmedLine.substring(3).trim()}</h2>`);
-    } else if (trimmedLine.startsWith('# ')) {
-      if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-      if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-      htmlLines.push(`<h1>${trimmedLine.substring(2).trim()}</h1>`);
-    }
-    // Check for unordered list items
-    else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
-      if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-      if (!inUnorderedList) {
-        htmlLines.push('<ul>');
-        inUnorderedList = true;
-      }
-      htmlLines.push(`<li><p>${trimmedLine.substring(2).trim()}</p></li>`);
-    }
-    // Check for numbered lists
-    else if (/^\d+\.\s/.test(trimmedLine)) {
-      if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-      if (!inOrderedList) {
-        htmlLines.push('<ol>');
-        inOrderedList = true;
-      }
-      htmlLines.push(`<li><p>${trimmedLine.replace(/^\d+\.\s/, '').trim()}</p></li>`);
-    }
-    // Regular paragraph
-    else {
-      if (inUnorderedList) { htmlLines.push('</ul>'); inUnorderedList = false; }
-      if (inOrderedList) { htmlLines.push('</ol>'); inOrderedList = false; }
-      htmlLines.push(`<p>${trimmedLine}</p>`);
-    }
-  }
-
-  // Close any remaining open lists
-  if (inUnorderedList) htmlLines.push('</ul>');
-  if (inOrderedList) htmlLines.push('</ol>');
-
-  // Convert inline markdown: **bold**, *italic*, `code`
-  let result = htmlLines.join('\n');
-  result = result
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  return result;
 };
 
 // Video Preview Component (copied from admin-content for now, could be extracted to shared component)
@@ -140,7 +62,7 @@ function VideoPreview({ url }: VideoPreviewProps) {
     // YouTube
     const youtubeMatch = videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
     if (youtubeMatch) {
-      return { platform: 'youtube', id: youtubeMatch[1], embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}` };
+      return { platform: 'youtube', id: youtubeMatch[1], embedUrl: `https://www.youtube-nocookie.com/embed/${youtubeMatch[1]}?rel=0&modestbranding=1` };
     }
 
     // Vimeo

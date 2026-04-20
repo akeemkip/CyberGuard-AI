@@ -110,21 +110,21 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### NIST Incident Response Framework
 
-<strong>Phase 1: Preparation</strong>
+#### Phase 1: Preparation
 - Establish incident response team
 - Define roles and responsibilities
 - Develop playbooks and procedures
 - Acquire and maintain tools
 - Conduct training and exercises
 
-<strong>Phase 2: Detection & Analysis</strong>
+#### Phase 2: Detection & Analysis
 - Monitor security events
 - Analyze alerts and anomalies
 - Determine incident scope
 - Document findings
 - Prioritize response efforts
 
-<strong>Phase 3: Containment, Eradication & Recovery</strong>
+#### Phase 3: Containment, Eradication & Recovery
 - Short-term containment (stop bleeding)
 - Evidence preservation
 - Long-term containment (sustainable fix)
@@ -132,7 +132,7 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 - System recovery and validation
 - Return to normal operations
 
-<strong>Phase 4: Post-Incident Activity</strong>
+#### Phase 4: Post-Incident Activity
 - Lessons learned meeting
 - Update procedures and controls
 - Report to stakeholders
@@ -142,26 +142,26 @@ A globally accessible knowledge base of adversary tactics and techniques based o
 
 ### Severity Levels
 
-<strong>Critical (P1)</strong>
+#### Critical (P1)
 - Active data breach in progress
 - Ransomware spreading across network
 - Complete system compromise
 - Regulatory notification required
 - Response: Immediate, all-hands
 
-<strong>High (P2)</strong>
+#### High (P2)
 - Confirmed malware infection
 - Unauthorized access detected
 - Sensitive data at risk
 - Response: Within 1 hour
 
-<strong>Medium (P3)</strong>
+#### Medium (P3)
 - Suspicious activity detected
 - Policy violation
 - Potential security incident
 - Response: Within 4 hours
 
-<strong>Low (P4)</strong>
+#### Low (P4)
 - Security alerts requiring investigation
 - Minor policy violations
 - Response: Within 24 hours
@@ -216,7 +216,7 @@ Collect in this order (most to least volatile):
 
 ### Key Forensic Artifacts
 
-<strong>Windows Systems</strong>
+#### Windows Systems
 - Event Logs (Security, System, Application)
 - Registry hives
 - Prefetch files
@@ -224,14 +224,14 @@ Collect in this order (most to least volatile):
 - Browser artifacts
 - Memory dumps
 
-<strong>Linux Systems</strong>
+#### Linux Systems
 - Auth logs (/var/log/auth.log)
 - Syslog (/var/log/syslog)
 - Bash history
 - Cron jobs
 - Process information
 
-<strong>Network Forensics</strong>
+#### Network Forensics
 - Packet captures (PCAP)
 - NetFlow data
 - DNS logs
@@ -245,21 +245,21 @@ Proactively searching for threats that have evaded existing security controls.
 
 ### Hunting Methodologies
 
-<strong>Hypothesis-Driven Hunting</strong>
+#### Hypothesis-Driven Hunting
 1. Develop hypothesis based on threat intel
 2. Determine data sources needed
 3. Create detection queries
 4. Analyze results
 5. Refine and iterate
 
-<strong>IOC-Based Hunting</strong>
+#### IOC-Based Hunting
 - Search for known bad indicators
 - Hash values
 - IP addresses
 - Domain names
 - File paths
 
-<strong>Anomaly-Based Hunting</strong>
+#### Anomaly-Based Hunting
 - Establish baselines
 - Look for deviations
 - Investigate outliers
@@ -267,18 +267,18 @@ Proactively searching for threats that have evaded existing security controls.
 
 ### Essential Hunting Queries
 
-<strong>Unusual Process Execution</strong>
+#### Unusual Process Execution
 - Processes running from temp folders
 - Unsigned executables
 - Processes with network connections
 
-<strong>Persistence Mechanisms</strong>
+#### Persistence Mechanisms
 - New scheduled tasks
 - Registry run keys
 - New services
 - Startup folder additions
 
-<strong>Lateral Movement Indicators</strong>
+#### Lateral Movement Indicators
 - Remote execution tools (PsExec, WMI)
 - RDP connections
 - Admin share access

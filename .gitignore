@@ -53,3 +53,8 @@ test-image.png
 # Misc
 *.tsbuildinfo
 .cache/
+
+# TLS certs / keys — deployment-specific, never commit private keys
+server.crt
+server.key
+*.pem
