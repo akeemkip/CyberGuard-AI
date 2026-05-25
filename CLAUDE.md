@@ -193,6 +193,20 @@ VITE_API_BASE_URL=/api
 
 ### Client PC setup
 - Installer folder on the server: `C:\Users\Administrator\Desktop\CyberGuard Client Setup\`
-- Contains: `rootCA.pem`, `cyberguard-icon.ico`, `setup-cyberguard-client.bat`, `README.txt`
-- The script self-elevates, imports the mkcert root CA into Windows Trusted Root, adds `10.0.9.1 cyberguard.ai` to the hosts file, and creates a Public Desktop shortcut
-- Every client PC that will use the app must run this script once, otherwise the browser will show "Not secure" and YouTube embeds will fail with Error 153
+- Contains: `rootCA.pem`, `cyberguard-icon.ico`, `setup-cyberguard-client.bat`, `cleanup-industrace-client.bat`, `README.txt`
+- The script self-elevates and is **idempotent** — safe to re-run on a PC that already ran it. It runs 4 steps in one pass:
+  - Imports the mkcert root CA into Windows Trusted Root
+  - Adds the hosts entry `10.0.9.1 cyberguard.ai` (guarded with `findstr` so re-runs don't duplicate)
+  - Copies `cyberguard-icon.ico` to `C:\ProgramData\CyberGuard\`
+  - Creates a Public Desktop shortcut: `CyberGuard AI.url` → `https://cyberguard.ai` (custom icon)
+- Every client PC that will use CyberGuard must run this script once, otherwise the browser will show "Not secure" and YouTube embeds will fail with Error 153
+- Log lands at `C:\ProgramData\CyberGuard\cyberguard-client-setup.log` even if UAC was cancelled
+
+## Co-hosted apps on this server
+
+This server **previously** also hosted **Industrace** — an open-source CMDB for ICS/OT asset management, a separate project NOT part of CyberGuard-AI. **Industrace was decommissioned on 2026-05-20** and is no longer running.
+
+- **Teardown done**: containers + Docker network removed, the `Industrace HTTPS` firewall rule (inbound TCP 8443) removed, Docker Desktop's auto-launch-at-login disabled, and Docker Desktop itself stopped. CyberGuard was untouched and kept serving on 443 throughout.
+- **Deliberately kept on disk** (so a redeploy is cheap if ever needed): the Postgres data volume `industrace_industrace_postgres_data`, all files at `C:\Apps\industrace\`, and the Docker images.
+- **Residual cleanup**: client PCs that ran an older `setup-cyberguard-client.bat` may still carry a `10.0.9.1 industrace.local` hosts entry and an `Industrace` Public Desktop shortcut from when Industrace was live. Run `cleanup-industrace-client.bat` (in the `CyberGuard Client Setup` folder) on those PCs to remove both — it self-elevates, is idempotent, and does not touch CyberGuard. The current setup script no longer adds them to fresh installs.
+- **To redeploy** if ever needed: start Docker Desktop, then from `C:\Apps\industrace` run `docker compose -f docker-compose.prod.yml -f docker-compose.override.yml --env-file .env.prod up -d` (the kept volume reattaches automatically), and re-add the firewall rule with `New-NetFirewallRule -DisplayName "Industrace HTTPS" -Direction Inbound -Protocol TCP -LocalPort 8443 -Action Allow -Profile Any`.
