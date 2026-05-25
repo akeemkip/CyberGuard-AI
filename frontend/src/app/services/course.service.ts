@@ -86,6 +86,7 @@ export interface CreateLessonRequest {
   content: string;
   videoUrl?: string;
   order: number;
+  moduleId?: string | null;
 }
 
 export interface QuizQuestion {

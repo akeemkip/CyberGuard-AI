@@ -4,10 +4,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { RichTextEditor } from "./RichTextEditor";
 import { AdminSidebar } from "./admin-sidebar";
 import { useTheme } from "./theme-provider";
-import courseService, { Lesson } from "../services/course.service";
+import courseService, { Lesson, Module } from "../services/course.service";
 import { ArrowLeft, Save, Loader2, Moon, Sun } from "lucide-react";
 import { marked } from "marked";
 
@@ -153,6 +154,7 @@ export function AdminLessonEdit({ lessonId, userEmail, onNavigate, onLogout }: A
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [courseName, setCourseName] = useState("");
+  const [modules, setModules] = useState<Module[]>([]);
 
   useEffect(() => {
     fetchLesson();
@@ -167,10 +169,11 @@ export function AdminLessonEdit({ lessonId, userEmail, onNavigate, onLogout }: A
       const convertedContent = convertMarkdownToHtml(lessonData.content);
       setLesson({ ...lessonData, content: convertedContent });
 
-      // Fetch course name
+      // Fetch course name and modules (modules feed the Module dropdown below)
       if (lessonData.courseId) {
         const course = await courseService.getCourseById(lessonData.courseId);
         setCourseName(course.title);
+        setModules(course.modules || []);
       }
     } catch (error) {
       console.error("Error fetching lesson:", error);
@@ -194,7 +197,8 @@ export function AdminLessonEdit({ lessonId, userEmail, onNavigate, onLogout }: A
         title: lesson.title,
         content: lesson.content,
         videoUrl: lesson.videoUrl || undefined,
-        order: lesson.order
+        order: lesson.order,
+        moduleId: lesson.moduleId ?? null
       });
 
       toast.success("Lesson updated successfully!");
@@ -349,6 +353,31 @@ export function AdminLessonEdit({ lessonId, userEmail, onNavigate, onLogout }: A
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Position in course sequence
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="lesson-module">Module (optional)</Label>
+                  <Select
+                    value={lesson.moduleId || "none"}
+                    onValueChange={(value) => setLesson({ ...lesson, moduleId: value === "none" ? null : value })}
+                  >
+                    <SelectTrigger id="lesson-module" className="bg-input-background mt-2">
+                      <SelectValue placeholder="Choose a module..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Unorganized (no module)</SelectItem>
+                      {modules.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {modules.length === 0
+                      ? "No modules in this course — create one in the Modules tab"
+                      : "Group this lesson under a module"}
                   </p>
                 </div>
               </div>

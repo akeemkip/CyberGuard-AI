@@ -21,7 +21,8 @@ const createLessonSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
   content: z.string().trim().min(1, 'Content is required'),
   videoUrl: z.string().trim().optional(),
-  order: z.number().int().positive()
+  order: z.number().int().positive(),
+  moduleId: z.string().uuid().nullable().optional()
 });
 
 const updateLessonSchema = createLessonSchema.partial();
@@ -782,6 +783,19 @@ export const createLesson = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Course not found' });
     }
 
+    // If a module is being assigned, verify it exists and belongs to this course
+    if (validatedData.moduleId) {
+      const targetModule = await prisma.module.findUnique({
+        where: { id: validatedData.moduleId }
+      });
+      if (!targetModule) {
+        return res.status(404).json({ error: 'Module not found' });
+      }
+      if (targetModule.courseId !== courseId) {
+        return res.status(400).json({ error: 'Module does not belong to this course' });
+      }
+    }
+
     const lesson = await prisma.lesson.create({
       data: {
         ...validatedData,
@@ -804,6 +818,26 @@ export const updateLesson = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const validatedData = updateLessonSchema.parse(req.body);
+
+    // If moduleId is being changed to a real module, verify it belongs to the lesson's course
+    if (validatedData.moduleId) {
+      const existingLesson = await prisma.lesson.findUnique({
+        where: { id },
+        select: { courseId: true }
+      });
+      if (!existingLesson) {
+        return res.status(404).json({ error: 'Lesson not found' });
+      }
+      const targetModule = await prisma.module.findUnique({
+        where: { id: validatedData.moduleId }
+      });
+      if (!targetModule) {
+        return res.status(404).json({ error: 'Module not found' });
+      }
+      if (targetModule.courseId !== existingLesson.courseId) {
+        return res.status(400).json({ error: 'Module does not belong to this course' });
+      }
+    }
 
     const lesson = await prisma.lesson.update({
       where: { id },
